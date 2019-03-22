@@ -18,14 +18,16 @@ def main():
     start = timer()
     setup(
         name="embed",
-        version='0.0.2',
+        version='0.0.3',
         description='Python utility functions',
         url='https://github.com/adbailey4/python_utils',
         author='Andrew Bailey',
         license='MIT',
         author_email='andbaile@ucsc.com',
         tests_require=["pytest>=4.0.0"],
-        # install_requires=['py3helpers>=0.2.1'],
+        install_requires=['py3helpers>=0.2.1',
+                          'pandas=>=0.24.2',
+                          'h5py=2.9.0'],
         zip_safe=True
     )
 

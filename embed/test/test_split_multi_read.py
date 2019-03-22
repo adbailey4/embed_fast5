@@ -112,12 +112,15 @@ class TestSplitMultiRead(unittest.TestCase):
                       "start_mux": 1,
                       "start_time": 224439}
         self.new_fast5handle.write_signal(np.asarray([10, 20, 30]), attributes)
+        self.assertTrue(self.new_fast5handle[self.new_fast5handle.__default_raw_read__], [10, 20, 30])
 
     def test_write_1d_fastq(self):
         attributes = {"name": "MinKNOW-Live-Basecalling",
                       "time_stamp": "2019-01-23T01:36:38Z",
                       "version": "3.1.18"}
         self.new_fast5handle.write_1d_fastq("@Some_fastq string \n and more data", attributes)
+        self.assertTrue(self.new_fast5handle['/Analyses/Basecall_1D_000/BaseCalled_template/Fastq'],
+                        "@Some_fastq string \n and more data")
 
     def test_write_unique_global_key(self):
         context_tags = {"channel_number": 458,
@@ -126,6 +129,11 @@ class TestSplitMultiRead(unittest.TestCase):
                         "range": 1469.85,
                         "sampling_rate": 4000.0}
         self.new_fast5handle.write_unique_global_key(context_tags, context_tags, context_tags)
+        self.assertTrue(self.new_fast5handle[self.new_fast5handle.__default_global_key__], context_tags)
+
+    @classmethod
+    def tearDownClass(cls):
+        os.unlink(cls.test_create_file)
 
 
 if __name__ == '__main__':

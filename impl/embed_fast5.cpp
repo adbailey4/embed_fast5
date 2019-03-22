@@ -12,11 +12,11 @@
 
 using namespace std;
 
-std::vector< fast5::Basecall_Event > event_table_to_basecalled_table(std::vector< SquiggleEvent > et){
+std::vector< fast5::Basecall_Event > event_table_to_basecalled_table(std::vector< SquiggleEvent > et, double start_time){
 
     std::vector< fast5::Basecall_Event > basecalled_et(et.size());
     for (int i=0; i < et.size() ; i++){
-        basecalled_et[i].start = et[i].start_time;
+        basecalled_et[i].start = et[i].start_time + start_time;
         basecalled_et[i].length = (double)  et[i].duration;
         basecalled_et[i].mean = (double) et[i].mean;
         basecalled_et[i].stdv = (double) et[i].stdv;
@@ -39,7 +39,19 @@ std::vector< fast5::Basecall_Event > generate_basecall_table(SquiggleRead& read)
 //
     const Alphabet* alphabet = read.base_model[0]->pmalphabet;
 //    generate empty basecall table to fill
-    auto basecall_table = event_table_to_basecalled_table(read.events[0]);
+
+    fast5::File f_p;
+    f_p.open(read.fast5_path);
+    auto& sample_read_names = f_p.get_raw_samples_read_name_list();
+    if(sample_read_names.empty()) {
+        fprintf(stderr, "Error, no raw samples found\n");
+        exit(EXIT_FAILURE);
+    }
+    // we assume the first raw sample read is the one we're after
+    std::string sample_read_name = sample_read_names.front();
+    double sample_start_time = f_p.get_raw_samples_params(sample_read_name).start_time / f_p.get_sampling_rate();
+//    sp_param["channel_info"]["sampling_rate"]).astype(np.int64)
+    auto basecall_table = event_table_to_basecalled_table(read.events[0], sample_start_time);
     int prev_ref_index = alignment[0].ref_position;
 
     for(int i=0; i < alignment.size() ; i++){
@@ -65,7 +77,7 @@ std::vector< fast5::Basecall_Event > generate_basecall_table(SquiggleRead& read)
 }
 
 
-void embed_single_read(ReadDB read_db, std::string read_id, std::string fast5_path){
+void embed_single_read(const ReadDB& read_db, std::string read_id, std::string fast5_path){
     SquiggleRead sr(read_id, read_db);
 
     auto data = generate_basecall_table(sr);
@@ -78,7 +90,7 @@ void embed_single_read(ReadDB read_db, std::string read_id, std::string fast5_pa
 
 
 // basically a replica of ReadDB::load but I want access to the private data
-void embed_using_readdb(const std::string& input_reads_filename, ReadDB read_db)
+void embed_using_readdb(const std::string& input_reads_filename, const ReadDB& read_db)
 {
 
     // generate input filenames
@@ -92,13 +104,12 @@ void embed_using_readdb(const std::string& input_reads_filename, ReadDB read_db)
         while(getline(in_file, line)) {
             std::vector<std::string> fields = split(line, '\t');
 
-            std::string name = "";
-            std::string path = "";
+            static std::string name = "";
+            static std::string path = "";
             if(fields.size() == 2) {
                 name = fields[0];
                 path = fields[1];
                 embed_single_read(read_db, name, path);
-
             }
         }
     }
@@ -193,6 +204,13 @@ int embed_fast5_main(int argc, char** argv)
     parse_embed_main_options(argc, argv);
     ReadDB read_db;
     read_db.load(opt::reads_file);
+
+//    cout << read_db.get_read_sequence("00087eac-80d1-4328-b755-24f4b192c7d0") << '\n';
+//    cout << read_db.get_read_sequence("0037480f-176e-44b7-bd11-c23124837596") << '\n';
+//    cout << read_db.get_read_sequence("0052794f-313f-4b93-9063-7fdb0f79d23c") << '\n';
+//    cout << read_db.get_read_sequence("002f9702-c19e-48c2-8e72-9021adbd4a48") << '\n';
+//    cout << read_db.get_read_sequence("002625e8-9a2e-411c-99a7-ee3fa6b9eef1") << '\n';
+//    cout << read_db.get_read_sequence("002625e8-9a2e-411c-99a7-ee3fa6b9eef1") << '\n';
 
     embed_using_readdb(opt::reads_file, read_db);
 

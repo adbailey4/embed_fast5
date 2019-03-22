@@ -74,7 +74,6 @@ def call_nanopolish_index(nanopolish_dir, output_dir, fastq):
     nanopolish_path = os.path.join(nanopolish_dir, "nanopolish")
     assert os.path.exists(nanopolish_path), "Nanopolish does not exist in directory {}".format(nanopolish_dir)
     nanopolish_command = nanopolish_path + " index -d {output_dir} {fastq}".format(output_dir=output_dir, fastq=fastq)
-
     try:
         command = nanopolish_command.split()
         proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

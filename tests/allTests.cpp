@@ -14,6 +14,7 @@
 #define EMPTY_FAST5 "../tests/test_files/empty_tester.fast5"
 #define SIGNAL_FAST5 "../tests/test_files/just_signal.fast5"
 #define NO_FAST5 "../tests/test_files/non_existent.fast5"
+#define NO_EVENT "../tests/test_files/new_individual_files/read_002f9702-c19e-48c2-8e72-9021adbd4a48.fast5"
 
 using namespace boost::filesystem;
 using namespace std;
@@ -53,7 +54,7 @@ TEST (Fast5AccessTest, hasRequiredFields) {
 
 }
 
-TEST (Fast5GetSubset, test_copyFile){
+TEST (Fast5AccessTest, test_copyFile){
     EXPECT_TRUE(is_regular_file(EMPTY_FAST5));
     EXPECT_TRUE(fast5::File::is_valid_file(EMPTY_FAST5));
 
@@ -85,7 +86,7 @@ TEST (Fast5AccessTest, test_addChannelParams) {
     remove(NO_FAST5);
 }
 
-TEST (Fast5AccessTest, test_addBasecalledGroup) {
+TEST (Fast5WriteTests, test_addBasecalledGroup) {
 //    crete test file
     copy_file(EMPTY_FAST5, NO_FAST5);
 
@@ -113,7 +114,7 @@ TEST (Fast5AccessTest, test_addBasecalledGroup) {
     remove(NO_FAST5);
 }
 
-TEST (Fast5AccessTest, test_event_table_to_basecalled_table) {
+TEST (Fast5WriteTests, test_event_table_to_basecalled_table) {
 //    crete test file
     copy_file(EMPTY_FAST5, NO_FAST5);
 
@@ -127,7 +128,7 @@ TEST (Fast5AccessTest, test_event_table_to_basecalled_table) {
     unsigned basecall_group_number = 0;
 
     string read_db_path("../tests/test_files/new_individual_files/new_individual.fastq");
-    string test_read("../tests/test_files/new_individual_files/read_002f9702-c19e-48c2-8e72-9021adbd4a48.fast5");
+    string test_read(NO_EVENT);
     string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
 
 
@@ -135,7 +136,7 @@ TEST (Fast5AccessTest, test_event_table_to_basecalled_table) {
     read_db.load(read_db_path);
 
     SquiggleRead sr(read_id, read_db);
-    auto basecall_table = event_table_to_basecalled_table(sr.events[0]);
+    auto basecall_table = event_table_to_basecalled_table(sr.events[0], 10);
 
     emtpy_f.add_basecall_events(basecall_group_number, basecall_groups[0], basecall_table);
 
@@ -145,7 +146,7 @@ TEST (Fast5AccessTest, test_event_table_to_basecalled_table) {
     remove(NO_FAST5);
 }
 
-TEST (Fast5AccessTest, test_generate_basecall_table) {
+TEST (Fast5WriteTests, test_generate_basecall_table) {
 //    crete test file
     copy_file(EMPTY_FAST5, NO_FAST5);
 
@@ -159,7 +160,7 @@ TEST (Fast5AccessTest, test_generate_basecall_table) {
     unsigned basecall_group_number = 0;
 
     string read_db_path("../tests/test_files/new_individual_files/new_individual.fastq");
-    string test_read("../tests/test_files/new_individual_files/read_002f9702-c19e-48c2-8e72-9021adbd4a48.fast5");
+    string test_read(NO_EVENT);
     string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
 
 
@@ -177,7 +178,21 @@ TEST (Fast5AccessTest, test_generate_basecall_table) {
     remove(NO_FAST5);
 }
 
+TEST (Fast5EmbedTests, test_embed_using_readdb) {
+//    crete test file
+    copy_file(NO_EVENT, NO_FAST5);
 
+    const string read_db_path("../tests/test_files/test_readdb/new_individual.fastq");
+    string test_read(NO_EVENT);
+    string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
+
+    ReadDB read_db;
+    read_db.load(read_db_path);
+
+    embed_single_read(read_db, read_id, NO_FAST5);
+
+    remove(NO_FAST5);
+}
 
 
 int main(int argc, char **argv) {

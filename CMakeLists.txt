@@ -55,12 +55,16 @@ set(Boost_USE_MULTITHREADED      OFF)
 set(NANOPOLISH_HOME "none" CACHE STRING "Some user-specified option")
 
 find_package(Boost COMPONENTS system date_time filesystem iostreams REQUIRED)
-find_package(hdf5 1.10)
+find_package(hdf5 1.10 REQUIRED)
+find_package(Eigen3 3.3 REQUIRED)
+
 
 include_directories(${Boost_INCLUDE_DIRS})
-#include_directories(${HDF5_INCLUDE_DIRS})
-#
-#message("${HDF5_INCLUDE_DIRS}")
+include_directories(${HDF5_INCLUDE_DIRS})
+include_directories(${Eigen3_INCLUDE_DIRS})
+
+message("${Eigen3_INCLUDE_DIRS}")
+message("${HDF5_INCLUDE_DIRS}")
 
 link_directories(/usr/local/lib)
 
@@ -75,7 +79,6 @@ include_directories(${NANOPOLISH_HOME}/src/pore_model)
 include_directories(${NANOPOLISH_HOME}/src/test)
 include_directories(${NANOPOLISH_HOME}/src/thirdparty)
 include_directories(${NANOPOLISH_HOME}/src/thirdparty/scrappie)
-include_directories(${NANOPOLISH_HOME}/eigen)
 include_directories(${NANOPOLISH_HOME}/src)
 include_directories(/usr/local/include)
 
@@ -116,7 +119,6 @@ set(nanopolish_source
         ${NANOPOLISH_HOME}/src/pore_model/nanopolish_pore_model_set.cpp
         ${NANOPOLISH_HOME}/src/pore_model/nanopolish_model_names.cpp
         ${NANOPOLISH_HOME}/src/training_core.cpp
-        ${NANOPOLISH_HOME}/src/thirdparty/scrappie/util.c
         ${NANOPOLISH_HOME}/src/thirdparty/scrappie/scrappie_common.c
         ${NANOPOLISH_HOME}/src/thirdparty/scrappie/event_detection.c
         ${NANOPOLISH_HOME}/src/thirdparty/stdaln.c)
@@ -134,7 +136,7 @@ set(MAIN_CPP main.cpp)
 
 
 add_executable(main_cpp ${MAIN_CPP} ${nanopolish_source} ${SOURCE_CPP} ${CPP_HEADERS})
-target_link_libraries(main_cpp ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread -lhdf5)
+target_link_libraries(main_cpp ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread ${HDF5_LIBRARIES} Eigen3::Eigen)
 #message(${Boost_SYSTEM_LIBRARIES})
 
 #message(${Boost_LIBRARIES})
@@ -142,6 +144,5 @@ target_link_libraries(main_cpp ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz 
 #message(${Boost_FILESYSTEM})
 
 add_executable(test_cpp ${TEST_CPP} ${SOURCE_CPP} ${CPP_HEADERS} ${nanopolish_source})
-target_link_libraries(test_cpp -lhdf5 gtest_main ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread)
+target_link_libraries(test_cpp -lhdf5 gtest_main ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread Eigen3::Eigen)
 add_test(run_tests test_cpp)
-

@@ -55,16 +55,28 @@ set(Boost_USE_MULTITHREADED      OFF)
 set(NANOPOLISH_HOME "none" CACHE STRING "Some user-specified option")
 
 find_package(Boost COMPONENTS system date_time filesystem iostreams REQUIRED)
-find_package(hdf5 1.10 REQUIRED)
+find_package(HDF5 1.10 REQUIRED)
+message("${HDF5_INCLUDE_DIRS}")
+message("${HDF5_LIBRARIES}")
 find_package(Eigen3 3.3 REQUIRED)
+
+find_path(HTSLIB_INCLUDE_DIR htslib/hts.h
+        HINTS "${NANOPOLISH_HOME}/htslib")
+
+find_library(HTSLIB_LIBRARY NAMES libhts.a
+        HINTS "${NANOPOLISH_HOME}/htslib")
+
+set(HTSLIB_LIBRARIES ${HTSLIB_LIBRARY} )
+set(HTSLIB_INCLUDE_DIRS ${HTSLIB_INCLUDE_DIR} )
+
+message("${HTSLIB_LIBRARIES}")
+message("${HTSLIB_INCLUDE_DIRS}")
 
 
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${HDF5_INCLUDE_DIRS})
 include_directories(${Eigen3_INCLUDE_DIRS})
 
-message("${Eigen3_INCLUDE_DIRS}")
-message("${HDF5_INCLUDE_DIRS}")
 
 link_directories(/usr/local/lib)
 
@@ -136,13 +148,12 @@ set(MAIN_CPP main.cpp)
 
 
 add_executable(main_cpp ${MAIN_CPP} ${nanopolish_source} ${SOURCE_CPP} ${CPP_HEADERS})
-target_link_libraries(main_cpp ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread ${HDF5_LIBRARIES} Eigen3::Eigen)
-#message(${Boost_SYSTEM_LIBRARIES})
-
-#message(${Boost_LIBRARIES})
-
-#message(${Boost_FILESYSTEM})
+target_link_libraries(main_cpp ${HDF5_LIBRARIES} ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread Eigen3::Eigen)
 
 add_executable(test_cpp ${TEST_CPP} ${SOURCE_CPP} ${CPP_HEADERS} ${nanopolish_source})
-target_link_libraries(test_cpp -lhdf5 gtest_main ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread Eigen3::Eigen)
-add_test(run_tests test_cpp)
+target_link_libraries(test_cpp ${HDF5_LIBRARIES} gtest_main ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread Eigen3::Eigen)
+
+enable_testing()
+add_test(cpp_tests test_cpp ${CMAKE_SOURCE_DIR})
+add_test(NAME python_tests COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/embed/test/test_split_multi_read.py
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})

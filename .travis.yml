@@ -27,7 +27,7 @@ install:
   - cd ..
   - git clone --recursive https://github.com/jts/nanopolish.git
   - cd nanopolish
-  - make HDF5=noinstall EIGEN=noinstall
+  - make HDF5=noinstall
   - cd ..
   - cd embed_fast5
   - mkdir build

@@ -26,8 +26,8 @@ def main():
         author_email='andbaile@ucsc.com',
         tests_require=["pytest>=4.0.0"],
         install_requires=['py3helpers>=0.2.1',
-                          'pandas=>=0.24.2',
-                          'h5py=2.9.0'],
+                          'pandas>=0.24.2',
+                          'h5py>=2.9.0'],
         zip_safe=True
     )
 

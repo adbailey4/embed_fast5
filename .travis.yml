@@ -30,7 +30,7 @@ install:
   - cd embed_fast5
   - mkdir build
   - cd build
-  - cmake ../
+  - cmake -DNANOPOLISH_HOME:STRING=../../nanopolish ../
   - make
   - ./test_cpp
   - python setup.py install

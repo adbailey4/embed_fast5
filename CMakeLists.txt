@@ -5,7 +5,7 @@ set(CMAKE_C_STANDARD 99)
 
 SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -fopenmp -fsigned-char")
+SET(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-3")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -gdwarf-3")
@@ -55,42 +55,58 @@ set(Boost_USE_MULTITHREADED      OFF)
 set(NANOPOLISH_HOME "none" CACHE STRING "Some user-specified option")
 
 find_package(Boost COMPONENTS system date_time filesystem iostreams REQUIRED)
-find_package(HDF5 1.8 REQUIRED)
-message("${HDF5_INCLUDE_DIRS}")
-message("${HDF5_LIBRARIES}")
+#find_package(hdf5 1.8 REQUIRED HINTS
+#        ${CMAKE_INSTALL_PREFIX}/include
+#        )
 
-find_path(EIGEN3_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
-        PATHS
+find_library(HDF5_LIBRARIES libhdf5.a
+        HINTS "${NANOPOLISH_HOME}/lib"
+        ${CMAKE_INSTALL_PREFIX}/lib
+        /usr/lib)
+
+find_path(HDF5_INCLUDE_DIRS htslib/hts.h
+        HINTS ${HTSLIB_LIBRARY}
         ${CMAKE_INSTALL_PREFIX}/include
-        ${KDE4_INCLUDE_DIR} /usr/include
-        ${NANOPOLISH_HOME}
-        PATH_SUFFIXES eigen3 eigen
-        )
-message("${CMAKE_INSTALL_PREFIX}")
-message("${EIGEN3_INCLUDE_DIR}")
+        /usr/include)
 
-find_path(HTSLIB_INCLUDE_DIR htslib/hts.h
-        HINTS "${NANOPOLISH_HOME}/htslib")
+
+message("CMakeInstall Prefix: ${CMAKE_INSTALL_PREFIX}")
+message(Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS})
+message(HDF5_INCLUDE_DIRS: "${HDF5_INCLUDE_DIRS}")
+message(HDF5_LIBRARIES: "${HDF5_LIBRARIES}")
+
+find_path(EIGEN3_INCLUDE_DIR eigen HINTS
+        ${CMAKE_INSTALL_PREFIX}/include
+        ${NANOPOLISH_HOME}
+        PATH_SUFFIXES eigen3 eigen)
+
+message(EIGEN3_INCLUDE_DIR: "${EIGEN3_INCLUDE_DIR}")
 
 find_library(HTSLIB_LIBRARY NAMES libhts.a
-        HINTS "${NANOPOLISH_HOME}/htslib")
+        HINTS "${NANOPOLISH_HOME}/htslib"
+        ${CMAKE_INSTALL_PREFIX}/include)
+
+find_path(HTSLIB_INCLUDE_DIR htslib/hts.h
+        HINTS ${HTSLIB_LIBRARY}
+        ${CMAKE_INSTALL_PREFIX}/include
+        /usr/include)
+
 
 set(HTSLIB_LIBRARIES ${HTSLIB_LIBRARY} )
 set(HTSLIB_INCLUDE_DIRS ${HTSLIB_INCLUDE_DIR} )
 
-message("${HTSLIB_LIBRARIES}")
-message("${HTSLIB_INCLUDE_DIRS}")
+message(HTSLIB_LIBRARIES: "${HTSLIB_LIBRARIES}")
+message(HTSLIB_INCLUDE_DIRS: "${HTSLIB_INCLUDE_DIRS}")
 
+include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${HTSLIB_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${HDF5_INCLUDE_DIRS})
 include_directories(${Eigen3_INCLUDE_DIRS})
 
-
 link_directories(/usr/local/lib)
 link_directories(/usr/lib)
 
-include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/inc)
 include_directories(${CMAKE_SOURCE_DIR}/fast5/include)
 include_directories(${CMAKE_SOURCE_DIR}/fast5/include/fast5)
@@ -105,6 +121,8 @@ include_directories(${NANOPOLISH_HOME}/src/thirdparty/scrappie)
 include_directories(${NANOPOLISH_HOME}/src)
 include_directories(/usr/local/include)
 include_directories(/usr/include)
+
+
 
 set(nanopolish_source
         ${NANOPOLISH_HOME}/src/nanopolish_call_variants.cpp
@@ -160,10 +178,10 @@ set(MAIN_CPP main.cpp)
 
 
 add_executable(main_cpp ${MAIN_CPP} ${nanopolish_source} ${SOURCE_CPP} ${CPP_HEADERS})
-target_link_libraries(main_cpp ${HDF5_LIBRARIES} ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm ${HTSLIB_LIBRARIES} -ldl -lpthread)
+target_link_libraries(main_cpp ${HDF5_LIBRARIES} ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread)
 
 add_executable(test_cpp ${TEST_CPP} ${SOURCE_CPP} ${CPP_HEADERS} ${nanopolish_source})
-target_link_libraries(test_cpp ${HDF5_LIBRARIES} gtest_main ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm ${HTSLIB_LIBRARIES} -ldl -lpthread)
+target_link_libraries(test_cpp ${HDF5_LIBRARIES} gtest_main ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread)
 
 enable_testing()
 add_test(cpp_tests test_cpp ${CMAKE_SOURCE_DIR})

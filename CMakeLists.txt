@@ -76,7 +76,7 @@ message(Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS})
 message(HDF5_INCLUDE_DIRS: "${HDF5_INCLUDE_DIRS}")
 message(HDF5_LIBRARIES: "${HDF5_LIBRARIES}")
 
-find_path(EIGEN3_INCLUDE_DIR eigen HINTS
+find_path(EIGEN3_INCLUDE_DIR Eigen HINTS
         ${CMAKE_INSTALL_PREFIX}/include
         ${NANOPOLISH_HOME}
         PATH_SUFFIXES eigen3 eigen)

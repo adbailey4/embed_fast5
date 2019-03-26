@@ -65,7 +65,8 @@ find_library(HDF5_LIBRARIES libhdf5.a
         /usr/lib)
 
 find_path(HDF5_INCLUDE_DIRS hdf5.h
-        HINTS ${HTSLIB_LIBRARY}
+        HINTS ${HDF5_LIBRARIES}
+        "${NANOPOLISH_HOME}/include"
         ${CMAKE_INSTALL_PREFIX}/include
         /usr/include)
 
@@ -89,6 +90,7 @@ find_library(HTSLIB_LIBRARY NAMES libhts.a
 find_path(HTSLIB_INCLUDE_DIR htslib/hts.h
         HINTS ${HTSLIB_LIBRARY}
         ${CMAKE_INSTALL_PREFIX}/include
+        "${NANOPOLISH_HOME}/htslib"
         /usr/include)
 
 

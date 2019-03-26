@@ -55,7 +55,7 @@ set(Boost_USE_MULTITHREADED      OFF)
 set(NANOPOLISH_HOME "none" CACHE STRING "Some user-specified option")
 
 find_package(Boost COMPONENTS system date_time filesystem iostreams REQUIRED)
-find_package(HDF5 1.10 REQUIRED)
+find_package(HDF5 1.8 REQUIRED)
 message("${HDF5_INCLUDE_DIRS}")
 message("${HDF5_LIBRARIES}")
 find_package(Eigen3 3.3 REQUIRED)

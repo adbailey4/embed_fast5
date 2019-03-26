@@ -189,3 +189,4 @@ enable_testing()
 add_test(cpp_tests test_cpp ${CMAKE_SOURCE_DIR})
 add_test(NAME python_tests COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/embed/test/test_split_multi_read.py
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)

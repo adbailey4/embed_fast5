@@ -58,7 +58,7 @@ find_package(Boost COMPONENTS system date_time filesystem iostreams REQUIRED)
 find_package(HDF5 1.8 REQUIRED)
 message("${HDF5_INCLUDE_DIRS}")
 message("${HDF5_LIBRARIES}")
-find_package(Eigen3 3.3 REQUIRED)
+find_package(Eigen3 3.3 REQUIRED HINTS "${NANOPOLISH_HOME}/eigen")
 
 find_path(HTSLIB_INCLUDE_DIR htslib/hts.h
         HINTS "${NANOPOLISH_HOME}/htslib")

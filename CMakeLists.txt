@@ -58,6 +58,14 @@ find_package(Boost COMPONENTS system date_time filesystem iostreams REQUIRED)
 find_package(HDF5 1.8 REQUIRED)
 message("${HDF5_INCLUDE_DIRS}")
 message("${HDF5_LIBRARIES}")
+
+find_path(EIGEN3_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
+        PATHS
+        ${CMAKE_INSTALL_PREFIX}/include
+        ${KDE4_INCLUDE_DIR}
+        PATH_SUFFIXES eigen3 eigen
+        )
+message("${CMAKE_INSTALL_PREFIX}")
 find_package(Eigen3 3.2.0 REQUIRED NO_MODULE HINTS "${NANOPOLISH_HOME}/eigen")
 message("${EIGEN3_INCLUDE_DIR}")
 

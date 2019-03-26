@@ -10,14 +10,24 @@
 #include "nanopolish_read_db.h"
 #include <boost/filesystem.hpp>
 
-#define ORIGINAL_FAST5 "../tests/test_files/DEAMERNANOPORE_20161117_FNFAB43577_MN16450_mux_scan_MA_821_R9_4_NA12878_11_17_16_95723_ch458_read26_strand.fast5"
-#define EMPTY_FAST5 "../tests/test_files/empty_tester.fast5"
-#define SIGNAL_FAST5 "../tests/test_files/just_signal.fast5"
-#define NO_FAST5 "../tests/test_files/non_existent.fast5"
-#define NO_EVENT "../tests/test_files/new_individual_files/read_002f9702-c19e-48c2-8e72-9021adbd4a48.fast5"
+#define ORIGINAL_FAST51 "/tests/test_files/DEAMERNANOPORE_20161117_FNFAB43577_MN16450_mux_scan_MA_821_R9_4_NA12878_11_17_16_95723_ch458_read26_strand.fast5"
+#define EMPTY_FAST51 "/tests/test_files/empty_tester.fast5"
+#define SIGNAL_FAST51 "/tests/test_files/just_signal.fast5"
+#define NO_FAST51 "/tests/test_files/non_existent.fast5"
+#define NO_EVENT1 "/tests/test_files/new_individual_files/read_002f9702-c19e-48c2-8e72-9021adbd4a48.fast5"
+#define READ_DB1 "/tests/test_files/new_individual_files/new_individual.fastq"
 
 using namespace boost::filesystem;
 using namespace std;
+
+string HOME = "This is not a path";
+string ORIGINAL_FAST5 = ORIGINAL_FAST51;
+string EMPTY_FAST5 = EMPTY_FAST51;
+string SIGNAL_FAST5 = SIGNAL_FAST51;
+string NO_EVENT = NO_EVENT1;
+string NO_FAST5 = NO_FAST51;
+string READ_DB = READ_DB1;
+
 
 TEST (Fast5AccessTest, isValidFile) {
     EXPECT_TRUE(fast5::File::is_valid_file(ORIGINAL_FAST5));
@@ -111,6 +121,8 @@ TEST (Fast5WriteTests, test_addBasecalledGroup) {
     EXPECT_TRUE(emtpy_f.have_basecall_group());
     EXPECT_EQ(original_f.get_basecall_group_list()[0], basecall_groups[0]);
 //    remove test file
+    emtpy_f.close();
+    original_f.close();
     remove(NO_FAST5);
 }
 
@@ -127,7 +139,7 @@ TEST (Fast5WriteTests, test_event_table_to_basecalled_table) {
     auto basecall_groups = original_f.get_basecall_group_list();
     unsigned basecall_group_number = 0;
 
-    string read_db_path("../tests/test_files/new_individual_files/new_individual.fastq");
+    string read_db_path(READ_DB);
     string test_read(NO_EVENT);
     string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
 
@@ -143,6 +155,8 @@ TEST (Fast5WriteTests, test_event_table_to_basecalled_table) {
     EXPECT_TRUE(emtpy_f.have_basecall_group());
     EXPECT_EQ(original_f.get_basecall_group_list()[0], basecall_groups[0]);
 //    remove test file
+    emtpy_f.close();
+    original_f.close();
     remove(NO_FAST5);
 }
 
@@ -159,7 +173,7 @@ TEST (Fast5WriteTests, test_generate_basecall_table) {
     auto basecall_groups = original_f.get_basecall_group_list();
     unsigned basecall_group_number = 0;
 
-    string read_db_path("../tests/test_files/new_individual_files/new_individual.fastq");
+    string read_db_path(READ_DB);
     string test_read(NO_EVENT);
     string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
 
@@ -182,7 +196,7 @@ TEST (Fast5EmbedTests, test_embed_using_readdb) {
 //    crete test file
     copy_file(NO_EVENT, NO_FAST5);
 
-    const string read_db_path("../tests/test_files/test_readdb/new_individual.fastq");
+    const string read_db_path(READ_DB);
     string test_read(NO_EVENT);
     string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
 
@@ -196,6 +210,22 @@ TEST (Fast5EmbedTests, test_embed_using_readdb) {
 
 
 int main(int argc, char **argv) {
+    H5Eset_auto(0, nullptr, nullptr);
+    HOME = argv[1];
+    cout << HOME << '\n';
+    ORIGINAL_FAST5 = HOME + ORIGINAL_FAST5;
+    EMPTY_FAST5 = HOME + EMPTY_FAST5;
+    SIGNAL_FAST5 = HOME + SIGNAL_FAST5;
+    NO_EVENT = HOME + NO_EVENT;
+    NO_FAST5 = HOME + NO_FAST5;
+    READ_DB = HOME + READ_DB;
+
+    cout << ORIGINAL_FAST5 << '\n';
+    cout << EMPTY_FAST5 << '\n';
+    cout << SIGNAL_FAST5 << '\n';
+    cout << NO_EVENT << '\n';
+    cout << READ_DB << '\n';
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

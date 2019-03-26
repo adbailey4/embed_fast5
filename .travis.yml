@@ -10,8 +10,9 @@ notifications: # set notification options
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install libhdf5-serial-dev libbz2-dev zlib1g-dev autotools-dev autoconf
-
+  - sudo apt-get install libhdf5-dev libbz2-dev zlib1g-dev autotools-dev autoconf cmake
+  - sudo apt-get install libboost-all-dev libeigen3-dev curl liblzma-dev
+  -
 install:
   - sudo apt-get update
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
@@ -22,19 +23,19 @@ install:
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda config --set always_yes yes --set changeps1 no
-  - conda install pytest
+  - pwd
+  - cd ..
   - git clone --recursive https://github.com/jts/nanopolish.git
   - cd nanopolish
-  - make
+  - make HDF5=noinstall
   - cd ..
   - cd embed_fast5
-  - mkdir build
-  - cd build
-  - cmake -DNANOPOLISH_HOME:STRING=../../nanopolish ../
-  - make
-  - ./test_cpp
   - python setup.py install
+  - mkdir cmake-build
+  - cd cmake-build
+  - cmake -DNANOPOLISH_HOME:STRING=../nanopolish ../
+  - make
 
 
 script:
-  - pytest
+  - make check

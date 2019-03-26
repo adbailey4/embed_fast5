@@ -5,7 +5,7 @@
 #  executablgite: setup.py
 #
 # Author: Andrew Bailey
-# History: 12/09/17 Created
+# History: 3/21/19 Created
 ########################################################################
 
 import sys
@@ -19,12 +19,12 @@ def main():
     setup(
         name="embed",
         version='0.0.3',
-        description='Python utility functions',
-        url='https://github.com/adbailey4/python_utils',
+        description='Embed fast5 with event table from nanopolish model',
+        url='https://github.com/adbailey4/embed_fast5',
         author='Andrew Bailey',
         license='MIT',
+        packages=['embed'],
         author_email='andbaile@ucsc.com',
-        tests_require=["pytest>=4.0.0"],
         install_requires=['py3helpers>=0.2.1',
                           'pandas>=0.24.2',
                           'h5py>=2.9.0'],

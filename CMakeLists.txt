@@ -64,7 +64,7 @@ find_library(HDF5_LIBRARIES libhdf5.a
         ${CMAKE_INSTALL_PREFIX}/lib
         /usr/lib)
 
-find_path(HDF5_INCLUDE_DIRS htslib/hts.h
+find_path(HDF5_INCLUDE_DIRS hdf5.h
         HINTS ${HTSLIB_LIBRARY}
         ${CMAKE_INSTALL_PREFIX}/include
         /usr/include)

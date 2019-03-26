@@ -58,7 +58,8 @@ find_package(Boost COMPONENTS system date_time filesystem iostreams REQUIRED)
 find_package(HDF5 1.8 REQUIRED)
 message("${HDF5_INCLUDE_DIRS}")
 message("${HDF5_LIBRARIES}")
-find_package(Eigen3 3.2 REQUIRED HINTS "${NANOPOLISH_HOME}")
+find_package(Eigen3 3.2.0 REQUIRED NO_MODULE HINTS "${NANOPOLISH_HOME}/eigen")
+message("${EIGEN3_INCLUDE_DIR}")
 
 find_path(HTSLIB_INCLUDE_DIR htslib/hts.h
         HINTS "${NANOPOLISH_HOME}/htslib")
@@ -79,7 +80,9 @@ include_directories(${Eigen3_INCLUDE_DIRS})
 
 
 link_directories(/usr/local/lib)
+link_directories(/usr/lib)
 
+include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/inc)
 include_directories(${CMAKE_SOURCE_DIR}/fast5/include)
 include_directories(${CMAKE_SOURCE_DIR}/fast5/include/fast5)
@@ -93,6 +96,7 @@ include_directories(${NANOPOLISH_HOME}/src/thirdparty)
 include_directories(${NANOPOLISH_HOME}/src/thirdparty/scrappie)
 include_directories(${NANOPOLISH_HOME}/src)
 include_directories(/usr/local/include)
+include_directories(/usr/include)
 
 set(nanopolish_source
         ${NANOPOLISH_HOME}/src/nanopolish_call_variants.cpp

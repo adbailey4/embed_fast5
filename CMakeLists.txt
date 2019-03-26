@@ -67,7 +67,6 @@ find_path(EIGEN3_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
         PATH_SUFFIXES eigen3 eigen
         )
 message("${CMAKE_INSTALL_PREFIX}")
-find_package(Eigen3 3.2.0 REQUIRED NO_MODULE HINTS "${NANOPOLISH_HOME}/eigen")
 message("${EIGEN3_INCLUDE_DIR}")
 
 find_path(HTSLIB_INCLUDE_DIR htslib/hts.h
@@ -161,10 +160,10 @@ set(MAIN_CPP main.cpp)
 
 
 add_executable(main_cpp ${MAIN_CPP} ${nanopolish_source} ${SOURCE_CPP} ${CPP_HEADERS})
-target_link_libraries(main_cpp ${HDF5_LIBRARIES} ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread Eigen3::Eigen)
+target_link_libraries(main_cpp ${HDF5_LIBRARIES} ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread)
 
 add_executable(test_cpp ${TEST_CPP} ${SOURCE_CPP} ${CPP_HEADERS} ${nanopolish_source})
-target_link_libraries(test_cpp ${HDF5_LIBRARIES} gtest_main ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread Eigen3::Eigen)
+target_link_libraries(test_cpp ${HDF5_LIBRARIES} gtest_main ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread)
 
 enable_testing()
 add_test(cpp_tests test_cpp ${CMAKE_SOURCE_DIR})

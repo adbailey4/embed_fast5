@@ -121,6 +121,8 @@ TEST (Fast5WriteTests, test_addBasecalledGroup) {
     EXPECT_TRUE(emtpy_f.have_basecall_group());
     EXPECT_EQ(original_f.get_basecall_group_list()[0], basecall_groups[0]);
 //    remove test file
+    emtpy_f.close();
+    original_f.close();
     remove(NO_FAST5);
 }
 
@@ -153,6 +155,8 @@ TEST (Fast5WriteTests, test_event_table_to_basecalled_table) {
     EXPECT_TRUE(emtpy_f.have_basecall_group());
     EXPECT_EQ(original_f.get_basecall_group_list()[0], basecall_groups[0]);
 //    remove test file
+    emtpy_f.close();
+    original_f.close();
     remove(NO_FAST5);
 }
 

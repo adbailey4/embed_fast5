@@ -1,5 +1,5 @@
-00087eac-80d1-4328-b755-24f4b192c7d0	/Users/andrewbailey/CLionProjects/embed_fast5/tests/test_files/new_individual_files/read_00087eac-80d1-4328-b755-24f4b192c7d0.fast5
-002625e8-9a2e-411c-99a7-ee3fa6b9eef1	/Users/andrewbailey/CLionProjects/embed_fast5/tests/test_files/new_individual_files/read_002625e8-9a2e-411c-99a7-ee3fa6b9eef1.fast5
-002f9702-c19e-48c2-8e72-9021adbd4a48	/Users/andrewbailey/CLionProjects/embed_fast5/tests/test_files/new_individual_files/read_002f9702-c19e-48c2-8e72-9021adbd4a48.fast5
-0037480f-176e-44b7-bd11-c23124837596	/Users/andrewbailey/CLionProjects/embed_fast5/tests/test_files/new_individual_files/read_0037480f-176e-44b7-bd11-c23124837596.fast5
-0052794f-313f-4b93-9063-7fdb0f79d23c	/Users/andrewbailey/CLionProjects/embed_fast5/tests/test_files/new_individual_files/read_0052794f-313f-4b93-9063-7fdb0f79d23c.fast5
+00087eac-80d1-4328-b755-24f4b192c7d0	../tests/test_files/new_individual_files/read_00087eac-80d1-4328-b755-24f4b192c7d0.fast5
+002625e8-9a2e-411c-99a7-ee3fa6b9eef1	../tests/test_files/new_individual_files/read_002625e8-9a2e-411c-99a7-ee3fa6b9eef1.fast5
+002f9702-c19e-48c2-8e72-9021adbd4a48	../tests/test_files/new_individual_files/read_002f9702-c19e-48c2-8e72-9021adbd4a48.fast5
+0037480f-176e-44b7-bd11-c23124837596	../tests/test_files/new_individual_files/read_0037480f-176e-44b7-bd11-c23124837596.fast5
+0052794f-313f-4b93-9063-7fdb0f79d23c	../tests/test_files/new_individual_files/read_0052794f-313f-4b93-9063-7fdb0f79d23c.fast5

@@ -25,7 +25,7 @@ install:
   - pwd
   - cd /usr/include
   - ls
-  - cd
+  - cd /home/travis/build/adbailey4/
   - git clone --recursive https://github.com/jts/nanopolish.git
   - cd nanopolish
   - make HDF5=noinstall

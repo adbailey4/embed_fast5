@@ -23,12 +23,13 @@ install:
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda config --set always_yes yes --set changeps1 no
+  - pwd
+  - cd ..
   - git clone --recursive https://github.com/jts/nanopolish.git
   - cd nanopolish
   - make HDF5=noinstall
   - cd ..
   - cd embed_fast5
-  - which python
   - python setup.py install
   - mkdir cmake-build
   - cd cmake-build

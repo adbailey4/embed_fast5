@@ -81,7 +81,7 @@ set(HTSLIB_INCLUDE_DIRS ${HTSLIB_INCLUDE_DIR} )
 message("${HTSLIB_LIBRARIES}")
 message("${HTSLIB_INCLUDE_DIRS}")
 
-
+include_directories(${HTSLIB_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${HDF5_INCLUDE_DIRS})
 include_directories(${Eigen3_INCLUDE_DIRS})
@@ -160,10 +160,10 @@ set(MAIN_CPP main.cpp)
 
 
 add_executable(main_cpp ${MAIN_CPP} ${nanopolish_source} ${SOURCE_CPP} ${CPP_HEADERS})
-target_link_libraries(main_cpp ${HDF5_LIBRARIES} ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread)
+target_link_libraries(main_cpp ${HDF5_LIBRARIES} ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm ${HTSLIB_LIBRARIES} -ldl -lpthread)
 
 add_executable(test_cpp ${TEST_CPP} ${SOURCE_CPP} ${CPP_HEADERS} ${nanopolish_source})
-target_link_libraries(test_cpp ${HDF5_LIBRARIES} gtest_main ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lhts -ldl -lpthread)
+target_link_libraries(test_cpp ${HDF5_LIBRARIES} gtest_main ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm ${HTSLIB_LIBRARIES} -ldl -lpthread)
 
 enable_testing()
 add_test(cpp_tests test_cpp ${CMAKE_SOURCE_DIR})

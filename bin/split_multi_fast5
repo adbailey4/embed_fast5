@@ -39,7 +39,7 @@ def multi_fast5_wrapper_no_fast5(multi_fast5, out_dir):
         if not os.path.exists(fast5_specific_output_dir):
             os.mkdir(fast5_specific_output_dir)
         mf5h = MultiFast5(multi_fast5)
-        n_processed, n_error = mf5h.write_individual_fast5s(fast5_specific_output_dir)
+        n_processed, n_error = mf5h.write_individual_fast5s_no_fastq(fast5_specific_output_dir)
     except KeyError:
         pass
     return n_processed, n_error
@@ -61,6 +61,9 @@ def parse_args():
     parser.add_argument('--jobs', '-j', action='store', dest='nb_jobs', required=False,
                         default=2, type=int, help="number of jobs to run in parallel")
 
+    parser.add_argument('--debug', '-d', action='store-true', dest='debug', required=False,
+                        help="Option to not multiprocess reads to check for errors")
+
     args = parser.parse_args()
     return args
 
@@ -70,7 +73,17 @@ def main():
     start = timer()
     args = parse_args()
 
-    multiprocess_generate_embedded_reads_no_fast5(args.fast5_dir, args.output_dir, worker_count=args.nb_jobs)
+    if args.debug:
+        for multi_fast5_file in list_dir(args.fast5_dir, ext="fast5"):
+
+            fast5_specific_output_dir = os.path.join(args.output_dir, os.path.basename(multi_fast5_file).split(".")[0])
+            if not os.path.exists(fast5_specific_output_dir):
+                os.mkdir(fast5_specific_output_dir)
+            mf5h = MultiFast5(multi_fast5_file)
+            n_processed, n_error = mf5h.write_individual_fast5s_no_fastq(fast5_specific_output_dir)
+
+    else:
+        print(multiprocess_generate_embedded_reads_no_fast5(args.fast5_dir, args.output_dir, worker_count=args.nb_jobs))
 
     stop = timer()
     print("Running Time = {} seconds".format(stop - start))

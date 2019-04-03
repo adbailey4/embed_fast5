@@ -70,7 +70,7 @@ def main():
     start = timer()
     args = parse_args()
 
-    multiprocess_generate_embedded_reads_no_fast5(args.fast5, args.output_dir, worker_count=args.jobs)
+    multiprocess_generate_embedded_reads_no_fast5(args.fast5_dir, args.output_dir, worker_count=args.nb_jobs)
 
     stop = timer()
     print("Running Time = {} seconds".format(stop - start))

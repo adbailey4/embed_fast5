@@ -18,7 +18,7 @@ def main():
     start = timer()
     setup(
         name="embed",
-        version='0.0.3',
+        version='0.0.5',
         description='Embed fast5 with event table from nanopolish model',
         url='https://github.com/adbailey4/embed_fast5',
         author='Andrew Bailey',

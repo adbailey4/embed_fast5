@@ -24,6 +24,7 @@ def main():
         author='Andrew Bailey',
         license='MIT',
         packages=['embed'],
+        scripts=["bin/split_multi_fast5", "bin/run_embed_fast5"],
         author_email='andbaile@ucsc.com',
         install_requires=['py3helpers>=0.2.1',
                           'pandas>=0.24.2',

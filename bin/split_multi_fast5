@@ -1,0 +1,80 @@
+#!/usr/bin/env python
+"""Split multi fast5 file into multiple fast5s"""
+########################################################################
+# File: split_multi_fast5
+#
+# Authors: Andrew Bailey
+#
+# History: 04/03/19
+########################################################################
+
+from argparse import ArgumentParser
+from embed.split_multi_read import *
+from py3helpers.multiprocess import *
+from py3helpers.utils import list_dir
+
+
+def multiprocess_generate_embedded_reads_no_fast5(multi_fast5_dir, out_dir, worker_count=2):
+    """Generate embedded reads from multi_fast5 reads
+
+    :return: list of lists of random numbers with max integer
+    """
+    test_args = {"out_dir": out_dir}
+    service = BasicService(multi_fast5_wrapper_no_fast5)
+    total, failure, messages, output = run_service(service.run, list_dir(multi_fast5_dir, ext="fast5"),
+                                                   test_args, ["multi_fast5"], worker_count)
+    return output
+
+
+def multi_fast5_wrapper_no_fast5(multi_fast5, out_dir):
+    """Wrap MultiFast5 write_individual_fast5s into a single function call
+    :param multi_fast5: multi_fast5
+    :param out_dir: path to empty output directory
+    :return: (number of reads processed, number of errors)
+    """
+    n_processed = 0
+    n_error = 0
+    try:
+        fast5_specific_output_dir = os.path.join(out_dir, os.path.basename(multi_fast5).split(".")[0])
+        if not os.path.exists(fast5_specific_output_dir):
+            os.mkdir(fast5_specific_output_dir)
+        mf5h = MultiFast5(multi_fast5)
+        n_processed, n_error = mf5h.write_individual_fast5s(fast5_specific_output_dir)
+    except KeyError:
+        pass
+    return n_processed, n_error
+
+
+def parse_args():
+    parser = ArgumentParser(description=__doc__)
+
+    # parsers for running the full pipeline
+    # required arguments
+    parser.add_argument('--fast5_dir', '-f', action='store',
+                        dest='fast5_dir', required=True, type=str, default=None,
+                        help="path to multi read fast5 file")
+
+    parser.add_argument('--output_dir', '-o', action='store',
+                        dest='output_dir', required=True, type=str,
+                        help="Directory to place all new originally formatted fast5 files")
+
+    parser.add_argument('--jobs', '-j', action='store', dest='nb_jobs', required=False,
+                        default=2, type=int, help="number of jobs to run in parallel")
+
+    args = parser.parse_args()
+    return args
+
+
+def main():
+    # parse args
+    start = timer()
+    args = parse_args()
+
+    multiprocess_generate_embedded_reads_no_fast5(args.fast5, args.output_dir, worker_count=args.jobs)
+
+    stop = timer()
+    print("Running Time = {} seconds".format(stop - start))
+
+
+if __name__ == "__main__":
+    main()

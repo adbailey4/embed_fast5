@@ -14,22 +14,23 @@ from py3helpers.multiprocess import *
 from py3helpers.utils import list_dir
 
 
-def multiprocess_generate_embedded_reads_no_fast5(multi_fast5_dir, out_dir, worker_count=2):
+def multiprocess_generate_embedded_reads_no_fast5(multi_fast5_dir, out_dir, worker_count=2, delete_multi=False):
     """Generate embedded reads from multi_fast5 reads
 
     :return: list of lists of random numbers with max integer
     """
-    test_args = {"out_dir": out_dir}
+    test_args = {"out_dir": out_dir, "delete_multi": delete_multi}
     service = BasicService(multi_fast5_wrapper_no_fast5)
     total, failure, messages, output = run_service(service.run, list_dir(multi_fast5_dir, ext="fast5"),
                                                    test_args, ["multi_fast5"], worker_count)
     return output
 
 
-def multi_fast5_wrapper_no_fast5(multi_fast5, out_dir):
+def multi_fast5_wrapper_no_fast5(multi_fast5, out_dir, delete_multi=False):
     """Wrap MultiFast5 write_individual_fast5s into a single function call
     :param multi_fast5: multi_fast5
     :param out_dir: path to empty output directory
+    :param delete_multi: boolean option to delete old multi fast5 after processing
     :return: (number of reads processed, number of errors)
     """
     n_processed = 0
@@ -40,6 +41,8 @@ def multi_fast5_wrapper_no_fast5(multi_fast5, out_dir):
             os.mkdir(fast5_specific_output_dir)
         mf5h = MultiFast5(multi_fast5)
         n_processed, n_error = mf5h.write_individual_fast5s_no_fastq(fast5_specific_output_dir)
+        if delete_multi:
+            os.remove(multi_fast5)
     except KeyError:
         pass
     return n_processed, n_error
@@ -64,6 +67,9 @@ def parse_args():
     parser.add_argument('--debug', '-d', action='store_true', dest='debug', required=False,
                         help="Option to not multiprocess reads to check for errors")
 
+    parser.add_argument('--delete_multi', action='store_true', dest='delete_multi', required=False,
+                        help="Option to delete the multi_fast5 file after processing")
+
     args = parser.parse_args()
     return args
 
@@ -83,7 +89,8 @@ def main():
             n_processed, n_error = mf5h.write_individual_fast5s_no_fastq(fast5_specific_output_dir)
 
     else:
-        print(multiprocess_generate_embedded_reads_no_fast5(args.fast5_dir, args.output_dir, worker_count=args.nb_jobs))
+        print(multiprocess_generate_embedded_reads_no_fast5(args.fast5_dir, args.output_dir, worker_count=args.nb_jobs,
+                                                            delete_multi=args.delete_multi))
 
     stop = timer()
     print("Running Time = {} seconds".format(stop - start))

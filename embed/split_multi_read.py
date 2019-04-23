@@ -16,16 +16,44 @@ from py3helpers.multiprocess import *
 from py3helpers.utils import list_dir
 
 
-def multiprocess_generate_individual_reads(multi_fast5_dir, out_dir, worker_count=2):
+def multiprocess_generate_individual_reads(multi_fast5_dir, out_dir, worker_count=2, delete_multi=False):
     """Generate individual reads from combined reads
 
     :return: list of lists of random numbers with max integer
     """
-    test_args = {"out_dir": out_dir}
-    service = BasicService(multi_fast5_wrapper)
+    test_args = {"out_dir": out_dir,
+                 "delete_multi": delete_multi}
+    service = BasicService(multi_fast5_wrapper, service_name="multiprocess_generate_individual_reads")
     total, failure, messages, output = run_service(service.run, list_dir(multi_fast5_dir, ext="fast5"),
                                                    test_args, ["multi_fast5"], worker_count)
-    return output
+    total_n_processed = 0
+    total_error = 0
+    for n_processed, n_error in output:
+        total_error += n_error
+        total_n_processed += n_processed
+    return total_n_processed, total_error
+
+
+def multi_fast5_wrapper(multi_fast5, out_dir, delete_multi=False):
+    """Wrap MultiFast5 write_individual_fast5s into a single function call
+    :param multi_fast5: multi_fast5
+    :param out_dir: path to empty output directory
+    :param delete_multi: boolean option to delete old multi fast5 after processing
+    :return: (number of reads processed, number of errors)
+    """
+    n_processed = 0
+    n_error = 0
+    try:
+        fast5_specific_output_dir = os.path.join(out_dir, os.path.basename(multi_fast5).split(".")[0])
+        if not os.path.exists(fast5_specific_output_dir):
+            os.mkdir(fast5_specific_output_dir)
+        mf5h = MultiFast5(multi_fast5)
+        n_processed, n_error = mf5h.write_individual_fast5s(fast5_specific_output_dir)
+        if delete_multi:
+            os.remove(multi_fast5)
+    except KeyError:
+        pass
+    return n_processed, n_error
 
 
 def generate_individual_reads(multi_fast5_dir, out_dir):
@@ -43,16 +71,6 @@ def generate_individual_reads(multi_fast5_dir, out_dir):
         print("Processed {} reads".format(total_n_processed))
 
     return total_n_processed, total_error
-
-
-def multi_fast5_wrapper(multi_fast5, out_dir):
-    """Wrap MultiFast5 write_individual_fast5s into a single function call"""
-    try:
-        mf5h = MultiFast5(multi_fast5)
-        n_processed, n_error = mf5h.write_individual_fast5s(out_dir)
-    except KeyError:
-        pass
-    return n_processed, n_error
 
 
 def read_in_sequencing_summary(summary_path):
@@ -83,7 +101,7 @@ class MultiFast5(h5py.File):
         self.fname = fname
         self.reads = list(self.keys())
 
-    def write_individual_fast5s(self, out_dir, write_fastq=False):
+    def write_individual_fast5s(self, out_dir, write_fastq_file=False):
         """Write out individual fast5 files from the multi fast5 file
 
         :param out_dir: path to directory to write all the files
@@ -92,14 +110,20 @@ class MultiFast5(h5py.File):
         n_errors = 0
         fh = None
         # option to write fastq data
-        if write_fastq is not False:
-            fh = open(write_fastq, "w")
+        if write_fastq_file is not False:
+            fh = open(write_fastq_file, "w")
         for read_id_group in self.reads:
             try:
                 output_path = os.path.join(out_dir, read_id_group+".fast5")
                 # Make sure everything is in the right place first
-                fastq = self.get_fastq(read_id_group)
-                basecall_attrs = self.get_basecall_1d_attributes(read_id_group)
+                read_id_has_basecall_data = False
+                try:
+                    fastq = self.get_fastq(read_id_group)
+                    basecall_attrs = self.get_basecall_1d_attributes(read_id_group)
+                    read_id_has_basecall_data = True
+                except KeyError:
+                    print("No Fastq data in {}".format(read_id_group))
+
                 signal = self.get_signal(read_id_group)
                 signal_attrs = self.get_signal_attrbutes(read_id_group)
                 channel_id_attrs = self.get_channel_id_attrbutes(read_id_group)
@@ -107,52 +131,23 @@ class MultiFast5(h5py.File):
                 tracking_id_attrs = self.get_tracking_id_attrbutes(read_id_group)
                 # then create a new file
                 nf5h = NewFast5File(output_path)
-                nf5h.write_1d_fastq(fastq, basecall_attrs)
+                if read_id_has_basecall_data:
+                    nf5h.write_1d_fastq(fastq, basecall_attrs)
                 nf5h.write_signal(signal, signal_attrs)
                 nf5h.write_unique_global_key(channel_id_attrs,
                                              context_tags_attrs,
                                              tracking_id_attrs)
-                if write_fastq is not False:
-                    fh.write(fastq.decode())
+                if write_fastq_file is not False:
+                    if read_id_has_basecall_data:
+                        fh.write(fastq.decode())
 
                 n_processed += 1
             except KeyError:
                 n_errors += 1
         #   clean up file
-        if write_fastq is not False:
+        if write_fastq_file is not False:
             fh.close()
         return n_processed, n_errors
-
-    def write_individual_fast5s_no_fastq(self, out_dir):
-        """Write out individual fast5 files from the multi fast5 file without the fastq
-
-        :param out_dir: path to directory to write all the files
-        """
-        n_processed = 0
-        n_errors = 0
-        fh = None
-        # option to write fastq data
-        for read_id_group in self.reads:
-            try:
-                output_path = os.path.join(out_dir, read_id_group+".fast5")
-                # Make sure everything is in the right place first
-                signal = self.get_signal(read_id_group)
-                signal_attrs = self.get_signal_attrbutes(read_id_group)
-                channel_id_attrs = self.get_channel_id_attrbutes(read_id_group)
-                context_tags_attrs = self.get_context_tags_attrbutes(read_id_group)
-                tracking_id_attrs = self.get_tracking_id_attrbutes(read_id_group)
-                # then create a new file
-                nf5h = NewFast5File(output_path)
-                nf5h.write_signal(signal, signal_attrs)
-                nf5h.write_unique_global_key(channel_id_attrs,
-                                             context_tags_attrs,
-                                             tracking_id_attrs)
-                n_processed += 1
-            except KeyError:
-                n_errors += 1
-        #   clean up file
-        return n_processed, n_errors
-
 
     def get_basecall_1d_attributes(self, read_id_group):
         """Get basecall 1d string from read id"""

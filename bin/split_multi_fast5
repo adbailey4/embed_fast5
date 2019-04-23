@@ -11,41 +11,7 @@
 from argparse import ArgumentParser
 from embed.split_multi_read import *
 from py3helpers.multiprocess import *
-from py3helpers.utils import list_dir
-
-
-def multiprocess_generate_embedded_reads_no_fast5(multi_fast5_dir, out_dir, worker_count=2, delete_multi=False):
-    """Generate embedded reads from multi_fast5 reads
-
-    :return: list of lists of random numbers with max integer
-    """
-    test_args = {"out_dir": out_dir, "delete_multi": delete_multi}
-    service = BasicService(multi_fast5_wrapper_no_fast5)
-    total, failure, messages, output = run_service(service.run, list_dir(multi_fast5_dir, ext="fast5"),
-                                                   test_args, ["multi_fast5"], worker_count)
-    return output
-
-
-def multi_fast5_wrapper_no_fast5(multi_fast5, out_dir, delete_multi=False):
-    """Wrap MultiFast5 write_individual_fast5s into a single function call
-    :param multi_fast5: multi_fast5
-    :param out_dir: path to empty output directory
-    :param delete_multi: boolean option to delete old multi fast5 after processing
-    :return: (number of reads processed, number of errors)
-    """
-    n_processed = 0
-    n_error = 0
-    try:
-        fast5_specific_output_dir = os.path.join(out_dir, os.path.basename(multi_fast5).split(".")[0])
-        if not os.path.exists(fast5_specific_output_dir):
-            os.mkdir(fast5_specific_output_dir)
-        mf5h = MultiFast5(multi_fast5)
-        n_processed, n_error = mf5h.write_individual_fast5s_no_fastq(fast5_specific_output_dir)
-        if delete_multi:
-            os.remove(multi_fast5)
-    except KeyError:
-        pass
-    return n_processed, n_error
+from py3helpers.utils import list_dir, time_it
 
 
 def parse_args():
@@ -76,25 +42,30 @@ def parse_args():
 
 def main():
     # parse args
-    start = timer()
     args = parse_args()
 
     if args.debug:
+        total_processed = 0
+        total_errors = 0
         for multi_fast5_file in list_dir(args.fast5_dir, ext="fast5"):
 
             fast5_specific_output_dir = os.path.join(args.output_dir, os.path.basename(multi_fast5_file).split(".")[0])
             if not os.path.exists(fast5_specific_output_dir):
                 os.mkdir(fast5_specific_output_dir)
             mf5h = MultiFast5(multi_fast5_file)
-            n_processed, n_error = mf5h.write_individual_fast5s_no_fastq(fast5_specific_output_dir)
-
+            n_processed, n_error = mf5h.write_individual_fast5s(fast5_specific_output_dir)
+            total_processed += n_processed
+            total_errors += total_errors
+            if args.delete_multi:
+                os.remove(multi_fast5_file)
     else:
-        print(multiprocess_generate_embedded_reads_no_fast5(args.fast5_dir, args.output_dir, worker_count=args.nb_jobs,
-                                                            delete_multi=args.delete_multi))
+        total_processed, total_errors = multiprocess_generate_individual_reads(args.fast5_dir, args.output_dir,
+                                                                               worker_count=args.nb_jobs,
+                                                                               delete_multi=args.delete_multi)
 
-    stop = timer()
-    print("Running Time = {} seconds".format(stop - start))
+    print("Total Processed: {}\nTotal Errors: {}".format(total_processed, total_errors))
 
 
 if __name__ == "__main__":
-    main()
+    _, run_time = time_it(main)
+    print("Running Time = {} seconds".format(run_time))

@@ -12,9 +12,10 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install libhdf5-dev libbz2-dev zlib1g-dev autotools-dev autoconf cmake
   - sudo apt-get install libboost-all-dev libeigen3-dev curl liblzma-dev
-  -
-install:
   - sudo apt-get update
+
+
+install:
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
     wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
     else
@@ -24,16 +25,10 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda config --set always_yes yes --set changeps1 no
   - pwd
-  - cd ..
-  - git clone --recursive https://github.com/jts/nanopolish.git
-  - cd nanopolish
-  - make HDF5=noinstall
-  - cd ..
-  - cd embed_fast5
   - python setup.py install
   - mkdir cmake-build
   - cd cmake-build
-  - cmake -DNANOPOLISH_HOME:STRING=../nanopolish ../
+  - cmake ../
   - make
 
 

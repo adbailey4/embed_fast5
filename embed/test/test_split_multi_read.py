@@ -26,39 +26,70 @@ class TestSplitMultiRead(unittest.TestCase):
 
         cls.test_create_file = os.path.join(cls.HOME, "tests/test_files/test_create_file.fast5")
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            fast5_file = os.path.join(cls.HOME, "tests/test_files/multi_read_test.fast5")
-            cls.test_file = os.path.join(tempdir, "test_file.fast5")
-            shutil.copyfile(fast5_file, cls.test_file)
 
-            cls.fast5handle = MultiFast5(cls.test_file, 'r+')
+        multi_fast5_with_fastq = os.path.join(cls.HOME, "tests/test_files/multi_read_test.fast5")
+        multi_fast5_without_fastq = os.path.join(cls.HOME, "tests/test_files/multi_read_test_no_fastq.fast5")
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            cls.test_file_with_fastq = os.path.join(tempdir, "test_file.fast5")
+            shutil.copyfile(multi_fast5_with_fastq, cls.test_file_with_fastq)
+
+            cls.test_file_with_out_fastq = os.path.join(tempdir, "test_file2.fast5")
+            shutil.copyfile(multi_fast5_without_fastq, cls.test_file_with_out_fastq)
+
+            cls.fast5handle_with_fastq = MultiFast5(cls.test_file_with_fastq, 'r+')
+            cls.fast5handle_no_fastq = MultiFast5(cls.test_file_with_out_fastq, 'r+')
         cls.new_fast5handle = NewFast5File(cls.test_create_file)
 
     def test_multiprocess_generate_individual_reads(self):
         with tempfile.TemporaryDirectory() as tempdir:
             fast5_file_dir = os.path.join(self.HOME, "tests/test_files/")
-            multiprocess_generate_individual_reads(fast5_file_dir, tempdir, worker_count=2)
-            all_files = list_dir(tempdir, ext="fast5")
+            total_n_processed, total_error = multiprocess_generate_individual_reads(fast5_file_dir, tempdir,
+                                                                                    worker_count=2)
+            self.assertEqual(total_n_processed, 10)
+            self.assertEqual(total_error, 10)
+            all_files = list_dir(os.path.join(tempdir, "multi_read_test_no_fastq"), ext="fast5")
+            self.assertEqual(5, len(all_files))
+            self.assertEqual(5, sum([int(os.path.basename(x).startswith("read")) for x in all_files]))
+            all_files = list_dir(os.path.join(tempdir, "multi_read_test"), ext="fast5")
             self.assertEqual(5, len(all_files))
             self.assertEqual(5, sum([int(os.path.basename(x).startswith("read")) for x in all_files]))
 
     def test_generate_individual_reads(self):
         with tempfile.TemporaryDirectory() as tempdir:
             fast5_file_dir = os.path.join(self.HOME, "tests/test_files/")
-            generate_individual_reads(fast5_file_dir, tempdir)
-            all_files = list_dir(tempdir, ext="fast5")
+            total_n_processed, total_error = generate_individual_reads(fast5_file_dir, tempdir)
+            self.assertEqual(total_n_processed, 10)
+            self.assertEqual(total_error, 10)
+            all_files = list_dir(os.path.join(tempdir, "multi_read_test_no_fastq"), ext="fast5")
+            self.assertEqual(5, len(all_files))
+            self.assertEqual(5, sum([int(os.path.basename(x).startswith("read")) for x in all_files]))
+            all_files = list_dir(os.path.join(tempdir, "multi_read_test"), ext="fast5")
             self.assertEqual(5, len(all_files))
             self.assertEqual(5, sum([int(os.path.basename(x).startswith("read")) for x in all_files]))
 
     def test_write_individual_fast5s(self):
         with tempfile.TemporaryDirectory() as tempdir:
-            self.fast5handle.write_individual_fast5s(tempdir)
+            self.fast5handle_with_fastq.write_individual_fast5s(tempdir)
             all_files = list_dir(tempdir)
             self.assertEqual(5, len(all_files))
             self.assertEqual(5, sum([int(os.path.basename(x).startswith("read")) for x in all_files]))
 
         with tempfile.TemporaryDirectory() as tempdir:
-            self.fast5handle.write_individual_fast5s(tempdir, write_fastq=os.path.join(tempdir, "test.fastq"))
+            self.fast5handle_with_fastq.write_individual_fast5s(tempdir, write_fastq_file=os.path.join(tempdir, "test.fastq"))
+            all_files = list_dir(tempdir)
+            self.assertEqual(6, len(all_files))
+
+            self.assertEqual(5, sum([int(os.path.basename(x).startswith("read")) for x in all_files]))
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            self.fast5handle_no_fastq.write_individual_fast5s(tempdir)
+            all_files = list_dir(tempdir)
+            self.assertEqual(5, len(all_files))
+            self.assertEqual(5, sum([int(os.path.basename(x).startswith("read")) for x in all_files]))
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            self.fast5handle_no_fastq.write_individual_fast5s(tempdir, write_fastq_file=os.path.join(tempdir, "test.fastq"))
             all_files = list_dir(tempdir)
             self.assertEqual(6, len(all_files))
 
@@ -66,23 +97,23 @@ class TestSplitMultiRead(unittest.TestCase):
 
     def test_get_basecall_1d_attributes(self):
         get_id = "read_002f9702-c19e-48c2-8e72-9021adbd4a48"
-        bc_attrs = self.fast5handle.get_basecall_1d_attributes(get_id)
+        bc_attrs = self.fast5handle_with_fastq.get_basecall_1d_attributes(get_id)
         self.assertEqual(3, len(bc_attrs.keys()))
 
     def test_get_fastq(self):
         get_id = "read_002f9702-c19e-48c2-8e72-9021adbd4a48"
-        fastq = self.fast5handle.get_fastq(get_id)
+        fastq = self.fast5handle_with_fastq.get_fastq(get_id)
         self.assertEqual(22042, len(fastq))
 
     def test_get_signal(self):
         get_id = "read_002f9702-c19e-48c2-8e72-9021adbd4a48"
-        signal = self.fast5handle.get_signal(get_id)
+        signal = self.fast5handle_with_fastq.get_signal(get_id)
         self.assertEqual(684, signal[0])
         self.assertEqual(578, signal[-1])
 
     def test_get_signal_attrbutes(self):
         get_id = "read_002f9702-c19e-48c2-8e72-9021adbd4a48"
-        signal = self.fast5handle.get_signal_attrbutes(get_id)
+        signal = self.fast5handle_with_fastq.get_signal_attrbutes(get_id)
         self.assertTrue("duration" in signal.keys())
         self.assertTrue("read_id" in signal.keys())
         self.assertTrue("start_mux" in signal.keys())
@@ -91,18 +122,18 @@ class TestSplitMultiRead(unittest.TestCase):
 
     def test_get_channel_id_attrbutes(self):
         get_id = "read_002f9702-c19e-48c2-8e72-9021adbd4a48"
-        ch_attrs = self.fast5handle.get_channel_id_attrbutes(get_id)
+        ch_attrs = self.fast5handle_with_fastq.get_channel_id_attrbutes(get_id)
         self.assertSetEqual({"digitisation", "offset", "range", "sampling_rate", "channel_number"},
                             set(ch_attrs.keys()))
 
     def test_get_context_tags_attrbutes(self):
         get_id = "read_002f9702-c19e-48c2-8e72-9021adbd4a48"
-        ct_attrs = self.fast5handle.get_context_tags_attrbutes(get_id)
+        ct_attrs = self.fast5handle_with_fastq.get_context_tags_attrbutes(get_id)
         self.assertEqual(15, len(ct_attrs.keys()))
 
     def test_get_tracking_id_attrbutes(self):
         get_id = "read_002f9702-c19e-48c2-8e72-9021adbd4a48"
-        ti_attrs = self.fast5handle.get_tracking_id_attrbutes(get_id)
+        ti_attrs = self.fast5handle_with_fastq.get_tracking_id_attrbutes(get_id)
         self.assertEqual(32, len(ti_attrs.keys()))
 
     def test_write_signal(self):

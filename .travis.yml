@@ -25,6 +25,20 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda config --set always_yes yes --set changeps1 no
   - pwd
+#  Install samtools
+  - cd $HOME/build/adbailey4/
+  - wget https://github.com/samtools/samtools/releases/download/1.9/htslib-1.9.tar.bz2
+  - tar -vxjf htslib-1.9.tar.bz2
+  - ls
+  - cd htslib-1.9
+  - ./configure
+  - make
+  - make install
+#  - echo "PATH=$HOME/build/adbailey4/bin/:$PATH" >> ~/.bashrc
+#  - source ~/.bashrc
+  - cd ..
+  - which samtools
+
   - python setup.py install
   - mkdir cmake-build
   - cd cmake-build

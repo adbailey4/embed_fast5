@@ -37,8 +37,7 @@ install:
 #  - echo "PATH=$HOME/build/adbailey4/bin/:$PATH" >> ~/.bashrc
 #  - source ~/.bashrc
   - cd ..
-  - which samtools
-
+#  - which samtools
   - python setup.py install
   - mkdir cmake-build
   - cd cmake-build

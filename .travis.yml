@@ -33,7 +33,7 @@ install:
   - cd htslib-1.9
   - ./configure
   - make
-  - make install
+  - sudo make install
 #  - echo "PATH=$HOME/build/adbailey4/bin/:$PATH" >> ~/.bashrc
 #  - source ~/.bashrc
   - cd ..

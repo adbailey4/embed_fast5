@@ -109,9 +109,13 @@ include_directories(${Eigen3_INCLUDE_DIRS})
 link_directories(/usr/local/lib)
 link_directories(/usr/lib)
 
+# my includes
 include_directories(${CMAKE_SOURCE_DIR}/inc)
 include_directories(${CMAKE_SOURCE_DIR}/fast5/include)
 include_directories(${CMAKE_SOURCE_DIR}/fast5/include/fast5)
+
+# nanopolish includes
+include_directories(${NANOPOLISH_HOME}/src)
 include_directories(${NANOPOLISH_HOME}/src/alignment)
 include_directories(${NANOPOLISH_HOME}/src/common)
 include_directories(${NANOPOLISH_HOME}/src/hmm)
@@ -120,7 +124,6 @@ include_directories(${NANOPOLISH_HOME}/src/pore_model)
 include_directories(${NANOPOLISH_HOME}/src/test)
 include_directories(${NANOPOLISH_HOME}/src/thirdparty)
 include_directories(${NANOPOLISH_HOME}/src/thirdparty/scrappie)
-include_directories(${NANOPOLISH_HOME}/src)
 include_directories(/usr/local/include)
 include_directories(/usr/include)
 
@@ -141,6 +144,8 @@ set(nanopolish_source
         ${NANOPOLISH_HOME}/src/nanopolish_train_poremodel_from_basecalls.cpp
         ${NANOPOLISH_HOME}/src/nanopolish_squiggle_read.cpp
         ${NANOPOLISH_HOME}/src/nanopolish_scorereads.cpp
+        ${NANOPOLISH_HOME}/src/nanopolish_polya_estimator.cpp
+        ${NANOPOLISH_HOME}/src/nanopolish_vcf2fasta.cpp
         ${NANOPOLISH_HOME}/src/hmm/nanopolish_duration_model.cpp
         ${NANOPOLISH_HOME}/src/hmm/nanopolish_profile_hmm.cpp
         ${NANOPOLISH_HOME}/src/hmm/nanopolish_profile_hmm_r7.cpp
@@ -178,12 +183,25 @@ set(TEST_CPP
 
 set(MAIN_CPP main.cpp)
 
+set(NANOPOLISH
+        ${NANOPOLISH_HOME}/src/main/nanopolish.cpp)
 
+set(NP_LIBRARY -lz -lm -ldl -lpthread -lbz2 -lcurl -llzma ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} )
+set(EMBED_LIBRARY ${NP_LIBRARY} ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} )
+
+
+# nanopolish main
+add_executable(nanopolish ${NANOPOLISH} ${nanopolish_source})
+target_link_libraries(nanopolish ${NP_LIBRARY})
+
+# main and tests
 add_executable(main_cpp ${MAIN_CPP} ${nanopolish_source} ${SOURCE_CPP} ${CPP_HEADERS})
-target_link_libraries(main_cpp ${HDF5_LIBRARIES} ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lm -lbz2 -lcurl -llzma ${HTSLIB_LIBRARY} -ldl -lpthread)
+target_link_libraries(main_cpp ${EMBED_LIBRARY})
 
 add_executable(test_cpp ${TEST_CPP} ${SOURCE_CPP} ${CPP_HEADERS} ${nanopolish_source})
-target_link_libraries(test_cpp ${HDF5_LIBRARIES} gtest_main ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} -lz -lbz2 -lcurl -llzma -lm  ${HTSLIB_LIBRARY} -ldl -lpthread)
+target_link_libraries(test_cpp ${HDF5_LIBRARIES} gtest_main ${EMBED_LIBRARY})
+
+# testing
 
 enable_testing()
 add_test(cpp_tests test_cpp ${CMAKE_SOURCE_DIR})

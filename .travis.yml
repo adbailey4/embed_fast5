@@ -36,8 +36,7 @@ install:
   - sudo make install
 #  - echo "PATH=$HOME/build/adbailey4/bin/:$PATH" >> ~/.bashrc
 #  - source ~/.bashrc
-  - cd ..
-#  - which samtools
+  - cd /home/travis/build/adbailey4/embed_fast5
   - python setup.py install
   - mkdir cmake-build
   - cd cmake-build

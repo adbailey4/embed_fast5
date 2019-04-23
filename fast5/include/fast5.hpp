@@ -629,11 +629,11 @@ struct Basecall_Group_Description
 }; // struct Basecall_Group_Description
 
 class File
-    : private hdf5_tools::File
+    : public hdf5_tools::File
 {
-private:
-    typedef hdf5_tools::File Base;
 public:
+    typedef hdf5_tools::File Base;
+
     //
     // Constructors
     //
@@ -1404,7 +1404,6 @@ public:
         return res;
     }
 
-private:
     friend struct File_Packer;
 
     //

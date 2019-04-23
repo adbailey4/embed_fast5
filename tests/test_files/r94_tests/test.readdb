@@ -1,0 +1,33 @@
+0000058f-e51a-4f23-a811-740dfdfb97b9    FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch462_read69_strand.fast5
+0000058f-e51a-4f23-a811-740dfdfb97b9_Basecall_Alignment_template
+0000273e-148e-4024-a75e-c2651de499db    FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_88738_ch1_read1464_strand.fast5
+0000273e-148e-4024-a75e-c2651de499db_Basecall_Alignment_template
+0000456a-1e89-4392-9fa3-b3dc5cdaf793    FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch108_read1153_strand.fast5
+0000456a-1e89-4392-9fa3-b3dc5cdaf793_Basecall_Alignment_template
+000098c6-a1da-4006-bd5a-59a31ead5cd5    FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch129_read2937_strand.fast5
+000098c6-a1da-4006-bd5a-59a31ead5cd5_Basecall_Alignment_template
+0000d362-65fa-470e-8e93-dca222b392f6    FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch292_read685_strand.fast5
+0000d362-65fa-470e-8e93-dca222b392f6_Basecall_Alignment_template
+
+scp ubuntu@54.214.114.25:/deepmod_benchmark_data/ucsc_r94_na12878/UCSC/ .
+FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch462_read69_strand.fast5
+FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_88738_ch1_read1464_strand.fast5
+FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch108_read1153_strand.fast5
+FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch129_read2937_strand.fast5
+
+scp ubuntu@54.214.114.25:/deepmod_benchmark_data/ucsc_r94_na12878/UCSC/FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch462_read69_strand.fast5 .
+scp ubuntu@54.214.114.25:/deepmod_benchmark_data/ucsc_r94_na12878/UCSC/FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_88738_ch1_read1464_strand.fast5 .
+scp ubuntu@54.214.114.25:/deepmod_benchmark_data/ucsc_r94_na12878/UCSC/FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch108_read1153_strand.fast5 .
+scp ubuntu@54.214.114.25:/deepmod_benchmark_data/ucsc_r94_na12878/UCSC/FAB43577-3574887596//DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch129_read2937_strand.fast5 .
+
+ids = ["0000058f-e51a-4f23-a811-740dfdfb97b9_Basecall_Alignment_template",
+    "0000273e-148e-4024-a75e-c2651de499db_Basecall_Alignment_template",
+    "0000456a-1e89-4392-9fa3-b3dc5cdaf793_Basecall_Alignment_template",
+    "000098c6-a1da-4006-bd5a-59a31ead5cd5_Basecall_Alignment_template",
+     "0000d362-65fa-470e-8e93-dca222b392f6_Basecall_Alignment_template"]
+with open("small_sample.fastq", 'w') as fh:
+    for record in SeqIO.parse(fastq_file, "fastq"):
+        if record.id in ids:
+            print(record.format("fastq"), file=fh)
+
+            small_sample.fastq

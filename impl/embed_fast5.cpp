@@ -9,6 +9,9 @@
 #include "nanopolish_raw_loader.h"
 #include "nanopolish_emissions.h"
 #include "nanopolish_read_db.h"
+#include "boost/filesystem.hpp"
+#include <omp.h>
+
 
 using namespace std;
 
@@ -22,23 +25,19 @@ std::vector< fast5::Basecall_Event > event_table_to_basecalled_table(std::vector
         basecalled_et[i].stdv = (double) et[i].stdv;
         basecalled_et[i].p_model_state = 0.0;
         basecalled_et[i].move = 0;
-        basecalled_et[i].model_state[0] = '\0';
-//        basecalled_et[i].start = (((double) et[i].start) / sample_rate) + (start_time / sample_rate);
-//        basecalled_et[i].length = et[i].length / sample_rate;
 
     }
     return basecalled_et;
 
 }
 
-
 std::vector< fast5::Basecall_Event > generate_basecall_table(SquiggleRead& read){
 
     std::vector<EventAlignment> alignment = read.get_eventalignment_for_1d_basecalls(read.read_sequence, "nucleotide",
-            read.base_to_event_map, read.base_model[0]->k, 0, 0);
-//
+                                                                                     read.base_to_event_map,
+                                                                                     read.base_model[0]->k, 0, 0);
     const Alphabet* alphabet = read.base_model[0]->pmalphabet;
-//    generate empty basecall table to fill
+    //    generate empty basecall table to fill
 
     fast5::File f_p;
     f_p.open(read.fast5_path);
@@ -50,23 +49,23 @@ std::vector< fast5::Basecall_Event > generate_basecall_table(SquiggleRead& read)
     // we assume the first raw sample read is the one we're after
     std::string sample_read_name = sample_read_names.front();
     double sample_start_time = f_p.get_raw_samples_params(sample_read_name).start_time / f_p.get_sampling_rate();
-//    sp_param["channel_info"]["sampling_rate"]).astype(np.int64)
+    // convert event table to basecall table
     auto basecall_table = event_table_to_basecalled_table(read.events[0], sample_start_time);
     int prev_ref_index = alignment[0].ref_position;
 
-    for(int i=0; i < alignment.size() ; i++){
-        basecall_table[alignment[i].event_idx].model_state = to_array< char, MAX_K_LEN >(alignment[i].ref_kmer);
+    for (auto &i : alignment) {
+        basecall_table[i.event_idx].model_state = to_array< char, MAX_K_LEN >(i.ref_kmer);
+        uint32_t kmer_rank = alphabet->kmer_rank(i.ref_kmer.c_str(), read.base_model[0]->k);
 
-        uint32_t kmer_rank = alphabet->kmer_rank(alignment[i].ref_kmer.c_str(), read.base_model[0]->k);
-
-//        get prob from model
+        //  get prob from model
         float lp_emission = log_probability_match_r9(read, *read.base_model[0], kmer_rank,
-                (uint32_t) alignment[i].event_idx, (uint8_t) alignment[i].strand_idx);
+                                                     (uint32_t) i.event_idx, (uint8_t) i.strand_idx);
 
-        basecall_table[alignment[i].event_idx].p_model_state = exp(lp_emission);
-        basecall_table[alignment[i].event_idx].move = alignment[i].ref_position - prev_ref_index;
-        prev_ref_index = alignment[i].ref_position;
+        basecall_table[i.event_idx].p_model_state = exp(lp_emission);
+        basecall_table[i.event_idx].move = i.ref_position - prev_ref_index;
+        prev_ref_index = i.ref_position;
     }
+
     int start_event_index = alignment[0].event_idx;
     int end_event_index = alignment[alignment.size()-1].event_idx;
 
@@ -78,16 +77,128 @@ std::vector< fast5::Basecall_Event > generate_basecall_table(SquiggleRead& read)
 
 
 void embed_single_read(const ReadDB& read_db, std::string read_id, std::string fast5_path){
-    SquiggleRead sr(read_id, read_db);
+    try
+    {
+        std::string fastq_sequence;
+        //        make sure the file exists
+        if (boost::filesystem::is_regular_file(fast5_path)){
 
-    auto data = generate_basecall_table(sr);
+            std::string read_sequence = read_db.get_read_sequence(read_id);
+            //            make sure the read sequence is long enough to process
+            if (read_sequence.length() > 10) {
+                SquiggleRead sr(read_id, read_db);
+                cout << sr.events[0].empty() << "\n";
+                if (!sr.events[0].empty()) {
+                    auto data = generate_basecall_table(sr);
+                    fast5::File fast5_file;
+                    fast5_file.open(fast5_path, true);
+                    std::string path_1 = fast5::File::basecall_events_path("1D_000", 0);
+                    if (!fast5_file.exists(path_1)) {
+                        cout << "running: " << fast5_path << "\n";
+                        fast5_file.add_basecall_events(0, "1D_000", data);
+                    } else {
+                        cout << "passing: " << fast5_path << "\n";
 
-    fast5::File fast5_file;
-    fast5_file.open(fast5_path, true);
-    auto basecall_groups = fast5_file.get_basecall_group_list();
-    fast5_file.add_basecall_events(0, basecall_groups[0], data);
+                    }
+                    fast5_file.close();
+                } else {
+                    cout << "FAILED SR" << fast5_path << "\n";
+                }
+            } else{
+                cout << "Too Short: " << fast5_path << "\n";
+
+            }
+        }
+    }
+    catch (int e){
+        cout << "An exception occurred. Exception Nr. " << e << '\n';
+    }
+
 }
 
+//void embed_single_read(const ReadDB& read_db, std::string read_id, std::string fast5_path){
+//    std::string read_sequence = read_db.get_read_sequence(read_id);
+//    if (read_sequence.length() > 10){
+//        SquiggleRead sr(read_id, read_db);
+//        if (!sr.events[0].empty()){
+//            auto data = generate_basecall_table(sr);
+//
+//            fast5::File fast5_file;
+//            fast5_file.open(fast5_path, true);
+//            auto basecall_groups = fast5_file.get_basecall_group_list();
+//            std::string path_1 = fast5::File::basecall_events_path(basecall_groups[0], 0);
+//            if (fast5_file.exists(path_1)) {
+//                cout << path_1 << '\n';
+//            }
+//            else {
+//                fast5_file.add_basecall_events(0, basecall_groups[0], data);
+//            }
+//
+//        } else{
+//            cout <<  '\n';
+//
+//        }
+//    }
+//}
+
+void multiprocess_embed_using_readdb(const std::string& input_reads_filename, const ReadDB& read_db){
+//        int N = 10;
+//        float a[N], b[N], c[N];
+//        int i;
+//
+//        /* Initialize arrays a and b */
+//        for (i = 0; i < N; i++) {
+//            a[i] = i * 2.0;
+//            b[i] = i * 3.0;
+//        }
+//
+//        /* Compute values of array c = a+b in parallel. */
+//#pragma omp parallel shared(a, b, c) private(i)
+//        {
+//#pragma omp for
+//            for (i = 0; i < N; i++) {
+//                c[i] = a[i] + b[i];
+//                printf ("%f\n", c[1]);
+//            }
+//        }
+
+
+    omp_set_num_threads(2); // Use 4 threads for all consecutive parallel regions
+
+
+        // generate input filenames
+        std::string m_indexed_reads_filename = input_reads_filename + ".index";
+        std::string in_filename = m_indexed_reads_filename + ".readdb";
+        //
+        std::ifstream in_file(in_filename.c_str());
+        if(in_file.good()) {
+            // read the database
+            std::string line;
+            std::vector<std::string> lines;
+
+            // Read the file
+            while(getline(in_file, line)) {
+                lines.push_back(line);
+            }
+            in_file.close();
+#pragma omp parallel for
+            for(auto it = lines.begin(); it < lines.end(); it++) {
+
+                std::vector<std::string> fields = split(*it, '\t');
+                cout << "Hello, world." << *it << "\n";
+
+                static std::string name = "";
+                static std::string path = "";
+                if (fields.size() == 2) {
+                    name = fields[0];
+                    path = fields[1];
+
+                    embed_single_read(read_db, name, path);
+                }
+            }
+    }
+
+}
 
 // basically a replica of ReadDB::load but I want access to the private data
 void embed_using_readdb(const std::string& input_reads_filename, const ReadDB& read_db)
@@ -226,3 +337,5 @@ int embed_fast5_main(int argc, char** argv)
     return EXIT_SUCCESS;
 }
 
+// taskManager run -c '/home/ubuntu/embed_fast5/build/main_cpp embed -r ../rel3-nanopore-wgs-3574887596-FAB43577_2.fastq' && taskManager run -c 'python /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/run_deep_mod_r9.py --config /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/r9_pipeline.config.json' -r r94_ucsc_deepmod_1000_reads_04_11_19.txt
+// taskManager run -c 'python /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/run_deep_mod_r9.py --config /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/r9_pipeline.config.json' --to andbaile@ucsc.edu -r

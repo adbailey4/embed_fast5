@@ -52,7 +52,7 @@ endif()
 #add_subdirectory(submodules/boost-cmake)
 set(Boost_USE_MULTITHREADED      OFF)
 
-set(NANOPOLISH_HOME "none" CACHE STRING "Some user-specified option")
+set(NANOPOLISH_HOME ${CMAKE_SOURCE_DIR}/submodules/nanopolish)
 
 find_package(Boost COMPONENTS system date_time filesystem iostreams REQUIRED)
 #find_package(hdf5 1.8 REQUIRED HINTS

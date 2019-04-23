@@ -10,7 +10,6 @@
 
 from argparse import ArgumentParser
 from embed.split_multi_read import *
-from py3helpers.multiprocess import *
 from py3helpers.utils import list_dir, time_it
 
 

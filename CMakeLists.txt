@@ -195,16 +195,16 @@ add_executable(nanopolish ${NANOPOLISH} ${nanopolish_source})
 target_link_libraries(nanopolish ${NP_LIBRARY})
 
 # main and tests
-add_executable(main_cpp ${MAIN_CPP} ${nanopolish_source} ${SOURCE_CPP} ${CPP_HEADERS})
-target_link_libraries(main_cpp ${EMBED_LIBRARY})
+add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE_CPP} ${CPP_HEADERS})
+target_link_libraries(embed_main ${EMBED_LIBRARY})
 
-add_executable(test_cpp ${TEST_CPP} ${SOURCE_CPP} ${CPP_HEADERS} ${nanopolish_source})
-target_link_libraries(test_cpp ${HDF5_LIBRARIES} gtest_main ${EMBED_LIBRARY})
+add_executable(test_embed ${TEST_CPP} ${SOURCE_CPP} ${CPP_HEADERS} ${nanopolish_source})
+target_link_libraries(test_embed ${HDF5_LIBRARIES} gtest_main ${EMBED_LIBRARY})
 
 # testing
 
 enable_testing()
-add_test(cpp_tests test_cpp ${CMAKE_SOURCE_DIR})
+add_test(cpp_tests test_embed ${CMAKE_SOURCE_DIR})
 add_test(NAME python_tests COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/embed/test/test_split_multi_read.py
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)

@@ -27,11 +27,13 @@ class TestSplitMultiRead(unittest.TestCase):
         cls.test_files_dir = os.path.join(cls.HOME, "tests/test_files/test_readdb/")
         cls.read_db = os.path.join(cls.HOME, "tests/test_files/test_readdb/new_individual.fastq.index.readdb")
         cls.fastq = os.path.join(cls.HOME, "tests/test_files/test_readdb/new_individual.fastq")
-        cls.fast5 = os.path.join(cls.HOME, "tests/test_files/test_readdb/read_002f9702-c19e-48c2-8e72-9021adbd4a48.fast5")
+        cls.fast5 = os.path.join(cls.HOME,
+                                 "tests/test_files/test_readdb/read_002f9702-c19e-48c2-8e72-9021adbd4a48.fast5")
 
         cls.build_dir = "/Users/andrewbailey/CLionProjects/embed_fast5/cmake-build-debug"
 
         cls.r94_fastq = os.path.join(cls.HOME, "tests/test_files/r94_tests/small_sample.fastq")
+        cls.r94_dir = os.path.join(cls.HOME, "tests/test_files/r94_tests")
 
     def test_parse_readdb(self):
         total_reads = 0
@@ -61,6 +63,7 @@ class TestSplitMultiRead(unittest.TestCase):
             # check if fast5 file has data
             fh = Fast5(fast5_file)
             self.assertRaises(IndexError, fh.get_basecall_data)
+            self.assertRaises(IndexError, fh.get_fastq)
             fh.close()
 
             works = call_nanopolish_index(self.build_dir, tempdir, fastq_file)
@@ -135,6 +138,37 @@ class TestSplitMultiRead(unittest.TestCase):
             self.assertEqual(len(data), 22041)
             fh.close()
 
+    def test_embed_fast5_script(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_r94_dir = os.path.join(tempdir, "r94_tests")
+            shutil.copytree(self.r94_dir, temp_r94_dir)
+            fast5_dir = os.path.join(temp_r94_dir, "fast5")
+            fastq = os.path.join(temp_r94_dir, "small_sample.fastq")
+
+            test_fast5_file = "DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_88738_ch1_read1464_strand.fast5"
+            fast5_file_path = os.path.join(fast5_dir, test_fast5_file)
+
+            fh = Fast5(fast5_file_path)
+            self.assertRaises(IndexError, fh.get_fastq)
+            self.assertRaises(IndexError, fh.get_basecall_data)
+            fh.close()
+
+            embed_command = "embed_fast5s --fast5_dir {} --fastq {} " \
+                            "--jobs {} --embed_build_dir {} --output_dir {}".format(fast5_dir,
+                                                                                    fastq,
+                                                                                    1,
+                                                                                    self.build_dir,
+                                                                                    tempdir)
+            command = embed_command.split()
+            proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc.communicate()
+
+            fh = Fast5(fast5_file_path)
+            fastq_string = fh.get_fastq()
+            events = fh.get_basecall_data()
+            self.assertEqual(len(events), 1700)
+            self.assertEqual(len(fastq_string), 2046)
+            fh.close()
 
 
 if __name__ == '__main__':

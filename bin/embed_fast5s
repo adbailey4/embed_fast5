@@ -12,6 +12,7 @@ from argparse import ArgumentParser
 from embed.embedding_helpers import *
 from embed.fast5 import *
 from py3helpers.multiprocess import *
+from py3helpers.utils import time_it
 
 
 def parse_args():
@@ -60,7 +61,11 @@ def main():
 
     if args.debug:
         n_processed = embed_fastqs_into_fast5s(args.fastq, [args.fast5_dir])
-        print("[embed_fast5s] {} reads with Fastqs embedded".format(n_processed))
+    else:
+        n_processed = multiprocess_embed_fastqs_into_fast5s(args.fastq, [args.fast5_dir],
+                                                            worker_count=args.nb_jobs)
+    print("[embed_fast5s] {} reads with Fastqs embedded".format(n_processed))
+
     # sometimes nanopolish readdb does not find the fast5 files
     os.chdir(args.fast5_dir)
     call_embed_main(args.embed_build_dir, args.fastq)

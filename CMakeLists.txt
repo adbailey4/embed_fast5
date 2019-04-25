@@ -186,7 +186,7 @@ set(MAIN_CPP main.cpp)
 set(NANOPOLISH
         ${NANOPOLISH_HOME}/src/main/nanopolish.cpp)
 
-set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} -lz -lm -ldl -lpthread -lbz2 -lcurl -llzma )
+set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} -lz -lm -ldl -lpthread -lbz2 -lcurl -llzma -lcrypto)
 set(EMBED_LIBRARY ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} ${NP_LIBRARY} )
 
 

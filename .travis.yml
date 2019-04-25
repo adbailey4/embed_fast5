@@ -26,7 +26,7 @@ install:
 #  Install htslib
   - cd $HOME/build/adbailey4/
   - wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2
-  - tar -vxjf htsl  ib-1.9.tar.bz2
+  - tar -vxjf htslib-1.9.tar.bz2
   - ls
   - cd htslib-1.9
   - ./configure

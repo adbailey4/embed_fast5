@@ -18,9 +18,9 @@ def parse_args():
 
     # parsers for running the full pipeline
     # required arguments
-    parser.add_argument('--fast5_dir', '-f', action='store',
-                        dest='fast5_dir', required=True, type=str, default=None,
-                        help="path to multi read fast5 file")
+    parser.add_argument('--multi_fast5_dir', '-f', action='store',
+                        dest='multi_fast5_dir', required=True, type=str, default=None,
+                        help="Path to multi read fast5 directory")
 
     parser.add_argument('--output_dir', '-o', action='store',
                         dest='output_dir', required=True, type=str,
@@ -46,7 +46,7 @@ def main():
     if args.debug:
         total_processed = 0
         total_errors = 0
-        for multi_fast5_file in list_dir(args.fast5_dir, ext="fast5"):
+        for multi_fast5_file in list_dir(args.multi_fast5_dir, ext="fast5"):
 
             fast5_specific_output_dir = os.path.join(args.output_dir, os.path.basename(multi_fast5_file).split(".")[0])
             if not os.path.exists(fast5_specific_output_dir):
@@ -58,7 +58,7 @@ def main():
             if args.delete_multi:
                 os.remove(multi_fast5_file)
     else:
-        total_processed, total_errors = multiprocess_generate_individual_reads(args.fast5_dir, args.output_dir,
+        total_processed, total_errors = multiprocess_generate_individual_reads(args.multi_fast5_dir, args.output_dir,
                                                                                worker_count=args.nb_jobs,
                                                                                delete_multi=args.delete_multi)
 

@@ -100,7 +100,24 @@ set(HTSLIB_INCLUDE_DIRS ${HTSLIB_INCLUDE_DIR} )
 message(HTSLIB_LIBRARIES: "${HTSLIB_LIBRARIES}")
 message(HTSLIB_INCLUDE_DIRS: "${HTSLIB_INCLUDE_DIRS}")
 
+find_library(OPENSSL_LIB libcrypto.a
+        HINTS "${NANOPOLISH_HOME}/lib"
+        ${CMAKE_INSTALL_PREFIX}/lib
+        /usr/local/opt/openssl/lib
+        /usr/lib)
+
+find_path(OPENSSL_INCLUDE_DIR htslib/hts.h
+        HINTS ${OPENSSL_LIB}
+        ${CMAKE_INSTALL_PREFIX}/include
+        /usr/local/opt/openssl/include
+        /usr/include)
+
+message(OPENSSL_LIB: ${OPENSSL_LIB})
+message(OPENSSL_INCLUDE_DIR: ${OPENSSL_INCLUDE_DIR})
+
+
 include_directories(${EIGEN3_INCLUDE_DIR})
+include_directories(${OPENSSL_INCLUDE_DIR})
 include_directories(${HTSLIB_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${HDF5_INCLUDE_DIRS})
@@ -186,7 +203,7 @@ set(MAIN_CPP main.cpp)
 set(NANOPOLISH
         ${NANOPOLISH_HOME}/src/main/nanopolish.cpp)
 
-set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} -lz -lm -ldl -lpthread -lbz2 -lcurl -llzma -lcrypto)
+set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} ${OPENSSL_LIB} -lz -lm -ldl -lpthread -lbz2 -lcurl -llzma)
 set(EMBED_LIBRARY ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} ${NP_LIBRARY} )
 
 

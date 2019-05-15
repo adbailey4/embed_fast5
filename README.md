@@ -4,7 +4,14 @@
 # embed_fast5
 Embed fast5 signal files with a correctly formatted kmer to event alignment given the nucleotide sequence and a model file
 
-####Install instructions  
+#### Dependencies
+* Boost (`sudo apt-get install libboost-all-dev`)
+* HDF5 (`sudo apt-get install libhdf5-serial-dev`)
+* Eigen (`sudo apt-get install libeigen3-dev`)
+* OpenSSL (`sudo apt-get install libssl-dev`)
+### Install instructions  
+
+
 * `git clone https://github.com/adbailey4/embed_fast5.git` 
 * `cd embed_fast5`
 * `python setup.py install`

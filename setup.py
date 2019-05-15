@@ -26,7 +26,7 @@ def main():
         packages=['embed'],
         scripts=["bin/split_multi_fast5", "bin/embed_fast5s"],
         author_email='andbaile@ucsc.com',
-        install_requires=['py3helpers>=0.2.9',
+        install_requires=['py3helpers[seq_tools]>=0.2.9',
                           'pandas>=0.24.2',
                           'h5py>=2.9.0'],
         zip_safe=True

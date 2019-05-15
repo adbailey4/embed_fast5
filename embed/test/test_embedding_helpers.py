@@ -13,6 +13,7 @@
 import unittest
 import tempfile
 import shutil
+import sys
 from embed.embedding_helpers import *
 from embed.fast5 import Fast5
 from py3helpers.utils import list_dir
@@ -29,8 +30,8 @@ class TestSplitMultiRead(unittest.TestCase):
         cls.fastq = os.path.join(cls.HOME, "tests/test_files/test_readdb/new_individual.fastq")
         cls.fast5 = os.path.join(cls.HOME,
                                  "tests/test_files/test_readdb/read_002f9702-c19e-48c2-8e72-9021adbd4a48.fast5")
-
-        cls.build_dir = "/Users/andrewbailey/CLionProjects/embed_fast5/cmake-build-debug"
+        cls.build_dir = os.path.join(cls.HOME,
+                                     "cmake-build-debug")
 
         cls.r94_fastq = os.path.join(cls.HOME, "tests/test_files/r94_tests/small_sample.fastq")
         cls.r94_dir = os.path.join(cls.HOME, "tests/test_files/r94_tests")
@@ -160,7 +161,8 @@ class TestSplitMultiRead(unittest.TestCase):
                                                                                     self.build_dir,
                                                                                     tempdir)
             command = embed_command.split()
-            proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc = subprocess.Popen(command, stdout=sys.stdout, stderr=sys.stderr)
+
             proc.communicate()
 
             fh = Fast5(fast5_file_path)

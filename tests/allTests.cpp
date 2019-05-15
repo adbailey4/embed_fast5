@@ -155,6 +155,9 @@ TEST (Fast5AccessTest, hasRequiredFields) {
 TEST (Fast5AccessTest, test_copyFile){
     EXPECT_TRUE(is_regular_file(EMPTY_FAST5));
     EXPECT_TRUE(fast5::File::is_valid_file(EMPTY_FAST5.string()));
+    if (exists(NO_FAST5)){
+        remove(NO_FAST5);
+    }
 
     copy_file(EMPTY_FAST5, NO_FAST5);
     EXPECT_TRUE(is_regular_file(NO_FAST5));
@@ -167,6 +170,10 @@ TEST (Fast5AccessTest, test_copyFile){
 
 TEST (Fast5AccessTest, test_addChannelParams) {
 //    crete test file
+    if (exists(NO_FAST5)){
+        remove(NO_FAST5);
+    }
+
     copy_file(EMPTY_FAST5, NO_FAST5);
 
     fast5::File emtpy_f;
@@ -186,6 +193,10 @@ TEST (Fast5AccessTest, test_addChannelParams) {
 
 TEST (Fast5WriteTests, test_addBasecalledGroup) {
 //    crete test file
+    if (exists(NO_FAST5)){
+        remove(NO_FAST5);
+    }
+
     copy_file(EMPTY_FAST5, NO_FAST5);
 
     fast5::File emtpy_f;
@@ -216,6 +227,9 @@ TEST (Fast5WriteTests, test_addBasecalledGroup) {
 
 TEST (Fast5WriteTests, test_event_table_to_basecalled_table) {
 //    crete test file
+    if (exists(NO_FAST5)){
+        remove(NO_FAST5);
+    }
     copy_file(EMPTY_FAST5, NO_FAST5);
 
     fast5::File emtpy_f;
@@ -245,11 +259,15 @@ TEST (Fast5WriteTests, test_event_table_to_basecalled_table) {
 //    remove test file
     emtpy_f.close();
     original_f.close();
-    remove(NO_FAST5);
+//    remove(NO_FAST5);
 }
 
 TEST (Fast5WriteTests, test_generate_basecall_table) {
 //    crete test file
+    if (exists(NO_FAST5)){
+        remove(NO_FAST5);
+    }
+
     copy_file(EMPTY_FAST5, NO_FAST5);
 
     fast5::File emtpy_f;
@@ -277,11 +295,15 @@ TEST (Fast5WriteTests, test_generate_basecall_table) {
     EXPECT_TRUE(emtpy_f.have_basecall_group());
     EXPECT_EQ(original_f.get_basecall_group_list()[0], basecall_groups[0]);
 
-    remove(NO_FAST5);
+//    remove(NO_FAST5);
 }
 
 TEST (Fast5EmbedTests, test_embed_using_readdb) {
 //    crete test file
+    if (exists(NO_FAST5)){
+        remove(NO_FAST5);
+    }
+
     copy_file(NO_EVENT, NO_FAST5);
 
     const string& read_db_path(READ_DB.string());

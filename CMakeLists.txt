@@ -106,18 +106,18 @@ find_library(OPENSSL_LIB libcrypto.a
         /usr/local/opt/openssl/lib
         /usr/lib)
 
-find_path(OPENSSL_INCLUDE_DIR htslib/hts.h
-        HINTS ${OPENSSL_LIB}
-        ${CMAKE_INSTALL_PREFIX}/include
-        /usr/local/opt/openssl/include
-        /usr/include)
+#find_path(OPENSSL_INCLUDE_DIR htslib/hts.h
+#        HINTS ${OPENSSL_LIB}
+#        ${CMAKE_INSTALL_PREFIX}/include
+#        /usr/local/opt/openssl/include
+#        /usr/include)
 
 message(OPENSSL_LIB: ${OPENSSL_LIB})
-message(OPENSSL_INCLUDE_DIR: ${OPENSSL_INCLUDE_DIR})
+#message(OPENSSL_INCLUDE_DIR: ${OPENSSL_INCLUDE_DIR})
 
 
 include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${OPENSSL_INCLUDE_DIR})
+#include_directories(${OPENSSL_INCLUDE_DIR})
 include_directories(${HTSLIB_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${HDF5_INCLUDE_DIRS})
@@ -222,6 +222,11 @@ target_link_libraries(test_embed ${HDF5_LIBRARIES} gtest_main ${EMBED_LIBRARY})
 
 enable_testing()
 add_test(cpp_tests test_embed ${CMAKE_SOURCE_DIR})
-add_test(NAME python_tests COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/embed/test/test_split_multi_read.py
+message(PYTHON_EXECUTABLE: "${PYTHON_EXECUTABLE}")
+
+add_test(NAME test_split_multi_read COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/embed/test/test_split_multi_read.py
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME test_embedding_helpers COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/embed/test/test_embedding_helpers.py
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)

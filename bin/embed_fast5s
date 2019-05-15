@@ -43,6 +43,9 @@ def parse_args():
     parser.add_argument('--no_events', action='store_true',
                         dest='no_events', required=False,
                         help="If set this will not embed event tables into the files")
+    parser.add_argument('--no_index', action='store_true',
+                        dest='no_index', required=False,
+                        help="If set this will not generate index files")
 
     args = parser.parse_args()
     return args
@@ -64,7 +67,11 @@ def main():
         args.fastq = os.path.abspath(args.fastq)
 
     # index fastq files to fast5s
-    call_nanopolish_index(args.embed_build_dir, args.fast5_dir, args.fastq)
+    if not args.no_index:
+        call_nanopolish_index(args.embed_build_dir, args.fast5_dir, args.fastq)
+
+    assert os.path.exists(args.fastq+".index"), "Indexing did not work. Please use nanopolish to index files"
+    assert os.path.exists(args.fastq+".index.readdb"), "Indexing did not work. Please use nanopolish to index files"
 
     # will not embed fastqs if set
     if not args.no_fastq:

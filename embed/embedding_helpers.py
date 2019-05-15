@@ -64,8 +64,8 @@ def call_nanopolish_index(build_dir, fast5_dir, fastq):
 
 def call_embed_main(main_cpp_dir, fastq):
     """Call embed on all files"""
-    main_cpp_path = os.path.join(main_cpp_dir, "main_cpp")
-    assert os.path.exists(main_cpp_path), "main_cpp_path does not exist in directory {}".format(main_cpp_dir)
+    main_cpp_path = os.path.join(main_cpp_dir, "embed_main")
+    assert os.path.exists(main_cpp_path), "embed_main does not exist in directory {}".format(main_cpp_dir)
     embed_command = main_cpp_path + " embed -r {fastq}".format(fastq=fastq)
     try:
         command = embed_command.split()

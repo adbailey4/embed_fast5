@@ -17,8 +17,8 @@ Embed fast5 signal files with a correctly formatted kmer to event alignment give
 * `python setup.py install`
 * `mkdir cmake-build-debug` This is named this way so tests can find the executables
 * `cd cmake-build-debug`
-* `cmake ../`
-* `make`
+* `cmake ../ -DLIBDIR= -DINCLUDEDIR=` If you want to add include dirs or search for libraries in non standard directories you can add these flags to do so
+* `make -j 1` The `-j` option sets the number of threads to speed up making
 * `make check`
 
 ##### split_multi_fast5

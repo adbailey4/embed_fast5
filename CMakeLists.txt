@@ -10,6 +10,8 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-3")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -gdwarf-3")
 
+SET(LIBDIR "/usr/lib" CACHE STRING "Some user-specified option")
+SET(INCLUDEDIR "/usr/include" CACHE STRING "Some user-specified option")
 
 if(APPLE)
     set(CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS} -undefined dynamic_lookup")
@@ -60,14 +62,16 @@ find_package(Boost COMPONENTS system date_time filesystem iostreams REQUIRED)
 #        )
 
 find_library(HDF5_LIBRARIES libhdf5.a
-        HINTS "${NANOPOLISH_HOME}/lib"
+        HINTS ${NANOPOLISH_HOME}/lib
         ${CMAKE_INSTALL_PREFIX}/lib
-        /usr/lib)
+        /usr/lib
+        ${LIBDIR})
 
 find_path(HDF5_INCLUDE_DIRS hdf5.h
         HINTS ${HDF5_LIBRARIES}
         "${NANOPOLISH_HOME}/include"
         ${CMAKE_INSTALL_PREFIX}/include
+        ${INCLUDEDIR}
         /usr/include)
 
 
@@ -79,19 +83,23 @@ message(HDF5_LIBRARIES: "${HDF5_LIBRARIES}")
 find_path(EIGEN3_INCLUDE_DIR Eigen HINTS
         ${CMAKE_INSTALL_PREFIX}/include
         ${NANOPOLISH_HOME}
+        ${INCLUDEDIR}
         PATH_SUFFIXES eigen3 eigen)
 
 message(EIGEN3_INCLUDE_DIR: "${EIGEN3_INCLUDE_DIR}")
 
 find_library(HTSLIB_LIBRARY NAMES libhts.a
         HINTS "${NANOPOLISH_HOME}/htslib"
-        ${CMAKE_INSTALL_PREFIX}/include)
+        ${CMAKE_INSTALL_PREFIX}/lib
+        /usr/lib
+        ${LIBDIR})
 
 find_path(HTSLIB_INCLUDE_DIR htslib/hts.h
         HINTS ${HTSLIB_LIBRARY}
         ${CMAKE_INSTALL_PREFIX}/include
         "${NANOPOLISH_HOME}/htslib"
-        /usr/include)
+        /usr/include
+        ${INCLUDEDIR})
 
 
 set(HTSLIB_LIBRARIES ${HTSLIB_LIBRARY} )
@@ -104,7 +112,8 @@ find_library(OPENSSL_LIB libcrypto.a
         HINTS "${NANOPOLISH_HOME}/lib"
         ${CMAKE_INSTALL_PREFIX}/lib
         /usr/local/opt/openssl/lib
-        /usr/lib)
+        /usr/lib
+        ${LIBDIR})
 
 #find_path(OPENSSL_INCLUDE_DIR htslib/hts.h
 #        HINTS ${OPENSSL_LIB}

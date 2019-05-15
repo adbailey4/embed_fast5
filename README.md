@@ -15,8 +15,8 @@ Embed fast5 signal files with a correctly formatted kmer to event alignment give
 * `git clone https://github.com/adbailey4/embed_fast5.git` 
 * `cd embed_fast5`
 * `python setup.py install`
-* `mkdir cmake-build`
-* `cd cmake-build`
+* `mkdir cmake-build-debug` This is named this way so tests can find the executables
+* `cd cmake-build-debug`
 * `cmake ../`
 * `make`
 * `make check`

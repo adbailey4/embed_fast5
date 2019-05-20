@@ -133,13 +133,13 @@ void multiprocess_embed_using_readdb(const std::string& input_reads_filename, co
             in_file.close();
             int64_t number_of_files = lines.size();
             std::string* array_of_lines = &lines[0];
+            static std::string name;
+            static std::string path;
 
-            #pragma omp parallel for shared (read_db)
+            #pragma omp parallel for shared(read_db, array_of_lines) private(name, path)
             for(int64_t i=0; i < number_of_files; i++) {
                 std::string it = array_of_lines[i];
                 std::vector<std::string> fields = split(it, '\t');
-                static std::string name;
-                static std::string path;
                 if (fields.size() == 2) {
                     name = fields[0];
                     path = fields[1];

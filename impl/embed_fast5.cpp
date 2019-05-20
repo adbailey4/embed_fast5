@@ -87,7 +87,6 @@ void embed_single_read(const ReadDB& read_db, std::string read_id, std::string f
             //            make sure the read sequence is long enough to process
             if (read_sequence.length() > 10) {
                 SquiggleRead sr(read_id, read_db);
-                cout << sr.events[0].empty() << "\n";
                 if (!sr.events[0].empty()) {
                     auto data = generate_basecall_table(sr);
                     fast5::File fast5_file;
@@ -106,7 +105,6 @@ void embed_single_read(const ReadDB& read_db, std::string read_id, std::string f
                 }
             } else{
                 cout << "Too Short: " << fast5_path << "\n";
-
             }
         }
     }
@@ -116,55 +114,7 @@ void embed_single_read(const ReadDB& read_db, std::string read_id, std::string f
 
 }
 
-//void embed_single_read(const ReadDB& read_db, std::string read_id, std::string fast5_path){
-//    std::string read_sequence = read_db.get_read_sequence(read_id);
-//    if (read_sequence.length() > 10){
-//        SquiggleRead sr(read_id, read_db);
-//        if (!sr.events[0].empty()){
-//            auto data = generate_basecall_table(sr);
-//
-//            fast5::File fast5_file;
-//            fast5_file.open(fast5_path, true);
-//            auto basecall_groups = fast5_file.get_basecall_group_list();
-//            std::string path_1 = fast5::File::basecall_events_path(basecall_groups[0], 0);
-//            if (fast5_file.exists(path_1)) {
-//                cout << path_1 << '\n';
-//            }
-//            else {
-//                fast5_file.add_basecall_events(0, basecall_groups[0], data);
-//            }
-//
-//        } else{
-//            cout <<  '\n';
-//
-//        }
-//    }
-//}
-
 void multiprocess_embed_using_readdb(const std::string& input_reads_filename, const ReadDB& read_db){
-//        int N = 10;
-//        float a[N], b[N], c[N];
-//        int i;
-//
-//        /* Initialize arrays a and b */
-//        for (i = 0; i < N; i++) {
-//            a[i] = i * 2.0;
-//            b[i] = i * 3.0;
-//        }
-//
-//        /* Compute values of array c = a+b in parallel. */
-//#pragma omp parallel shared(a, b, c) private(i)
-//        {
-//#pragma omp for
-//            for (i = 0; i < N; i++) {
-//                c[i] = a[i] + b[i];
-//                printf ("%f\n", c[1]);
-//            }
-//        }
-
-
-    omp_set_num_threads(2); // Use 4 threads for all consecutive parallel regions
-
 
         // generate input filenames
         std::string m_indexed_reads_filename = input_reads_filename + ".index";
@@ -175,24 +125,24 @@ void multiprocess_embed_using_readdb(const std::string& input_reads_filename, co
             // read the database
             std::string line;
             std::vector<std::string> lines;
-
             // Read the file
             while(getline(in_file, line)) {
                 lines.push_back(line);
             }
+
             in_file.close();
-#pragma omp parallel for
-            for(auto it = lines.begin(); it < lines.end(); it++) {
+            int64_t number_of_files = lines.size();
+            std::string* array_of_lines = &lines[0];
 
-                std::vector<std::string> fields = split(*it, '\t');
-                cout << "Hello, world." << *it << "\n";
-
-                static std::string name = "";
-                static std::string path = "";
+            #pragma omp parallel for shared (read_db)
+            for(int64_t i=0; i < number_of_files; i++) {
+                std::string it = array_of_lines[i];
+                std::vector<std::string> fields = split(it, '\t');
+                static std::string name;
+                static std::string path;
                 if (fields.size() == 2) {
                     name = fields[0];
                     path = fields[1];
-
                     embed_single_read(read_db, name, path);
                 }
             }
@@ -249,6 +199,8 @@ static const char *EMBED_FAST5_USAGE_MESSAGE =
         "  -r, --reads=FILE                     the ONT reads are in fasta FILE\n"
         "  -i, --read_id=ID                     read id of file to process\n"
         "  -f, --fast5=FILE                     path to Fast5 file\n"
+        "  -t, --threads=NUMBER                 number of threads\n"
+
         "\nReport bugs to " PACKAGE_BUGREPORT2 "\n\n";
 
 namespace opt
@@ -257,10 +209,11 @@ namespace opt
     static std::string reads_file;
     static std::string read_id;
     static std::string fast5;
+    static unsigned int threads;
     static int num_threads = 1;
 }
 
-static const char* shortopts = "r:i:f:vn";
+static const char* shortopts = "r:i:t:f:vn";
 
 enum { OPT_HELP = 1, OPT_VERSION };
 
@@ -269,20 +222,22 @@ static const struct option longopts[] = {
         { "reads",            required_argument, nullptr, 'r' },
         { "read_id",          optional_argument, nullptr, 'i' },
         { "fast5",            optional_argument, nullptr, 'f' },
+        { "threads",          optional_argument, nullptr, 't' },
         { "help",             no_argument,       nullptr, OPT_HELP },
         { "version",          no_argument,       nullptr, OPT_VERSION },
-        { NULL, 0, NULL, 0 }
+        { nullptr, 0, nullptr, 0 }
 };
 
 void parse_embed_main_options(int argc, char** argv)
 {
     bool die = false;
-    for (char c; (c = getopt_long(argc, argv, shortopts, longopts, NULL)) != -1;) {
+    for (char c; (c = getopt_long(argc, argv, shortopts, longopts, nullptr)) != -1;) {
         std::istringstream arg(optarg != nullptr ? optarg : "");
         switch (c) {
             case 'r': arg >> opt::reads_file; break;
             case 'i': arg >> opt::read_id; break;
             case 'f': arg >> opt::fast5; break;
+            case 't': arg >> opt::threads; break;
             case 'v': opt::verbose++; break;
             case OPT_HELP:
                 std::cout << EMBED_FAST5_USAGE_MESSAGE;
@@ -310,32 +265,34 @@ void parse_embed_main_options(int argc, char** argv)
     }
 }
 
+
+
 int embed_fast5_main(int argc, char** argv)
 {
     parse_embed_main_options(argc, argv);
     ReadDB read_db;
     read_db.load(opt::reads_file);
 
-//    cout << read_db.get_read_sequence("00087eac-80d1-4328-b755-24f4b192c7d0") << '\n';
-//    cout << read_db.get_read_sequence("0037480f-176e-44b7-bd11-c23124837596") << '\n';
-//    cout << read_db.get_read_sequence("0052794f-313f-4b93-9063-7fdb0f79d23c") << '\n';
-//    cout << read_db.get_read_sequence("002f9702-c19e-48c2-8e72-9021adbd4a48") << '\n';
-//    cout << read_db.get_read_sequence("002625e8-9a2e-411c-99a7-ee3fa6b9eef1") << '\n';
-//    cout << read_db.get_read_sequence("002625e8-9a2e-411c-99a7-ee3fa6b9eef1") << '\n';
+#ifndef H5_HAVE_THREADSAFE
+    if(opt::num_threads > 1) {
+        fprintf(stderr, "You enabled multi-threading but you do not have a threadsafe HDF5\n");
+        fprintf(stderr, "Please recompile nanopolish's built-in libhdf5 or run with -t 1\n");
+        exit(1);
+    }
+#endif
+    if(opt::threads > 1) {
+        omp_set_num_threads(opt::threads); // Use 4 threads for all consecutive parallel regions
 
-    embed_using_readdb(opt::reads_file, read_db);
+        multiprocess_embed_using_readdb(opt::reads_file, read_db);
 
-//    SquiggleRead sr(opt::read_id, read_db);
-//
-//    auto data = generate_basecall_table(sr);
-//
-//    fast5::File fast5_file;
-//    fast5_file.open(opt::fast5, true);
-//    auto basecall_groups = fast5_file.get_basecall_group_list();
-//    fast5_file.add_basecall_events(0, basecall_groups[0], data);
-//
+    } else {
+        embed_using_readdb(opt::reads_file, read_db);
+
+    }
+
     return EXIT_SUCCESS;
 }
+
 
 // taskManager run -c '/home/ubuntu/embed_fast5/build/main_cpp embed -r ../rel3-nanopore-wgs-3574887596-FAB43577_2.fastq' && taskManager run -c 'python /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/run_deep_mod_r9.py --config /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/r9_pipeline.config.json' -r r94_ucsc_deepmod_1000_reads_04_11_19.txt
 // taskManager run -c 'python /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/run_deep_mod_r9.py --config /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/r9_pipeline.config.json' --to andbaile@ucsc.edu -r

@@ -8,6 +8,7 @@
 #include "nanopolish_squiggle_read.h"
 #include "embed_fast5.hpp"
 #include "nanopolish_read_db.h"
+#include "omp.h"
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
 
@@ -345,31 +346,43 @@ TEST (Fast5EmbedTests, test_r94_embed) {
 
 }
 
-//TEST (Fast5EmbedTests, test_multiprocess_embed_using_readdb){
-//
-//    path tempdir = temp_directory_path() / "temp";
-//    path fast5_dir = tempdir / "fast5";
-//
-//    cout << tempdir << "\n";
-//    path read_db_path = tempdir / R94_FASTQ.filename();
-//    if (exists(tempdir)){
-//        remove_all(tempdir);
-//    }
-//    copyDir(R94_TEST_DIR, tempdir);
-//    ReadDB read_db;
-//    read_db.load(read_db_path.string());
-//    cd(fast5_dir.string().c_str());
-//
-//    multiprocess_embed_using_readdb(read_db_path.string(), read_db);
-//
-//    path some_file = "DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch108_read1153_strand.fast5";
-//    fast5::File original_f;
-//    original_f.open((fast5_dir / some_file).string());
-//    EXPECT_EQ(original_f.get_basecall_group_list()[0], "1D_000");
-//
-//    remove_all(tempdir);
-//
-//}
+TEST (Fast5EmbedTests, test_multiprocess_embed_using_readdb){
+
+    path tempdir = temp_directory_path() / "temp";
+    path fast5_dir = tempdir / "fast5";
+
+    cout << tempdir << "\n";
+    path read_db_path = tempdir / R94_FASTQ.filename();
+    if (exists(tempdir)){
+        remove_all(tempdir);
+    }
+    copyDir(R94_TEST_DIR, tempdir);
+    ReadDB read_db;
+    read_db.load(read_db_path.string());
+    cd(fast5_dir.string().c_str());
+
+    int num_threads = 5;
+    omp_set_num_threads(num_threads);
+
+    #ifndef H5_HAVE_THREADSAFE
+        if(num_threads > 1) {
+            fprintf(stderr, "You enabled multi-threading but you do not have a threadsafe HDF5\n");
+            fprintf(stderr, "Please recompile nanopolish's built-in libhdf5 or run with -t 1\n");
+            exit(1);
+        }
+    #endif
+
+
+    multiprocess_embed_using_readdb(read_db_path.string(), read_db);
+
+    path some_file = "DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch108_read1153_strand.fast5";
+    fast5::File original_f;
+    original_f.open((fast5_dir / some_file).string());
+    EXPECT_EQ(original_f.get_basecall_group_list()[0], "1D_000");
+
+    remove_all(tempdir);
+
+}
 
 
 int main(int argc, char **argv) {
@@ -389,4 +402,3 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
-//taskManager run -c 'python /home/ubuntu/embed_fast5/bin/embed_r94_fast5 -n /home/ubuntu/nanopolish/ -m /home/ubuntu/embed_fast5/cmake_build -f /deepmod_benchmark_data/ucsc_r94_na12878/generate_testing_data/UCSC/deepmod_r94_run_30000 -q /deepmod_benchmark_data/ucsc_r94_na12878/generate_testing_data/UCSC/rel3-nanopore-wgs-3574887596-FAB43577_2.fastq -o /deepmod_benchmark_data/ucsc_r94_na12878/generate_testing_data/UCSC/new_rel_fastqs/' --to andbaile@ucsc.edu

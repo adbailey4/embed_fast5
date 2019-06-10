@@ -4,3 +4,6 @@
 [submodule "submodules/nanopolish"]
 	path = submodules/nanopolish
 	url = https://github.com/jts/nanopolish.git
+[submodule "submodules/pybind11"]
+	path = submodules/pybind11
+	url = https://github.com/pybind/pybind11

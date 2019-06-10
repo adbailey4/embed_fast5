@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.7)
 project(embed_fast5)
 
+add_subdirectory(submodules/pybind11)
+
+
+
 set(CMAKE_C_STANDARD 99)
 
 SET(CMAKE_CXX_STANDARD 11)
@@ -199,18 +203,18 @@ set(nanopolish_source
         ${NANOPOLISH_HOME}/src/thirdparty/stdaln.c)
 
 set(SOURCE_CPP
-        impl/embed_fast5.cpp)
+        impl/embed_fast5.cpp
+        impl/filter_alignments.cpp)
 
 set(CPP_HEADERS
-        inc/embed_fast5.hpp)
+        inc/embed_fast5.hpp
+        inc/filter_alignments.hpp)
 
-set(TEST_CPP
-        tests/allTests.cpp)
+set(TEST_CPP tests/allTests.cpp)
 
 set(MAIN_CPP main.cpp)
 
-set(NANOPOLISH
-        ${NANOPOLISH_HOME}/src/main/nanopolish.cpp)
+set(NANOPOLISH ${NANOPOLISH_HOME}/src/main/nanopolish.cpp)
 
 set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} ${OPENSSL_LIB} -lz -lm -ldl -lpthread -lbz2 -lcurl -llzma)
 set(EMBED_LIBRARY ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} ${NP_LIBRARY} )
@@ -239,3 +243,9 @@ add_test(NAME test_embedding_helpers COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)
+
+#pybind11_add_module(cmake_example5 example.cpp)
+pybind11_add_module(some_embed2 impl/PythonBindings.cpp)
+#execute_process(COMMAND python3 -m pybind11 --includes OUTPUT_VARIABLE SHASTA_PYTHON_INCLUDES)
+#add_definitions(${SHASTA_PYTHON_INCLUDES})
+#install(PROGRAMS impl/PythonBindings.cpp DESTINATION bin)

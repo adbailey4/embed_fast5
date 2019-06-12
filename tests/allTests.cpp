@@ -29,6 +29,7 @@ using namespace std;
 #define POSITIONS_FILE1 "tests/test_files/positions_tests/CCWGG_ecoli_k12_mg1655.positions"
 #define ALIGNMENT_FILE1 "tests/test_files/positions_tests/5cc86bac-79fd-4897-8631-8f1c55954a45.sm.backward.tsv"
 #define ALIGNMENT_DIR1 "tests/test_files/positions_tests/"
+#define CORRECT_OUTPUT1 "tests/test_files/positions_tests/correct_outputs/"
 
 path HOME = "This is not a path";
 path ORIGINAL_FAST5 = ORIGINAL_FAST51;
@@ -43,6 +44,8 @@ path R94_TEST_DIR = R94_TEST_DIR1;
 path POSITIONS_FILE = POSITIONS_FILE1;
 path ALIGNMENT_FILE = ALIGNMENT_FILE1;
 path ALIGNMENT_DIR = ALIGNMENT_DIR1;
+path CORRECT_OUTPUT = CORRECT_OUTPUT1;
+
 
 bool copyDir(
         boost::filesystem::path const & source,
@@ -121,6 +124,27 @@ bool copyDir(
         }
     }
     return true;
+}
+
+//https://stackoverflow.com/questions/6163611/compare-two-files
+bool compareFiles(const std::string& p1, const std::string& p2) {
+    std::ifstream f1(p1, std::ifstream::binary|std::ifstream::ate);
+    std::ifstream f2(p2, std::ifstream::binary|std::ifstream::ate);
+
+    if (f1.fail() || f2.fail()) {
+        return false; //file problem
+    }
+
+    if (f1.tellg() != f2.tellg()) {
+        return false; //size mismatch
+    }
+
+    //seek back to beginning and use std::equal to compare contents
+    f1.seekg(0, std::ifstream::beg);
+    f2.seekg(0, std::ifstream::beg);
+    return std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
+                      std::istreambuf_iterator<char>(),
+                      std::istreambuf_iterator<char>(f2.rdbuf()));
 }
 
 //
@@ -389,68 +413,89 @@ bool copyDir(
 //    remove_all(tempdir);
 //
 //}
+//
+//TEST (PositionsFileTests, test_load) {
+//    PositionsFile pf = PositionsFile(POSITIONS_FILE.string(), 5);
+//    string contig = "gi_ecoli+";
+//    EXPECT_TRUE(contains(pf.m_data[contig], 419));
+//}
+//
+//TEST (PositionsFileTests, test_is_in) {
+//    PositionsFile pf = PositionsFile(POSITIONS_FILE.string(), 5);
+//    string contig = "gi_ecoli+";
+//    EXPECT_TRUE(pf.is_in(contig, 419));
+//    EXPECT_TRUE(pf.is_in(contig, 415));
+//    EXPECT_FALSE(pf.is_in(contig, 414));
+//}
+//
+//TEST (AlignmentFileTests, test_get_strand) {
+//    AlignmentFile af = AlignmentFile(ALIGNMENT_FILE.string());
+//    af.get_strand();
+//    EXPECT_EQ("-", af.strand);
+//}
+//
+//
+//
+//TEST (AlignmentFileTests, test_filter) {
+//    path tempdir = temp_directory_path() / "temp";
+//    path test_output = tempdir / "test_output.assignment.tsv";
+//    AlignmentFile af = AlignmentFile(ALIGNMENT_FILE.string());
+//    PositionsFile pf = PositionsFile(POSITIONS_FILE.string(), 5);
+//    af.filter(&pf, test_output);
+//    std::ifstream in_file(test_output.c_str());
+//    if (in_file.good()) {
+//        // read the file
+//        std::string line;
+//        while (getline(in_file, line)) {
+//            std::vector<std::string> fields = split(line, '\t');
+//            std::size_t found = fields[0].find('C');
+//            EXPECT_TRUE(found!=std::string::npos);
+//        }
+//    }
+//    in_file.close();
+//    remove_all(tempdir);
+//}
+//
+//TEST (filter_alignments, test_filter_alignemnt_files) {
+//    path tempdir = temp_directory_path() / "temp" ;
+//    path tempdir2 = temp_directory_path() / "temp2" ;
+//    copyDir(ALIGNMENT_DIR, tempdir);
+//
+////    path tempdir = "/Users/andrewbailey/CLionProjects/embed_fast5/tests/test_files/positions_tests";
+////    path tempdir2 = "/Users/andrewbailey/CLionProjects/embed_fast5/tests/test_files/positions_tests/correct_outputs";
+//    path test_output = tempdir2 / "9e4d14b1-8167-44ef-9fdb-5c29dd0763fd.sm.backward.tsv";
+//    path correct_output = CORRECT_OUTPUT / "9e4d14b1-8167-44ef-9fdb-5c29dd0763fd.sm.backward.tsv";
+//
+//    omp_set_num_threads(3); // Use 2 threads
+//    filter_alignment_files(tempdir.string(), POSITIONS_FILE.string(), tempdir2.string());
+//    EXPECT_TRUE(compareFiles(test_output.string(), correct_output.string()));
+//    std::ifstream in_file(test_output.c_str());
+//    EXPECT_TRUE(in_file.good());
+//    // read the file
+//    std::string line;
+//    while (getline(in_file, line)) {
+//        std::vector<std::string> fields = split(line, '\t');
+//        std::size_t found = fields[0].find('C');
+//        EXPECT_TRUE(found!=std::string::npos);
+//    }
+//    in_file.close();
+//    remove_all(tempdir);
+//    remove_all(tempdir2);
+//
+//}
 
-TEST (PositionsFileTests, test_load) {
-    PositionsFile pf = PositionsFile(POSITIONS_FILE.string(), 5);
-    string contig = "gi_ecoli+";
-    EXPECT_TRUE(contains(pf.m_data[contig], 419));
-}
 
-TEST (PositionsFileTests, test_is_in) {
-    PositionsFile pf = PositionsFile(POSITIONS_FILE.string(), 5);
-    string contig = "gi_ecoli+";
-    EXPECT_TRUE(pf.is_in(contig, 419));
-    EXPECT_TRUE(pf.is_in(contig, 415));
-    EXPECT_FALSE(pf.is_in(contig, 414));
-}
+TEST (filter_alignments, test_filter_alignemnt_files2) {
 
-TEST (AlignmentFileTests, test_get_strand) {
-    AlignmentFile af = AlignmentFile(ALIGNMENT_FILE.string());
-    af.get_strand();
-    EXPECT_EQ("-", af.strand);
-}
+    path tempdir = "/Users/andrewbailey/CLionProjects/embed_fast5/tests/real_data_test/alignment_files";
+    path tempdir2 = "/Users/andrewbailey/CLionProjects/embed_fast5/tests/real_data_test/real_output";
+    path test_output = tempdir2 / "3edd7328-22df-44bd-ab79-aff15b5aea15.sm.forward.tsv";
+    path correct_output = "/Users/andrewbailey/CLionProjects/embed_fast5/tests/real_data_test/expected_output/3edd7328-22df-44bd-ab79-aff15b5aea15.sm.forward.tsv";
 
-TEST (AlignmentFileTests, test_filter) {
-    path tempdir = temp_directory_path() / "temp";
-    path test_output = tempdir / "test_output.assignment.tsv";
-    AlignmentFile af = AlignmentFile(ALIGNMENT_FILE.string());
-    PositionsFile pf = PositionsFile(POSITIONS_FILE.string(), 5);
-    af.filter(&pf, test_output);
-    std::ifstream in_file(test_output.c_str());
-    if (in_file.good()) {
-        // read the file
-        std::string line;
-        while (getline(in_file, line)) {
-            std::vector<std::string> fields = split(line, '\t');
-            std::size_t found = fields[0].find('C');
-            EXPECT_TRUE(found!=std::string::npos);
-        }
-    }
-    in_file.close();
-    remove_all(tempdir);
-}
+    omp_set_num_threads(4); // Use 4 threads
 
-TEST (filter_alignments, test_filter_alignemnt_files) {
-    path tempdir = temp_directory_path() / "temp" ;
-    path tempdir2 = temp_directory_path() / "temp2" ;
-
-    copyDir(ALIGNMENT_DIR, tempdir);
-    path test_output = tempdir2 / "9e4d14b1-8167-44ef-9fdb-5c29dd0763fd.sm.backward.tsv";
-    omp_set_num_threads(2); // Use 2 threads
-    filter_alignment_files(tempdir.string(), POSITIONS_FILE.string(), tempdir2.string());
-    std::ifstream in_file(test_output.c_str());
-    EXPECT_TRUE(in_file.good());
-    // read the file
-    std::string line;
-    while (getline(in_file, line)) {
-        std::vector<std::string> fields = split(line, '\t');
-        std::size_t found = fields[0].find('C');
-        EXPECT_TRUE(found!=std::string::npos);
-    }
-    in_file.close();
-    remove_all(tempdir);
-    remove_all(tempdir2);
-
+    filter_alignment_files(tempdir.string(), "/Users/andrewbailey/CLionProjects/embed_fast5/tests/real_data_test/12_gap_filtered_chr1_min10coverage_min95methyl_max1c.positions", tempdir2.string());
+    EXPECT_TRUE(compareFiles(test_output.string(), correct_output.string()));
 }
 
 
@@ -471,6 +516,8 @@ int main(int argc, char **argv) {
     POSITIONS_FILE = HOME / POSITIONS_FILE;
     ALIGNMENT_FILE = HOME / ALIGNMENT_FILE;
     ALIGNMENT_DIR = HOME / ALIGNMENT_DIR;
+    CORRECT_OUTPUT = HOME / CORRECT_OUTPUT;
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

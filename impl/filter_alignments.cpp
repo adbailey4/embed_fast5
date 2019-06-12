@@ -9,11 +9,12 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <string>
 #include "omp.h"
 #include <boost/icl/discrete_interval.hpp>
 #include <boost/filesystem.hpp>
 #include "filter_alignments.hpp"
+#include <iterator>
+#include <algorithm>
 
 
 using namespace std;
@@ -147,7 +148,7 @@ void AlignmentFile::filter(PositionsFile* pf, boost::filesystem::path& output_fi
 //            string ont_model_mean = fields[14];
             string path_kmer = fields[15];
             string contig_strand = contig+this->strand;
-            if (pf->is_in(contig_strand, reference_index))
+            if (pf->is_in(contig_strand, reference_index)) // or (descaled_event_mean.find('C') == std::string::npos)
                 out_file << path_kmer << '\t' << read_strand << '\t' << descaled_event_mean << '\t' <<  posterior_probability << '\n';
         }
     }
@@ -207,8 +208,8 @@ void filter_alignment_files(string input_reads_dir, const string& positions_file
     for(int64_t i=0; i < number_of_files; i++) {
 
         path current_file = array_of_files[i];
+        cout << current_file << "\n";
         AlignmentFile af = AlignmentFile(current_file.string());
-
         path output_file = output_path / current_file.filename();
         af.filter(&pf, output_file);
     }

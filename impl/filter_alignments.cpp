@@ -15,12 +15,31 @@
 #include "filter_alignments.hpp"
 #include <iterator>
 #include <algorithm>
+#include <sys/stat.h>
 
 
 using namespace std;
 using namespace boost;
 using namespace boost::icl;
 using namespace boost::filesystem;
+
+
+
+/**
+ * Get the size of a file. https://techoverflow.net/2013/08/21/how-to-get-filesize-using-stat-in-cc/
+ * @param filename The name of the file to check size for
+ * @return The filesize, or 0 if the file does not exist.
+ */
+size_t getFilesize(const std::string& filename) {
+    struct stat st;
+    if(stat(filename.c_str(), &st) != 0) {
+        return 0;
+    }
+    return st.st_size;
+}
+
+
+
 
 PositionsFile::~PositionsFile()
 = default;
@@ -92,11 +111,12 @@ void PositionsFile::load(const std::string& input_reads_filename, int64_t k)
 
 //check to see if position is in interval tree
 bool PositionsFile::is_in(string& contig, int64_t position){
-    if ( m_data.find(contig) == m_data.end() ) {
-        // not found
+    const auto& iter = m_data.find(contig);
+    if(iter == m_data.end()) {
         return false;
+    } else {
+        return contains(m_data[contig], position) ;
     }
-    return contains(m_data[contig], position) ;
 }
 
 AlignmentFile::~AlignmentFile()
@@ -189,13 +209,14 @@ void filter_alignment_files(string input_reads_dir, const string& positions_file
     int64_t k;
     int counter = 0;
     for (directory_iterator itr(p); itr != end_itr; ++itr) {
-        if (is_regular_file(itr->path()) and itr->path().extension().string() == ".tsv") {
+//        filter for files that are regular, end with tsv and are not empty
+        if (is_regular_file(itr->path()) and itr->path().extension().string() == ".tsv" and getFilesize(itr->path().string()) > 0) {
             all_tsvs.push_back(itr->path());
-        }
-        if (counter == 0){
-            AlignmentFile af = AlignmentFile(itr->path().string());
-            k = af.k;
-            counter += 1;
+            if (counter == 0){
+                AlignmentFile af = AlignmentFile(itr->path().string());
+                k = af.k;
+                counter += 1;
+            }
         }
     }
 
@@ -204,14 +225,16 @@ void filter_alignment_files(string input_reads_dir, const string& positions_file
     int64_t number_of_files = all_tsvs.size();
     path* array_of_files = &all_tsvs[0];
 // looping through the files
-    #pragma omp parallel for shared(array_of_files, pf)
+    #pragma omp parallel for shared(array_of_files, pf, number_of_files)
     for(int64_t i=0; i < number_of_files; i++) {
 
         path current_file = array_of_files[i];
         cout << current_file << "\n";
         AlignmentFile af = AlignmentFile(current_file.string());
         path output_file = output_path / current_file.filename();
+//        if (current_file.filename().string() == "0a4e473d-4713-4c7f-9e18-c465ea6d5b8c.sm.forward.tsv"){
         af.filter(&pf, output_file);
+//        }
     }
 
 }

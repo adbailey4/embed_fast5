@@ -67,44 +67,44 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
-setup(
-    name='embed',
-    version='0.0.1',
-    author='Dean Moldovan',
-    author_email='dean0x7d@gmail.com',
-    description='A test project using pybind11 and CMake',
-    long_description='',
-    ext_modules=[CMakeExtension('cmake_example3')],
-    cmdclass=dict(build_ext=CMakeBuild),
-    zip_safe=False,
-)
+# setup(
+#     name='embed',
+#     version='0.0.1',
+#     author='Dean Moldovan',
+#     author_email='dean0x7d@gmail.com',
+#     description='A test project using pybind11 and CMake',
+#     long_description='',
+#     ext_modules=[CMakeExtension('cmake_example3')],
+#     cmdclass=dict(build_ext=CMakeBuild),
+#     zip_safe=False,
+# )
 
 
-# def main():
-#     """Main docstring"""
-#     start = timer()
-#     setup(
-#         name="embed",
-#         version='0.0.5',
-#         description='Embed fast5 with event table from nanopolish model',
-#         url='https://github.com/adbailey4/embed_fast5',
-#         author='Andrew Bailey',
-#         license='MIT',
-#         packages=['embed'],
-#         ext_modules=[CMakeExtension('cmake_example2')],
-#         cmdclass=dict(build_ext=CMakeBuild),
-#         # scripts=["bin/split_multi_fast5", "bin/embed_fast5s"],
-#         author_email='andbaile@ucsc.com',
-#         # install_requires=['py3helpers[seq_tools]>=0.2.9',
-#         #                   'pandas>=0.24.2',
-#         #                   'h5py>=2.9.0'],
-#         zip_safe=False
-#     )
-#
-#     stop = timer()
-#     print("Running Time = {} seconds".format(stop-start), file=sys.stderr)
-#
-#
-# if __name__ == "__main__":
-#     main()
-#     raise SystemExit
+def main():
+    """Main docstring"""
+    start = timer()
+    setup(
+        name="embed",
+        version='0.0.5',
+        description='Embed fast5 with event table from nanopolish model',
+        url='https://github.com/adbailey4/embed_fast5',
+        author='Andrew Bailey',
+        license='MIT',
+        packages=['embed'],
+        # ext_modules=[CMakeExtension('cmake_example2')],
+        # cmdclass=dict(build_ext=CMakeBuild),
+        scripts=["bin/split_multi_fast5", "bin/embed_fast5s"],
+        author_email='andbaile@ucsc.com',
+        install_requires=['py3helpers[seq_tools]>=0.2.9',
+                          'pandas>=0.24.2',
+                          'h5py>=2.9.0'],
+        zip_safe=False
+    )
+
+    stop = timer()
+    print("Running Time = {} seconds".format(stop-start), file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
+    raise SystemExit

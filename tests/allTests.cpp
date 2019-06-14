@@ -441,7 +441,7 @@ TEST (AlignmentFileTests, test_filter) {
     path test_output = tempdir / "test_output.assignment.tsv";
     AlignmentFile af = AlignmentFile(ALIGNMENT_FILE.string());
     PositionsFile pf = PositionsFile(POSITIONS_FILE.string(), 5);
-    af.filter(&pf, test_output);
+    af.filter(&pf, test_output, "");
     std::ifstream in_file(test_output.c_str());
     if (in_file.good()) {
         // read the file
@@ -462,7 +462,7 @@ TEST (filter_alignments, test_filter_alignemnt_files) {
     copyDir(ALIGNMENT_DIR, input_dir);
 
     omp_set_num_threads(2); // Use 2 threads
-    filter_alignment_files(input_dir.string(), POSITIONS_FILE.string(), output_dir.string());
+    filter_alignment_files(input_dir.string(), POSITIONS_FILE.string(), output_dir.string(), "");
 
     directory_iterator end_itr;
 //    Get all tsvs to process
@@ -476,6 +476,21 @@ TEST (filter_alignments, test_filter_alignemnt_files) {
 
 }
 
+TEST (util_functions, test_is_character_in_string){
+    string query = "atg";
+    string target = "qwera";
+    string target2 = "qwert";
+    string target3 = "qwge";
+    string target4 = "qw";
+    string empty = "";
+    EXPECT_TRUE(are_characters_in_string(query, target));
+    EXPECT_TRUE(are_characters_in_string(query, target2));
+    EXPECT_TRUE(are_characters_in_string(query, target3));
+    EXPECT_FALSE(are_characters_in_string(query, target4));
+    EXPECT_FALSE(are_characters_in_string(empty, target4));
+    EXPECT_FALSE(are_characters_in_string(empty, empty));
+
+}
 
 //TEST (filter_alignments, test_filter_alignemnt_files2) {
 //

@@ -36,19 +36,19 @@ public:
 class AlignmentFile
 {
 public:
-    AlignmentFile(const string& input_reads_filename);
+    explicit AlignmentFile(const string& input_reads_filename);
     ~AlignmentFile();
     string get_strand();
     int64_t get_k();
-    void filter(PositionsFile* pf, boost::filesystem::path& output_file);
+    void filter(PositionsFile* pf, boost::filesystem::path& output_file, string bases);
     //
     string strand;
     string file_path;
     int64_t k;
 };
 
-
+bool are_characters_in_string(string &characters, string &my_string);
 int filter_alignments_main(int argc, char** argv);
-void filter_alignment_files(string input_reads_dir, const string& positions_file, string output_dir);
+void filter_alignment_files(string input_reads_dir, const string& positions_file, string output_dir, string bases);
 
 #endif //EMBED_FAST5_FILTER_ALIGNMENTS_H

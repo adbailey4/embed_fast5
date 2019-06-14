@@ -141,7 +141,7 @@ int64_t AlignmentFile::get_k(){
     return this->k;
 }
 
-void AlignmentFile::filter(PositionsFile* pf, boost::filesystem::path& output_file) {
+void AlignmentFile::filter(PositionsFile* pf, boost::filesystem::path& output_file, string bases) {
     std::ofstream out_file;
     out_file.open(output_file.string());
     std::ifstream in_file(this->file_path.c_str());
@@ -168,12 +168,23 @@ void AlignmentFile::filter(PositionsFile* pf, boost::filesystem::path& output_fi
 //            string ont_model_mean = fields[14];
             string path_kmer = fields[15];
             string contig_strand = contig+this->strand;
-            if (pf->is_in(contig_strand, reference_index)) // or (descaled_event_mean.find('C') == std::string::npos)
+            if (pf->is_in(contig_strand, reference_index) or are_characters_in_string(bases, path_kmer)) {
                 out_file << path_kmer << '\t' << read_strand << '\t' << descaled_event_mean << '\t' <<  posterior_probability << '\n';
+            }
         }
     }
     out_file.close();
     in_file.close();
+}
+
+
+bool are_characters_in_string(string &characters, string &my_string){
+    for(char& c : characters) {
+        if (my_string.find(c) != std::string::npos){
+            return true;
+        }
+    }
+    return false;
 }
 
 string AlignmentFile::get_strand(){
@@ -198,7 +209,7 @@ path make_dir(path output_path){
     return output_path;
 }
 
-void filter_alignment_files(string input_reads_dir, const string& positions_file, string output_dir){
+void filter_alignment_files(string input_reads_dir, const string& positions_file, string output_dir, string bases){
 
     path p(input_reads_dir);
     path output_path = make_dir(output_dir);
@@ -233,7 +244,7 @@ void filter_alignment_files(string input_reads_dir, const string& positions_file
         AlignmentFile af = AlignmentFile(current_file.string());
         path output_file = output_path / current_file.filename();
 //        if (current_file.filename().string() == "0a4e473d-4713-4c7f-9e18-c465ea6d5b8c.sm.forward.tsv"){
-        af.filter(&pf, output_file);
+        af.filter(&pf, output_file, bases);
 //        }
     }
 
@@ -261,6 +272,7 @@ static const char *FILTER_ALIGNMENT_USAGE_MESSAGE =
         "  -p, --positions_file=FILE            path to positons file\n"
         "  -o, --output_dir=DIR                 path to directory to output filteredalignment files\n"
         "  -t, --threads=NUMBER                 number of threads\n"
+        "  -n, --bases=BASES                    nucleotides to filter out unless in positions file\n"
 
         "\nReport bugs to " PACKAGE_BUGREPORT2 "\n\n";
 
@@ -272,9 +284,10 @@ namespace opt
     static std::string output_dir;
     static unsigned int threads;
     static int num_threads = 1;
+    static std::string bases;
 }
 
-static const char* shortopts = "r:i:t:f:vn";
+static const char* shortopts = "a:p:t:o:n:vh";
 
 enum { OPT_HELP = 1, OPT_VERSION };
 
@@ -284,6 +297,7 @@ static const struct option longopts[] = {
         { "positions_file",   required_argument, nullptr, 'p' },
         { "output_dir",       required_argument, nullptr, 'o' },
         { "threads",          optional_argument, nullptr, 't' },
+        { "bases",            optional_argument, nullptr, 'n' },
         { "help",             no_argument,       nullptr, OPT_HELP },
         { "version",          no_argument,       nullptr, OPT_VERSION },
         { nullptr, 0, nullptr, 0 }
@@ -299,6 +313,7 @@ void parse_filter_main_options(int argc, char** argv)
             case 'p': arg >> opt::positions_file; break;
             case 'o': arg >> opt::output_dir; break;
             case 't': arg >> opt::threads; break;
+            case 'n': arg >> opt::bases; break;
             case 'v': opt::verbose++; break;
             case OPT_HELP:
                 std::cout << FILTER_ALIGNMENT_USAGE_MESSAGE;
@@ -341,13 +356,13 @@ int filter_alignments_main(int argc, char** argv)
 #ifndef H5_HAVE_THREADSAFE
     if(opt::num_threads > 1) {
         fprintf(stderr, "You enabled multi-threading but you do not have a threadsafe HDF5\n");
-        fprintf(stderr, "Please recompile nanopolish's built-in libhdf5 or run with -t 1\n");
+        fprintf(stderr, "Please recompile built-in libhdf5 or run with -t 1\n");
         exit(1);
     }
 #endif
 
     omp_set_num_threads(opt::threads); // Use 4 threads for all consecutive parallel regions
-    filter_alignment_files(opt::alignment_files, opt::positions_file, opt::output_dir);
+    filter_alignment_files(opt::alignment_files, opt::positions_file, opt::output_dir, opt::bases);
 
     return EXIT_SUCCESS;
 }

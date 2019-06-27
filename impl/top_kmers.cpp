@@ -245,20 +245,27 @@ void MaxKmers::write_to_file(boost::filesystem::path& output_path, boost::filesy
 
   std::ofstream out_log;
   out_log.open(log_path.string());
+  out_log << "kmers" << '\t' << "num_events" << '\t' << "min_prob" << '\n';
 
+  size_t kmer_index = 0;
   for (auto &pq: this->kmer_queues){
-    int counter = 0;
-    float min_p = 2.0;
-    string kmer;
+// loop through all queues
     for (auto &event: pq){
       out_file << event.kmer << '\t' << event.strand << '\t' << event.mean << '\t' <<  event.prob << '\n';
-      counter += 1;
-      if (min_p < event.prob) {
-        min_p = event.prob;
-        kmer = event.kmer;
-      }
+//      keep track of number of events
     }
-    out_log << kmer << '\t' << counter << '\t' << min_p << '\n';
+  //    log info about queue
+    int n_events = pq.size();
+    float min_p;
+    if (n_events > 0){
+      eventkmer top = pq.top();
+      min_p = top.prob;
+    } else{
+      min_p = 0.0;
+    }
+    out_log << this->get_index_kmer(kmer_index) << '\t' << n_events << '\t' << min_p << '\n';
+    kmer_index += 1;
+
   }
   out_file.close();
   out_log.close();

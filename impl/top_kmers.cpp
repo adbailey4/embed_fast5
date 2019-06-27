@@ -299,7 +299,6 @@ void generate_master_assignment_table(string assignment_dir, string output_dir, 
 
   int64_t number_of_files = all_tsvs.size();
   path* array_of_files = &all_tsvs[0];
-  path output_file = output_path / "builtAssignment.tsv";
 
 // looping through the files
 #pragma omp parallel for shared(array_of_files, mk, number_of_files)
@@ -314,7 +313,10 @@ void generate_master_assignment_table(string assignment_dir, string output_dir, 
 //        if (current_file.filename().string() == "0a4e473d-4713-4c7f-9e18-c465ea6d5b8c.sm.forward.tsv"){
 //        }
   }
-  mk.write_to_file(output_file);
+  path output_file = output_path / "builtAssignment.tsv";
+  path log_file = output_path / "built_log.tsv";
+
+  mk.write_to_file(output_file, log_file);
 }
 
 

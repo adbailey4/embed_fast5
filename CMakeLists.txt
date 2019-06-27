@@ -60,7 +60,7 @@ set(Boost_USE_MULTITHREADED      OFF)
 
 set(NANOPOLISH_HOME ${CMAKE_SOURCE_DIR}/submodules/nanopolish)
 
-find_package(Boost COMPONENTS system date_time filesystem iostreams REQUIRED)
+find_package(Boost COMPONENTS system date_time filesystem iostreams coroutine REQUIRED)
 #find_package(hdf5 1.8 REQUIRED HINTS
 #        ${CMAKE_INSTALL_PREFIX}/include
 #        )
@@ -204,10 +204,14 @@ set(nanopolish_source
 
 set(SOURCE_CPP
         impl/embed_fast5.cpp
+        impl/embed_utils.cpp
+        impl/top_kmers.cpp
         impl/filter_alignments.cpp)
 
 set(CPP_HEADERS
         inc/embed_fast5.hpp
+        inc/embed_utils.hpp
+        inc/top_kmers.hpp
         inc/filter_alignments.hpp)
 
 set(TEST_CPP tests/allTests.cpp)

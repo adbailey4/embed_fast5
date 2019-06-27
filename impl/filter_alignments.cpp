@@ -16,28 +16,13 @@
 #include <iterator>
 #include <algorithm>
 #include <sys/stat.h>
-
+#include "embed_utils.hpp"
 
 using namespace std;
 using namespace boost;
 using namespace boost::icl;
 using namespace boost::filesystem;
-
-
-
-/**
- * Get the size of a file. https://techoverflow.net/2013/08/21/how-to-get-filesize-using-stat-in-cc/
- * @param filename The name of the file to check size for
- * @return The filesize, or 0 if the file does not exist.
- */
-size_t getFilesize(const std::string& filename) {
-    struct stat st;
-    if(stat(filename.c_str(), &st) != 0) {
-        return 0;
-    }
-    return st.st_size;
-}
-
+using namespace embed_utils;
 
 
 
@@ -53,34 +38,6 @@ PositionsFile::PositionsFile(const std::string& input_reads_filename, int64_t k)
 }
 
 
-// Split a string into parts based on the delimiter
-std::vector<std::string> split(std::string &in, char delimiter)
-{
-    std::vector<std::string> out;
-    size_t lastPos = 0;
-    size_t pos = in.find_first_of(delimiter);
-
-    while(pos != std::string::npos)
-    {
-        out.push_back(in.substr(lastPos, pos - lastPos));
-        lastPos = pos + 1;
-        pos = in.find_first_of(delimiter, lastPos);
-    }
-    out.push_back(in.substr(lastPos));
-    return out;
-}
-
-//https://www.systutorials.com/131/convert-string-to-int-and-reverse/
-int64_t convert_to_int(std::string& str_int){
-    int64_t number;
-    std::istringstream iss (str_int);
-    iss >> number;
-    if (!iss.good ()) {
-        return number;
-    }
-}
-
-
 void PositionsFile::load(const std::string& input_reads_filename, int64_t k)
 {
     // generate input filenames
@@ -89,11 +46,11 @@ void PositionsFile::load(const std::string& input_reads_filename, int64_t k)
         // read the file
         std::string line;
         while(getline(in_file, line)) {
-            std::vector<std::string> fields = split(line, '\t');
+            std::vector<std::string> fields = embed_utils::split(line, '\t');
             string contig = fields[0];
             string strand = fields[2];
             string contig_strand = contig+strand;
-            int64_t start_position = convert_to_int(fields[1]);
+            int64_t start_position = embed_utils::convert_to_int(fields[1]);
             int64_t end_position = start_position - (k - 1);
 
             if ( m_data.find(contig_strand) == m_data.end() ) {
@@ -178,14 +135,6 @@ void AlignmentFile::filter(PositionsFile* pf, boost::filesystem::path& output_fi
 }
 
 
-bool are_characters_in_string(string &characters, string &my_string){
-    for(char& c : characters) {
-        if (my_string.find(c) != std::string::npos){
-            return true;
-        }
-    }
-    return false;
-}
 
 string AlignmentFile::get_strand(){
     std::vector<std::string> fields = split(this->file_path, '.');
@@ -200,13 +149,6 @@ string AlignmentFile::get_strand(){
 
     }
     return this->strand;
-}
-
-path make_dir(path output_path){
-    if (!exists(output_path)){
-        create_directory(output_path);
-    }
-    return output_path;
 }
 
 void filter_alignment_files(string input_reads_dir, const string& positions_file, string output_dir, string bases){

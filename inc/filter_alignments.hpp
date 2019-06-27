@@ -47,7 +47,6 @@ public:
     int64_t k;
 };
 
-bool are_characters_in_string(string &characters, string &my_string);
 int filter_alignments_main(int argc, char** argv);
 void filter_alignment_files(string input_reads_dir, const string& positions_file, string output_dir, string bases);
 

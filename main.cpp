@@ -9,6 +9,7 @@
 #include <fast5.hpp>
 #include <boost/filesystem.hpp>
 #include "embed_fast5.hpp"
+#include "top_kmers.hpp"
 #include "filter_alignments.hpp"
 #include "nanopolish_squiggle_read.h"
 #include "nanopolish_index.h"
@@ -22,13 +23,13 @@ using namespace boost::filesystem;
 int print_usage(int argc, char **argv);
 
 static std::map< std::string, std::function<int(int, char**)> > programs = {
-        {"help",        print_usage},
-        {"--help",      print_usage},
-        {"embed",       embed_fast5_main},
-        {"index",       index_main},
-        {"extract",     extract_main},
-        {"filter",      filter_alignments_main}
-
+    {"help",        print_usage},
+    {"--help",      print_usage},
+    {"embed",       embed_fast5_main},
+    {"index",       index_main},
+    {"extract",     extract_main},
+    {"filter",      filter_alignments_main},
+    {"top_kmers",   top_kmers_main}
 };
 
 int print_usage(int, char **)

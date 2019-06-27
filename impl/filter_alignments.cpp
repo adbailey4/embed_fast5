@@ -125,7 +125,7 @@ void AlignmentFile::filter(PositionsFile* pf, boost::filesystem::path& output_fi
 //            string ont_model_mean = fields[14];
             string path_kmer = fields[15];
             string contig_strand = contig+this->strand;
-            if (pf->is_in(contig_strand, reference_index) or are_characters_in_string(bases, path_kmer)) {
+            if (pf->is_in(contig_strand, reference_index) || !are_characters_in_string(bases, path_kmer)) {
                 out_file << path_kmer << '\t' << read_strand << '\t' << descaled_event_mean << '\t' <<  posterior_probability << '\n';
             }
         }

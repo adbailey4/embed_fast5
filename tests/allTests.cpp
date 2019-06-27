@@ -362,23 +362,22 @@ TEST (AlignmentFileTests, test_filter) {
 }
 
 TEST (filter_alignments, test_filter_alignment_files) {
-    path input_dir = temp_directory_path() / "input" ;
-    path output_dir = temp_directory_path() / "output" ;
-    copyDir(ALIGNMENT_DIR, input_dir);
+  path input_dir = temp_directory_path() / "input" ;
+  path output_dir = temp_directory_path() / "output" ;
+  copyDir(ALIGNMENT_DIR, input_dir);
 
 //    omp_set_num_threads(2); // Use 2 threads
-    filter_alignment_files(input_dir.string(), POSITIONS_FILE.string(), output_dir.string(), "");
+  filter_alignment_files(input_dir.string(), POSITIONS_FILE.string(), output_dir.string(), "");
 
-    directory_iterator end_itr;
+  directory_iterator end_itr;
 //    Get all tsvs to process
-    for (directory_iterator itr(output_dir); itr != end_itr; ++itr) {
+  for (directory_iterator itr(output_dir); itr != end_itr; ++itr) {
 
-        EXPECT_TRUE(compareFiles(itr->path().string(), (CORRECT_OUTPUT / itr->path().filename()).string()));
+      EXPECT_TRUE(compareFiles(itr->path().string(), (CORRECT_OUTPUT / itr->path().filename()).string()));
 
-    }
-    remove_all(input_dir);
-    remove_all(output_dir);
-
+  }
+  remove_all(input_dir);
+  remove_all(output_dir);
 }
 
 

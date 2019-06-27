@@ -34,6 +34,7 @@ using namespace embed_utils;
 #define ALIGNMENT_DIR1 "tests/test_files/positions_tests/"
 #define CORRECT_OUTPUT1 "tests/test_files/positions_tests/correct_outputs/"
 #define ASSIGNMENT_FILE1 "tests/test_files/assignment_files/d6160b0b-a35e-43b5-947f-adaa1abade28.sm.assignments.tsv"
+#define TEST_FILES1 "tests/test_files/"
 
 path HOME = "This is not a path";
 path ORIGINAL_FAST5 = ORIGINAL_FAST51;
@@ -50,6 +51,7 @@ path ALIGNMENT_FILE = ALIGNMENT_FILE1;
 path ALIGNMENT_DIR = ALIGNMENT_DIR1;
 path CORRECT_OUTPUT = CORRECT_OUTPUT1;
 path ASSIGNMENT_FILE = ASSIGNMENT_FILE1;
+path TEST_FILES = TEST_FILES1;
 
 
 TEST (Fast5AccessTest, isValidFile) {
@@ -458,6 +460,16 @@ TEST (MaxKmersTests, test_write_to_file) {
   mk.write_to_file(NO_FAST5);
   EXPECT_TRUE(is_regular_file(NO_FAST5));
   remove(NO_FAST5);
+
+  path log_file = TEST_FILES / "log_file.txt";
+
+  mk.write_to_file(NO_FAST5, log_file);
+  EXPECT_TRUE(is_regular_file(NO_FAST5));
+  EXPECT_TRUE(is_regular_file(log_file));
+  remove(NO_FAST5);
+  remove(log_file);
+
+
 }
 
 
@@ -521,25 +533,26 @@ TEST (util_functions, test_convert_to_float) {
 
 
 int main(int argc, char **argv) {
-    H5Eset_auto(0, nullptr, nullptr);
-    HOME = argv[1];
-    cout << HOME << '\n';
-    ORIGINAL_FAST5 = HOME / ORIGINAL_FAST5;
-    EMPTY_FAST5 = HOME / EMPTY_FAST5;
-    SIGNAL_FAST5 = HOME / SIGNAL_FAST5;
-    NO_EVENT = HOME / NO_EVENT;
-    NO_FAST5 = HOME / NO_FAST5;
-    READ_DB = HOME / READ_DB;
-    R94_FAST5 = HOME / R94_FAST5;
-    R94_FASTQ = HOME / R94_FASTQ;
-    R94_TEST_DIR = HOME / R94_TEST_DIR;
-    POSITIONS_FILE = HOME / POSITIONS_FILE;
-    ALIGNMENT_FILE = HOME / ALIGNMENT_FILE;
-    ALIGNMENT_DIR = HOME / ALIGNMENT_DIR;
-    CORRECT_OUTPUT = HOME / CORRECT_OUTPUT;
-    ASSIGNMENT_FILE = HOME / ASSIGNMENT_FILE;
+  H5Eset_auto(0, nullptr, nullptr);
+  HOME = argv[1];
+  cout << HOME << '\n';
+  ORIGINAL_FAST5 = HOME / ORIGINAL_FAST5;
+  EMPTY_FAST5 = HOME / EMPTY_FAST5;
+  SIGNAL_FAST5 = HOME / SIGNAL_FAST5;
+  NO_EVENT = HOME / NO_EVENT;
+  NO_FAST5 = HOME / NO_FAST5;
+  READ_DB = HOME / READ_DB;
+  R94_FAST5 = HOME / R94_FAST5;
+  R94_FASTQ = HOME / R94_FASTQ;
+  R94_TEST_DIR = HOME / R94_TEST_DIR;
+  POSITIONS_FILE = HOME / POSITIONS_FILE;
+  ALIGNMENT_FILE = HOME / ALIGNMENT_FILE;
+  ALIGNMENT_DIR = HOME / ALIGNMENT_DIR;
+  CORRECT_OUTPUT = HOME / CORRECT_OUTPUT;
+  ASSIGNMENT_FILE = HOME / ASSIGNMENT_FILE;
+  TEST_FILES = HOME / TEST_FILES;
 
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
 

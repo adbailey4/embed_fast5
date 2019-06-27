@@ -69,7 +69,7 @@ class MaxKmers{
   void destroy_locks();
   void add_to_heap(eventkmer kmer_struct);
   void write_to_file(boost::filesystem::path& output_path);
-
+  void write_to_file(boost::filesystem::path& output_path, boost::filesystem::path& log_path);
 
   string alphabet;
   int alphabet_size;

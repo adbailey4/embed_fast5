@@ -219,8 +219,10 @@ void MaxKmers::add_to_heap(eventkmer kmer_struct){
   omp_unset_lock(&(this->locks[index]));
 
 }
-
-
+/**
+ * Write all kmers in the kmer_queues to output path
+ * @param output_path
+ */
 void MaxKmers::write_to_file(boost::filesystem::path& output_path){
   std::ofstream out_file;
   out_file.open(output_path.string());
@@ -230,6 +232,36 @@ void MaxKmers::write_to_file(boost::filesystem::path& output_path){
     }
   }
   out_file.close();
+}
+
+/**
+ * Write all kmers in the kmer_queues to output path and write info about the kmers to log_path
+ * @param output_path
+ * @param log_path
+ */
+void MaxKmers::write_to_file(boost::filesystem::path& output_path, boost::filesystem::path& log_path){
+  std::ofstream out_file;
+  out_file.open(output_path.string());
+
+  std::ofstream out_log;
+  out_log.open(log_path.string());
+
+  for (auto &pq: this->kmer_queues){
+    int counter = 0;
+    float min_p = 2.0;
+    string kmer;
+    for (auto &event: pq){
+      out_file << event.kmer << '\t' << event.strand << '\t' << event.mean << '\t' <<  event.prob << '\n';
+      counter += 1;
+      if (min_p < event.prob) {
+        min_p = event.prob;
+        kmer = event.kmer;
+      }
+    }
+    out_log << kmer << '\t' << counter << '\t' << min_p << '\n';
+  }
+  out_file.close();
+  out_log.close();
 }
 
 /**

@@ -26,10 +26,10 @@ install:
 #  Install boost
   - cd $HOME/build/adbailey4/
   - wget -O boost_1_69_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download
-  - tar xzf boost_1_69_0.tar.gz
+  - tar xzf boost_1_69_0.tar.gz >/dev/null
   - cd boost_1_69_0/
-  - ./bootstrap.sh #--prefix=/usr/
-  - sudo ./b2 install
+  - ./bootstrap.sh >/dev/null #--prefix=/usr/
+  - sudo ./b2 install >/dev/null
   #  Install htslib
   - cd $HOME/build/adbailey4/
   - wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2

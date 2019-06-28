@@ -28,7 +28,7 @@ install:
   - wget -O boost_1_69_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download
   - tar xzf boost_1_69_0.tar.gz >/dev/null
   - cd boost_1_69_0/
-  - ./bootstrap.sh >/dev/null #--prefix=/usr/
+  - ./bootstrap.sh --with-library=system,date_time,filesystem,iostreams,coroutine >/dev/null #--prefix=/usr/
   - echo something
   - sudo ./b2 install
   #  Install htslib

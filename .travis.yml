@@ -30,7 +30,7 @@ install:
   - cd boost_1_69_0/
   - ./bootstrap.sh >/dev/null #--prefix=/usr/
   - echo something
-  - sudo ./b2 install >/dev/null
+  - sudo ./b2 install
   #  Install htslib
   - cd $HOME/build/adbailey4/
   - wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2

@@ -25,8 +25,8 @@ install:
   - pwd
 #  Install boost
   - cd $HOME/build/adbailey4/
-  - wget -O boost_1_69_0.tar https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download
-  - tar -xf boost_1_69_0.tar
+  - wget -O boost_1_69_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download
+  - tar xzf boost_1_69_0.tar.gz
   - cd boost_1_69_0/
   - ./bootstrap.sh #--prefix=/usr/
   - sudo ./b2 install

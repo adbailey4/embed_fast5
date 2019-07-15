@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <iostream>
 #include <sstream>
-#include "embed_utils.hpp"
+#include "EmbedUtils.hpp"
 #include <cmath>
 
 using namespace boost::filesystem;

@@ -8,9 +8,10 @@
 #include <string>
 #include <fast5.hpp>
 #include <boost/filesystem.hpp>
-#include "embed_fast5.hpp"
-#include "top_kmers.hpp"
-#include "filter_alignments.hpp"
+#include "scripts/embed_fast5.hpp"
+#include "scripts/top_kmers.hpp"
+#include "scripts/FilterAlignments.hpp"
+#include "scripts/signalalign_to_bed.hpp"
 #include "nanopolish_squiggle_read.h"
 #include "nanopolish_index.h"
 #include "nanopolish_extract.h"
@@ -29,7 +30,9 @@ static std::map< std::string, std::function<int(int, char**)> > programs = {
     {"index",       index_main},
     {"extract",     extract_main},
     {"filter",      filter_alignments_main},
-    {"top_kmers",   top_kmers_main}
+    {"top_kmers",   top_kmers_main},
+    {"sa2bed",   sa2bed_main}
+
 };
 
 int print_usage(int, char **)

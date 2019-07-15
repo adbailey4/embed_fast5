@@ -2,16 +2,18 @@
 // Created by Andrew Bailey on 03/15/19.
 //
 
-#include <gtest/gtest.h>
+#include "EmbedUtils.hpp"
+#include "MaxKmers.hpp"
+#include "AlignmentFile.hpp"
+#include "scripts/top_kmers.hpp"
+#include "scripts/FilterAlignments.hpp"
 #include "fast5.hpp"
 #include "iostream"
 #include "nanopolish_squiggle_read.h"
-#include "embed_fast5.hpp"
-#include "embed_utils.hpp"
-#include "top_kmers.hpp"
-#include "filter_alignments.hpp"
+#include "scripts/embed_fast5.hpp"
 #include "nanopolish_read_db.h"
 #include "omp.h"
+#include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
 
@@ -365,9 +367,9 @@ TEST (filter_alignments, test_filter_alignment_files) {
   path input_dir = temp_directory_path() / "input" ;
   path output_dir = temp_directory_path() / "output" ;
   copyDir(ALIGNMENT_DIR, input_dir);
-
+  string empty;
 //    omp_set_num_threads(2); // Use 2 threads
-  filter_alignment_files(input_dir.string(), POSITIONS_FILE.string(), output_dir.string(), "");
+  filter_alignment_files(input_dir.string(), POSITIONS_FILE.string(), output_dir.string(), empty);
 
   directory_iterator end_itr;
 //    Get all tsvs to process

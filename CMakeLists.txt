@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 project(embed_fast5)
 
-add_subdirectory(submodules/pybind11)
+#add_subdirectory(submodules/pybind11)
 
 
 
@@ -140,6 +140,7 @@ link_directories(/usr/local/lib)
 link_directories(/usr/lib)
 
 # my includes
+include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/inc)
 include_directories(${CMAKE_SOURCE_DIR}/fast5/include)
 include_directories(${CMAKE_SOURCE_DIR}/fast5/include/fast5)
@@ -202,17 +203,18 @@ set(nanopolish_source
         ${NANOPOLISH_HOME}/src/thirdparty/scrappie/event_detection.c
         ${NANOPOLISH_HOME}/src/thirdparty/stdaln.c)
 
-set(SOURCE_CPP
-        impl/embed_fast5.cpp
-        impl/embed_utils.cpp
-        impl/top_kmers.cpp
-        impl/filter_alignments.cpp)
+#file(GLOB SOURCE_CPP impl/*.cpp)
+#file(GLOB CPP_HEADERS inc/*.hpp)
 
-set(CPP_HEADERS
-        inc/embed_fast5.hpp
-        inc/embed_utils.hpp
-        inc/top_kmers.hpp
-        inc/filter_alignments.hpp)
+set(SOURCE
+        src/scripts/embed_fast5.cpp src/scripts/embed_fast5.hpp
+        src/scripts/top_kmers.cpp src/scripts/top_kmers.hpp
+        src/EmbedUtils.cpp src/EmbedUtils.hpp
+        src/BedFile.cpp src/BedFile.hpp
+        src/scripts/signalalign_to_bed.cpp src/scripts/signalalign_to_bed.hpp
+        src/PositionsFile.cpp src/PositionsFile.hpp
+        src/AlignmentFile.cpp src/AlignmentFile.hpp
+        src/scripts/FilterAlignments.cpp src/scripts/FilterAlignments.hpp src/AssignmentFile.cpp src/AssignmentFile.hpp src/MaxKmers.cpp src/MaxKmers.hpp)
 
 set(TEST_CPP tests/allTests.cpp)
 
@@ -229,10 +231,10 @@ add_executable(nanopolish ${NANOPOLISH} ${nanopolish_source})
 target_link_libraries(nanopolish ${NP_LIBRARY})
 
 # main and tests
-add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE_CPP} ${CPP_HEADERS})
+add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE})
 target_link_libraries(embed_main ${EMBED_LIBRARY})
 
-add_executable(test_embed ${TEST_CPP} ${SOURCE_CPP} ${CPP_HEADERS} ${nanopolish_source})
+add_executable(test_embed ${TEST_CPP} ${SOURCE} ${nanopolish_source})
 target_link_libraries(test_embed ${HDF5_LIBRARIES} gtest_main ${EMBED_LIBRARY})
 
 # testing
@@ -249,7 +251,7 @@ add_test(NAME test_embedding_helpers COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)
 
 #pybind11_add_module(cmake_example5 example.cpp)
-pybind11_add_module(some_embed2 impl/PythonBindings.cpp)
+#pybind11_add_module(some_embed2 impl/PythonBindings.cpp)
 #execute_process(COMMAND python3 -m pybind11 --includes OUTPUT_VARIABLE SHASTA_PYTHON_INCLUDES)
 #add_definitions(${SHASTA_PYTHON_INCLUDES})
 #install(PROGRAMS impl/PythonBindings.cpp DESTINATION bin)

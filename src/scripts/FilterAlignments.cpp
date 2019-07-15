@@ -1,157 +1,19 @@
 //
 // Created by Andrew Bailey on 2019-06-07.
 //
-
-#include <stdio.h>
-#include <getopt.h>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <sstream>
+#include "FilterAlignments.hpp"
+#include "AlignmentFile.hpp"
+#include "EmbedUtils.hpp"
 #include "omp.h"
-#include <boost/icl/discrete_interval.hpp>
-#include <boost/filesystem.hpp>
-#include "filter_alignments.hpp"
-#include <iterator>
-#include <algorithm>
-#include <sys/stat.h>
-#include "embed_utils.hpp"
+#include <getopt.h>
+
+
 
 using namespace std;
-using namespace boost;
-using namespace boost::icl;
 using namespace boost::filesystem;
 using namespace embed_utils;
 
-
-
-PositionsFile::~PositionsFile()
-= default;
-
-PositionsFile::PositionsFile()
-= default;
-
-
-PositionsFile::PositionsFile(const std::string& input_reads_filename, int64_t k){
-    this->load(input_reads_filename, k);
-}
-
-
-void PositionsFile::load(const std::string& input_reads_filename, int64_t k)
-{
-    // generate input filenames
-    std::ifstream in_file(input_reads_filename.c_str());
-    if(in_file.good()) {
-        // read the file
-        std::string line;
-        while(getline(in_file, line)) {
-            std::vector<std::string> fields = embed_utils::split(line, '\t');
-            string contig = fields[0];
-            string strand = fields[2];
-            string contig_strand = contig+strand;
-            int64_t start_position = embed_utils::convert_to_int(fields[1]);
-            int64_t end_position = start_position - (k - 1);
-
-            if ( m_data.find(contig_strand) == m_data.end() ) {
-                // not found
-                interval_set<int64_t> intervalSet;
-                m_data[contig_strand] = intervalSet;
-            }
-//            create interval
-            discrete_interval<int64_t>::type positions(end_position, start_position, interval_bounds::closed());
-            m_data[contig_strand].insert(positions);
-        }
-    }
-    in_file.close();
-}
-
-//check to see if position is in interval tree
-bool PositionsFile::is_in(string& contig, int64_t position){
-    const auto& iter = m_data.find(contig);
-    if(iter == m_data.end()) {
-        return false;
-    } else {
-        return contains(m_data[contig], position) ;
-    }
-}
-
-AlignmentFile::~AlignmentFile()
-= default;
-
-AlignmentFile::AlignmentFile(const string& input_reads_filename){
-    this->file_path = input_reads_filename;
-    this->get_strand();
-    this->get_k();
-}
-
-int64_t AlignmentFile::get_k(){
-    std::ifstream in_file(this->file_path.c_str());
-    if (in_file.good()) {
-        // read the file
-        std::string line;
-        getline(in_file, line);
-        std::vector<std::string> fields = split(line, '\t');
-        this->k = fields[2].length();
-    }
-    in_file.close();
-    return this->k;
-}
-
-void AlignmentFile::filter(PositionsFile* pf, boost::filesystem::path& output_file, string bases) {
-    std::ofstream out_file;
-    out_file.open(output_file.string());
-    std::ifstream in_file(this->file_path.c_str());
-
-    if (in_file.good()) {
-        // read the file
-        std::string line;
-        while (getline(in_file, line)) {
-            std::vector<std::string> fields = split(line, '\t');
-            string contig = fields[0];
-            int64_t reference_index = convert_to_int(fields[1]);
-//            string reference_kmer = fields[2];
-//            string read_file = fields[3];
-            string read_strand = fields[4];
-//            string event_index = fields[5];
-//            string event_mean = fields[6];
-//            string event_noise = fields[7];
-//            string event_duration = fields[8];
-//            string aligned_kmer = fields[9];
-//            string scaled_mean_current = fields[10];
-//            string scaled_noise = fields[11];
-            string posterior_probability = fields[12];
-            string descaled_event_mean = fields[13];
-//            string ont_model_mean = fields[14];
-            string path_kmer = fields[15];
-            string contig_strand = contig+this->strand;
-            if (pf->is_in(contig_strand, reference_index) || !are_characters_in_string(bases, path_kmer)) {
-                out_file << path_kmer << '\t' << read_strand << '\t' << descaled_event_mean << '\t' <<  posterior_probability << '\n';
-            }
-        }
-    }
-    out_file.close();
-    in_file.close();
-}
-
-
-
-string AlignmentFile::get_strand(){
-    std::vector<std::string> fields = split(this->file_path, '.');
-    if (fields.end()[-2] == "backward"){
-        this->strand = "-";
-    } else if (fields.end()[-2] == "forward") {
-        this->strand = "+";
-    } else {
-        fprintf(stderr, "error: could not infer strand from  %s\n", this->file_path.c_str());
-        fprintf(stderr, "Please check input file is full alignment file from signalalign\n");
-        exit(EXIT_FAILURE);
-
-    }
-    return this->strand;
-}
-
-void filter_alignment_files(string input_reads_dir, const string& positions_file, string output_dir, string bases){
+void filter_alignment_files(string input_reads_dir, const string& positions_file, string output_dir, string& bases){
 
     path p(input_reads_dir);
     path output_path = make_dir(output_dir);
@@ -211,8 +73,8 @@ static const char *FILTER_ALIGNMENT_USAGE_MESSAGE =
         "      --version                        display version\n"
         "      --help                           display this help and exit\n"
         "  -a, --alignment_files=DIR            directory of signalalign alignment files\n"
-        "  -p, --positions_file=FILE            path to positons file\n"
-        "  -o, --output_dir=DIR                 path to directory to output filteredalignment files\n"
+        "  -p, --positions_file=FILE            path to positions file\n"
+        "  -o, --output_dir=DIR                 path to directory to output filtered alignment files\n"
         "  -t, --threads=NUMBER                 number of threads\n"
         "  -n, --bases=BASES                    nucleotides to filter out unless in positions file\n"
 
@@ -225,7 +87,6 @@ namespace opt
     static std::string positions_file;
     static std::string output_dir;
     static unsigned int threads;
-    static int num_threads = 1;
     static std::string bases;
 }
 
@@ -263,6 +124,12 @@ void parse_filter_main_options(int argc, char** argv)
             case OPT_VERSION:
                 std::cout << FILTER_ALIGNMENT_VERSION_MESSAGE;
                 exit(EXIT_SUCCESS);
+            default:
+              string error = ": unreconized argument -";
+              error += c;
+              error += " \n";
+              std::cerr << SUBPROGRAM + error;
+              exit(EXIT_FAILURE);
         }
     }
 
@@ -296,7 +163,7 @@ int filter_alignments_main(int argc, char** argv)
     parse_filter_main_options(argc, argv);
 
 #ifndef H5_HAVE_THREADSAFE
-    if(opt::num_threads > 1) {
+    if(opt::threads > 1) {
         fprintf(stderr, "You enabled multi-threading but you do not have a threadsafe HDF5\n");
         fprintf(stderr, "Please recompile built-in libhdf5 or run with -t 1\n");
         exit(1);

@@ -245,6 +245,12 @@ void parse_embed_main_options(int argc, char** argv)
             case OPT_VERSION:
                 std::cout << EMBED_FAST5_VERSION_MESSAGE;
                 exit(EXIT_SUCCESS);
+            default:
+              string error = ": unreconized argument -";
+              error += c;
+              error += " \n";
+              std::cerr << SUBPROGRAM + error;
+              exit(EXIT_FAILURE);
         }
     }
 

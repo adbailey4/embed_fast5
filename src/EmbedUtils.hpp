@@ -10,11 +10,17 @@
 #include <sstream>
 #include <iostream>
 #include <boost/filesystem.hpp>
+#include <boost/coroutine2/all.hpp>
+
 #include <boost/range/iterator_range.hpp>
 #include <string>
 
 using namespace boost::filesystem;
+using namespace boost::coroutines2;
 using namespace std;
+
+typedef coroutine<path> dir_coro;
+
 
 namespace embed_utils{
   bool are_characters_in_string(string &characters, string &my_string);
@@ -23,13 +29,22 @@ namespace embed_utils{
   path make_dir(path output_path);
   bool compareFiles(const std::string& p1, const std::string& p2);
   bool copyDir(path const & source, path const & destination);
-  std::vector<std::string> split(std::string &in, char delimiter);
+  std::vector<std::string> split_string(string& in, char delimiter);
+  std::vector<std::string> split_string2(string s, string delimiter, uint64_t size=16);
   float convert_to_float(std::string& str_int);
   string sort_string(string &str);
   vector<string> all_lexicographic_recur(string characters, string data, int last, int index);
   vector<string> all_string_permutations(string characters, int length);
   string remove_duplicate_characters(string input_string);
+  void dir_iterator_coroutine(dir_coro::push_type& yield, path& directory, string& ext);
+  dir_coro::pull_type list_files_in_dir(path& directory, string& ext);
+  std::map<string, string> create_ambig_bases();
+  tuple<uint64_t, uint64_t, uint64_t, uint64_t> get_time(std::function<void()> bound_function);
+  string get_time_string(std::function<void()> bound_function);
+
 }
+
+
 
 /// Exception type for assertion failures
 class AssertionFailureException : public std::exception

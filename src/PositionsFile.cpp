@@ -30,7 +30,7 @@ void PositionsFile::load(const std::string& input_reads_filename, int64_t k)
     // read the file
     std::string line;
     while(getline(in_file, line)) {
-      std::vector<std::string> fields = embed_utils::split(line, '\t');
+      std::vector<std::string> fields = embed_utils::split_string(line, '\t');
       string contig = fields[0];
       string strand = fields[2];
       string contig_strand = contig+strand;

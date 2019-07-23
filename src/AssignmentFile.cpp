@@ -33,7 +33,7 @@ void AssignmentFile::assignment_coroutine(event_kmer_coro::push_type& yield){
     // read the file
     string line;
     while(getline(in_file, line)) {
-      vector<string> fields = split(line, '\t');
+      vector<string> fields = split_string(line, '\t');
       string kmer = fields[0];
       string strand = fields[1];
       float mean = convert_to_float(fields[2]);
@@ -63,7 +63,7 @@ int64_t AssignmentFile::get_k(){
     // read the file
     std::string line;
     getline(in_file, line);
-    std::vector<std::string> fields = split(line, '\t');
+    std::vector<std::string> fields = split_string(line, '\t');
     this->k = fields[0].length();
   }
   in_file.close();

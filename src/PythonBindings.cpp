@@ -3,7 +3,7 @@
 //
 
 #include <pybind11/pybind11.h>
-#include "scripts/embed_fast5.hpp"
+#include "scripts/EmbedFast5.hpp"
 
 
 namespace py = pybind11;

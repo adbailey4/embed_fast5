@@ -28,7 +28,7 @@ void filter_alignment_files(string input_reads_dir, const string& positions_file
         if (is_regular_file(itr->path()) and itr->path().extension().string() == ".tsv" and getFilesize(itr->path().string()) > 0) {
             all_tsvs.push_back(itr->path());
             if (counter == 0){
-                AlignmentFile af = AlignmentFile(itr->path().string());
+                AlignmentFile af(itr->path().string());
                 k = af.k;
                 counter += 1;
             }
@@ -45,10 +45,10 @@ void filter_alignment_files(string input_reads_dir, const string& positions_file
 
         path current_file = array_of_files[i];
         cout << current_file << "\n";
-        AlignmentFile af = AlignmentFile(current_file.string());
+        AlignmentFile af(current_file.string());
         path output_file = output_path / current_file.filename();
 //        if (current_file.filename().string() == "0a4e473d-4713-4c7f-9e18-c465ea6d5b8c.sm.forward.tsv"){
-        af.filter(&pf, output_file, bases);
+        af.filter_by_positions(&pf, output_file, bases);
 //        }
     }
 

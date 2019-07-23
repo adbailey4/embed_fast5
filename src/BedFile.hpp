@@ -11,23 +11,9 @@
 
 using namespace std;
 
-struct bed_line{
-  uint64_t start;
-  uint64_t stop;
-  uint64_t coverage;
-  uint64_t hits;
-  string base;
-
-  uint64_t color1;
-  uint64_t color2;
-  uint64_t color3;
-
-};
-
 
 class BedFile {
 
-  boost::unordered_map<std::string, vector<vector<bed_line>, vector<bed_line>>> all_data;
 
 };
 

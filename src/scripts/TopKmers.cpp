@@ -2,7 +2,7 @@
 // Created by Andrew Bailey on 2019-06-17.
 //
 
-#include "top_kmers.hpp"
+#include "TopKmers.hpp"
 #include "AssignmentFile.hpp"
 #include "MaxKmers.hpp"
 #include "EmbedUtils.hpp"

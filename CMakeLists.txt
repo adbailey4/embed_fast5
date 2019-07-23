@@ -52,11 +52,12 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 if (CMAKE_VERSION VERSION_LESS 2.8.11)
     include_directories("${gtest_SOURCE_DIR}/include")
 endif()
+message(gtest_SOURCE_DIR: ${gtest_SOURCE_DIR})
 
 
 # Boost libraries
 #add_subdirectory(submodules/boost-cmake)
-set(Boost_USE_MULTITHREADED      OFF)
+set(Boost_USE_MULTITHREADED      ON)
 
 set(NANOPOLISH_HOME ${CMAKE_SOURCE_DIR}/submodules/nanopolish)
 
@@ -207,14 +208,18 @@ set(nanopolish_source
 #file(GLOB CPP_HEADERS inc/*.hpp)
 
 set(SOURCE
-        src/scripts/embed_fast5.cpp src/scripts/embed_fast5.hpp
-        src/scripts/top_kmers.cpp src/scripts/top_kmers.hpp
+        src/scripts/EmbedFast5.cpp src/scripts/EmbedFast5.hpp
+        src/scripts/TopKmers.cpp src/scripts/TopKmers.hpp
         src/EmbedUtils.cpp src/EmbedUtils.hpp
         src/BedFile.cpp src/BedFile.hpp
-        src/scripts/signalalign_to_bed.cpp src/scripts/signalalign_to_bed.hpp
+        src/scripts/SignalAlignToBed.cpp src/scripts/SignalAlignToBed.hpp
         src/PositionsFile.cpp src/PositionsFile.hpp
         src/AlignmentFile.cpp src/AlignmentFile.hpp
-        src/scripts/FilterAlignments.cpp src/scripts/FilterAlignments.hpp src/AssignmentFile.cpp src/AssignmentFile.hpp src/MaxKmers.cpp src/MaxKmers.hpp)
+        src/scripts/FilterAlignments.cpp src/scripts/FilterAlignments.hpp
+        src/AssignmentFile.cpp src/AssignmentFile.hpp
+        src/MaxKmers.cpp src/MaxKmers.hpp
+        src/MarginalizeVariants.cpp src/MarginalizeVariants.hpp
+        src/VariantCall.cpp src/VariantCall.hpp src/FullSaEvent.cpp src/FullSaEvent.hpp)
 
 set(TEST_CPP tests/allTests.cpp)
 
@@ -235,7 +240,7 @@ add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE})
 target_link_libraries(embed_main ${EMBED_LIBRARY})
 
 add_executable(test_embed ${TEST_CPP} ${SOURCE} ${nanopolish_source})
-target_link_libraries(test_embed ${HDF5_LIBRARIES} gtest_main ${EMBED_LIBRARY})
+target_link_libraries(test_embed ${HDF5_LIBRARIES} gtest_main gmock_main ${EMBED_LIBRARY})
 
 # testing
 

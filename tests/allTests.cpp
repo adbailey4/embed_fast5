@@ -5,21 +5,25 @@
 #include "EmbedUtils.hpp"
 #include "MaxKmers.hpp"
 #include "AlignmentFile.hpp"
-#include "scripts/top_kmers.hpp"
+#include "MarginalizeVariants.hpp"
+#include "scripts/TopKmers.hpp"
 #include "scripts/FilterAlignments.hpp"
 #include "fast5.hpp"
 #include "iostream"
 #include "nanopolish_squiggle_read.h"
-#include "scripts/embed_fast5.hpp"
+#include "scripts/EmbedFast5.hpp"
 #include "nanopolish_read_db.h"
 #include "omp.h"
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
+#include <numeric>
 
 using namespace boost::filesystem;
 using namespace std;
 using namespace embed_utils;
+using ::testing::ElementsAreArray;
 
 
 #define ORIGINAL_FAST51 "/tests/test_files/DEAMERNANOPORE_20161117_FNFAB43577_MN16450_mux_scan_MA_821_R9_4_NA12878_11_17_16_95723_ch458_read26_strand.fast5"
@@ -36,6 +40,9 @@ using namespace embed_utils;
 #define ALIGNMENT_DIR1 "tests/test_files/positions_tests/"
 #define CORRECT_OUTPUT1 "tests/test_files/positions_tests/correct_outputs/"
 #define ASSIGNMENT_FILE1 "tests/test_files/assignment_files/d6160b0b-a35e-43b5-947f-adaa1abade28.sm.assignments.tsv"
+#define ASSIGNMENT_DIR1 "tests/test_files/assignment_files"
+#define ALIGNMENT_FILE_MOD1 "tests/test_files/alignment_files/7d31de25-8c15-46d8-a08c-3d5043258c89.sm.forward.tsv"
+
 #define TEST_FILES1 "tests/test_files/"
 
 path HOME = "This is not a path";
@@ -50,10 +57,12 @@ path R94_FASTQ = R94_FASTQ1;
 path R94_TEST_DIR = R94_TEST_DIR1;
 path POSITIONS_FILE = POSITIONS_FILE1;
 path ALIGNMENT_FILE = ALIGNMENT_FILE1;
+path ALIGNMENT_FILE_MOD = ALIGNMENT_FILE_MOD1;
 path ALIGNMENT_DIR = ALIGNMENT_DIR1;
 path CORRECT_OUTPUT = CORRECT_OUTPUT1;
 path ASSIGNMENT_FILE = ASSIGNMENT_FILE1;
 path TEST_FILES = TEST_FILES1;
+path ASSIGNMENT_DIR = ASSIGNMENT_DIR1;
 
 
 TEST (Fast5AccessTest, isValidFile) {
@@ -322,13 +331,13 @@ TEST (Fast5EmbedTests, test_multiprocess_embed_using_readdb){
 }
 
 TEST (PositionsFileTests, test_load) {
-    PositionsFile pf = PositionsFile(POSITIONS_FILE.string(), 5);
+    PositionsFile pf(POSITIONS_FILE.string(), 5);
     string contig = "gi_ecoli+";
     EXPECT_TRUE(contains(pf.m_data[contig], 419));
 }
 
 TEST (PositionsFileTests, test_is_in) {
-    PositionsFile pf = PositionsFile(POSITIONS_FILE.string(), 5);
+    PositionsFile pf(POSITIONS_FILE.string(), 5);
     string contig = "gi_ecoli+";
     EXPECT_TRUE(pf.is_in(contig, 419));
     EXPECT_TRUE(pf.is_in(contig, 415));
@@ -336,32 +345,130 @@ TEST (PositionsFileTests, test_is_in) {
 }
 
 TEST (AlignmentFileTests, test_get_strand) {
-    AlignmentFile af = AlignmentFile(ALIGNMENT_FILE.string());
+    AlignmentFile af(ALIGNMENT_FILE.string());
     af.get_strand();
     EXPECT_EQ("-", af.strand);
 }
 
+TEST (AlignmentFileTests, test_iterate) {
+    AlignmentFile af(ALIGNMENT_FILE.string());
+    for (auto &event: af.iterate()){
+      EXPECT_EQ("gi_ecoli", event.contig);
+    }
+}
+
+TEST (AlignmentFileTests, test_filter_by_ref_bases) {
+  AlignmentFile af(ALIGNMENT_FILE.string());
+  string bases = "G";
+  for (auto &event: af.filter_by_ref_bases(bases)){
+    EXPECT_TRUE(event.reference_kmer.find("G")!=string::npos);
+  }
+}
+
+TEST (AlignmentFileTests, test_get_variant_calls) {
+  AlignmentFile af(ALIGNMENT_FILE_MOD.string());
+  string bases = "f";
+  std::map<string, string> ambig_bases = create_ambig_bases();
+  vector<VariantCall> data = af.get_variant_calls(bases, &ambig_bases);
+  for (auto i: data){
+    EXPECT_EQ("+", i.strand);
+    EXPECT_EQ("rna_fake", i.contig);
+    EXPECT_EQ("AF", i.bases);
+    EXPECT_FLOAT_EQ(1.0, std::accumulate(i.normalized_probs.begin(),
+                                         i.normalized_probs.end(), 0.0));
+
+  }
+}
+
+TEST (AlignmentFileTests, test_get_variant_calls2) {
+  AlignmentFile af(ALIGNMENT_FILE_MOD.string());
+  string bases = "f";
+  std::map<string, string> ambig_bases = create_ambig_bases();
+  vector<VariantCall> data = af.get_variant_calls2(bases, &ambig_bases);
+  for (auto i: data){
+    EXPECT_EQ("+", i.strand);
+    EXPECT_EQ("rna_fake", i.contig);
+    EXPECT_EQ("AF", i.bases);
+    EXPECT_FLOAT_EQ(1.0, std::accumulate(i.normalized_probs.begin(),
+                                         i.normalized_probs.end(), 0.0));
+
+  }
+}
 
 
 TEST (AlignmentFileTests, test_filter) {
-    path tempdir = temp_directory_path() / "temp";
-    path test_output = tempdir / "test_output.assignment.tsv";
-    AlignmentFile af = AlignmentFile(ALIGNMENT_FILE.string());
-    PositionsFile pf = PositionsFile(POSITIONS_FILE.string(), 5);
-    af.filter(&pf, test_output, "");
-    std::ifstream in_file(test_output.c_str());
-    if (in_file.good()) {
-        // read the file
-        std::string line;
-        while (getline(in_file, line)) {
-            std::vector<std::string> fields = embed_utils::split(line, '\t');
-            std::size_t found = fields[0].find('C');
-            EXPECT_TRUE(found!=std::string::npos);
-        }
+  path tempdir = temp_directory_path() / "temp";
+  path test_output = tempdir / "test_output.assignment.tsv";
+  AlignmentFile af(ALIGNMENT_FILE.string());
+  PositionsFile pf(POSITIONS_FILE.string(), 5);
+  af.filter_by_positions(&pf, test_output, "");
+  std::ifstream in_file(test_output.c_str());
+  if (in_file.good()) {
+    // read the file
+    std::string line;
+    while (getline(in_file, line)) {
+      std::vector<std::string> fields = embed_utils::split_string(line, '\t');
+      std::size_t found = fields[0].find('C');
+      EXPECT_TRUE(found!=std::string::npos);
     }
-    in_file.close();
-    remove_all(tempdir);
+  }
+  in_file.close();
+  remove_all(tempdir);
 }
+
+
+TEST (MarginalizeVariantsTests, test_load_variants) {
+  vector<VariantCall> data;
+  VariantCall vc1("test", "+", 10, "AT");
+  vc1.normalized_probs = {0.1, 0.9};
+  VariantCall vc2("test", "+", 14, "GT");
+  vc2.normalized_probs = {0.1, 0.9};
+  VariantCall vc3("test", "+", 10, "AT");
+  vc3.normalized_probs = {0.9, 0.1};
+
+  data.push_back(vc1);
+  data.push_back(vc2);
+  data.push_back(vc3);
+
+  MarginalizeVariants mf;
+  mf.load_variants(&data);
+  EXPECT_EQ(2, mf.per_genomic_position["test"].first.size());
+  EXPECT_EQ(2, mf.per_genomic_position["test"].first[10].coverage);
+  EXPECT_EQ(2, mf.per_genomic_position["test"].first[10].coverage);
+  EXPECT_EQ(1, mf.per_genomic_position["test"].first[14].coverage);
+  EXPECT_EQ(0, mf.per_genomic_position["test"].first[23].coverage);
+  EXPECT_EQ(-1, mf.per_genomic_position["test"].first[23].start);
+  EXPECT_EQ(1, mf.per_genomic_position["test"].first[10].hits[0]);
+  EXPECT_EQ(1, mf.per_genomic_position["test"].first[10].hits[1]);
+  EXPECT_EQ(1, mf.per_genomic_position["test"].first[14].hits[1]);
+  EXPECT_EQ(0, mf.per_genomic_position["test"].first[14].hits[0]);
+
+}
+
+TEST (AlignmentFileTests, test_write_to_file) {
+  vector<VariantCall> data;
+  VariantCall vc1("test", "+", 10, "AT");
+  vc1.normalized_probs = {0.1, 0.9};
+  VariantCall vc2("test", "+", 14, "GT");
+  vc2.normalized_probs = {0.1, 0.9};
+  VariantCall vc3("test", "+", 10, "AT");
+  vc3.normalized_probs = {0.9, 0.1};
+
+  data.push_back(vc1);
+  data.push_back(vc2);
+  data.push_back(vc3);
+
+  MarginalizeVariants mf;
+  mf.load_variants(&data);
+  path tempdir = temp_directory_path() / "temp";
+  tempdir = "/Users/andrewbailey/CLionProjects/embed_fast5/tests/test_files/bed_files";
+  path bed_file = tempdir / "test.bed";
+
+  mf.write_to_file(bed_file);
+  EXPECT_TRUE(compareFiles(bed_file.string(), bed_file.string()));
+}
+
+
 
 TEST (filter_alignments, test_filter_alignment_files) {
   path input_dir = temp_directory_path() / "input" ;
@@ -386,7 +493,7 @@ TEST (filter_alignments, test_filter_alignment_files) {
 TEST (AssignmentFileTests, test_iterate_assignment) {
     path input_dir = temp_directory_path() / "input" ;
     path output_dir = temp_directory_path() / "output" ;
-    AssignmentFile af = AssignmentFile(ASSIGNMENT_FILE.string());
+    AssignmentFile af(ASSIGNMENT_FILE.string());
     float answer = 83.7093;
     for (auto &x: af.iterate()){
       EXPECT_FLOAT_EQ(x.mean, answer);
@@ -397,7 +504,7 @@ TEST (AssignmentFileTests, test_iterate_assignment) {
 TEST (AssignmentFileTests, test_get_k) {
   path input_dir = temp_directory_path() / "input" ;
   path output_dir = temp_directory_path() / "output" ;
-  AssignmentFile af = AssignmentFile(ASSIGNMENT_FILE.string());
+  AssignmentFile af(ASSIGNMENT_FILE.string());
   int64_t answer = af.get_k();
   EXPECT_EQ(6, answer);
 }
@@ -488,6 +595,23 @@ TEST (util_functions , test_all_lexicographic_recur){
 
 }
 
+TEST (util_functions, test_split){
+  string csv = "asdf,asdf,sdf,df";
+  string tsv = "asdf\tasdf\tsdf\tdf";
+  vector<string> split_answer{"asdf","asdf","sdf","df"};
+  vector<string> something = split_string2(csv, ",");
+  vector<string> something2 = split_string(csv, ',');
+
+  ASSERT_THAT(split_answer, ElementsAreArray(something));
+  ASSERT_THAT(split_answer, ElementsAreArray(something2));
+
+  vector<string> something3 = split_string2(tsv, "\t");
+  vector<string> something4 = split_string(tsv, '\t');
+
+  ASSERT_THAT(split_answer, ElementsAreArray(something3));
+  ASSERT_THAT(split_answer, ElementsAreArray(something4));
+
+}
 
 TEST (util_functions, test_all_string_permutations){
   vector<string> correct_kmers = {"CC", "CS", "SC", "SS"};
@@ -526,10 +650,62 @@ TEST (util_functions, test_is_character_in_string){
 }
 
 TEST (util_functions, test_convert_to_float) {
-    string number = "121.212";
-    string not_number = "asdf";
-    float something = convert_to_float(number);
-    EXPECT_FLOAT_EQ(121.212, something);
+  string number = "121.212";
+  float something = convert_to_float(number);
+  EXPECT_FLOAT_EQ(121.212, something);
+  number = "-121.212";
+  something = convert_to_float(number);
+  EXPECT_FLOAT_EQ(-121.212, something);
+}
+
+TEST (util_functions, test_convert_to_int) {
+  string number = "121";
+  int64_t something = convert_to_int(number);
+  EXPECT_FLOAT_EQ(121, something);
+  number = "-121";
+  something = convert_to_int(number);
+  EXPECT_FLOAT_EQ(-121, something);
+}
+
+TEST (util_functions, test_list_files_in_dir) {
+  int counter = 0;
+  string ext = ".tsv";
+  for (auto &i: list_files_in_dir(ASSIGNMENT_DIR, ext)){
+    counter += 1;
+  }
+  EXPECT_EQ(1, counter);
+  counter = 0;
+  ext = "";
+  for (auto &i: list_files_in_dir(ASSIGNMENT_DIR, ext)){
+    counter += 1;
+  }
+  EXPECT_EQ(1, counter);
+  counter = 0;
+  ext = "fake";
+  for (auto &i: list_files_in_dir(ASSIGNMENT_DIR, ext)){
+    counter += 1;
+  }
+  EXPECT_EQ(0, counter);
+
+}
+
+TEST (util_functions, test_create_ambig_bases) {
+  std::map<string, string> ambig_bases = create_ambig_bases();
+  EXPECT_EQ("AF", ambig_bases["f"]);
+}
+
+void test_test(int the){
+  the += 1;
+}
+
+TEST (util_functions, test_get_time) {
+  auto funct = bind(test_test, 10);
+  string the_time = get_time_string(funct);
+  tuple<uint64_t, uint64_t, uint64_t, uint64_t> the_time2 = get_time(funct);
+  EXPECT_EQ(0, get<0>(the_time2));
+  EXPECT_EQ(0, get<1>(the_time2));
+  EXPECT_EQ(0, get<2>(the_time2));
+  EXPECT_EQ("hours: 0 minutes: 0", the_time.substr(0, 19));
 }
 
 
@@ -551,8 +727,11 @@ int main(int argc, char **argv) {
   ALIGNMENT_DIR = HOME / ALIGNMENT_DIR;
   CORRECT_OUTPUT = HOME / CORRECT_OUTPUT;
   ASSIGNMENT_FILE = HOME / ASSIGNMENT_FILE;
+  ASSIGNMENT_DIR = HOME / ASSIGNMENT_DIR;
+  ALIGNMENT_FILE_MOD = HOME / ALIGNMENT_FILE_MOD;
   TEST_FILES = HOME / TEST_FILES;
 
+  ::testing::InitGoogleMock(&argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

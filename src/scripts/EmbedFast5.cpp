@@ -4,7 +4,7 @@
 
 #include <getopt.h>
 #include "fast5.hpp"
-#include "embed_fast5.hpp"
+#include "EmbedFast5.hpp"
 #include "nanopolish_squiggle_read.h"
 #include "nanopolish_raw_loader.h"
 #include "nanopolish_emissions.h"

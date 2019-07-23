@@ -5,7 +5,6 @@
 #ifndef EMBED_FAST5_SRC_POSITIONSFILE_HPP_
 #define EMBED_FAST5_SRC_POSITIONSFILE_HPP_
 
-#include "PositionsFile.hpp"
 #include <boost/icl/interval_set.hpp>
 #include <boost/filesystem.hpp>
 #include <map>

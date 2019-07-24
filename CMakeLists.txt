@@ -61,7 +61,7 @@ set(Boost_USE_MULTITHREADED      ON)
 
 set(NANOPOLISH_HOME ${CMAKE_SOURCE_DIR}/submodules/nanopolish)
 
-find_package(Boost COMPONENTS system date_time filesystem iostreams coroutine context REQUIRED)
+find_package(Boost 1.69.0 COMPONENTS system date_time filesystem iostreams coroutine context REQUIRED)
 #find_package(hdf5 1.8 REQUIRED HINTS
 #        ${CMAKE_INSTALL_PREFIX}/include
 #        )

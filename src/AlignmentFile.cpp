@@ -9,9 +9,11 @@
 #include <numeric>
 #include <iostream>
 #include <fstream>
+#include <stdexcept>
 
 
 using namespace embed_utils;
+using namespace std;
 
 
 /**
@@ -207,7 +209,7 @@ vector<VariantCall> AlignmentFile::get_variant_calls(string &ambig_bases, std::m
           }
           variant_calls[position] = position_call;
         } else {
-          cout << "fuck\n";
+          throw runtime_error("Programmer Error: This should never happen yo.");
         }
       }
     }

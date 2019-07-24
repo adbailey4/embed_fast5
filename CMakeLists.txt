@@ -55,12 +55,11 @@ endif()
 message(gtest_SOURCE_DIR: ${gtest_SOURCE_DIR})
 
 
-# Boost libraries
-#add_subdirectory(submodules/boost-cmake)
-set(Boost_USE_MULTITHREADED      ON)
-
 set(NANOPOLISH_HOME ${CMAKE_SOURCE_DIR}/submodules/nanopolish)
 
+#set(Boost_USE_STATIC_LIBS        ON)
+set(Boost_USE_MULTITHREADED      ON)
+#set(Boost_USE_STATIC_RUNTIME    OFF)
 find_package(Boost 1.69.0 COMPONENTS system date_time filesystem iostreams coroutine context REQUIRED)
 #find_package(hdf5 1.8 REQUIRED HINTS
 #        ${CMAKE_INSTALL_PREFIX}/include
@@ -228,7 +227,7 @@ set(MAIN_CPP main.cpp)
 set(NANOPOLISH ${NANOPOLISH_HOME}/src/main/nanopolish.cpp)
 
 set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} ${OPENSSL_LIB} -lz -lm -ldl -lpthread -lbz2 -lcurl -llzma)
-set(EMBED_LIBRARY ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARIES} ${NP_LIBRARY} )
+set(EMBED_LIBRARY ${Boost_LIBRARIES} ${NP_LIBRARY} )
 
 
 # nanopolish main

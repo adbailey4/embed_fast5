@@ -10,7 +10,7 @@ notifications: # set notification options
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install autotools-dev autoconf gcc-5 g++-5 cmake curl libbz2-dev zlib1g-dev liblzma-dev libeigen3-dev libhdf5-dev
+  - sudo apt-get install build-essential autotools-dev autoconf cmake curl libbz2-dev zlib1g-dev liblzma-dev libeigen3-dev libhdf5-dev
   - sudo apt-get update
 
 install:
@@ -23,6 +23,7 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda config --set always_yes yes --set changeps1 no
   - pwd
+  - gcc --version
 #  Install boost
   - cd $HOME/build/adbailey4/
   - wget -O boost_1_69_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download

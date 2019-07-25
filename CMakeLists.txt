@@ -60,7 +60,7 @@ set(NANOPOLISH_HOME ${CMAKE_SOURCE_DIR}/submodules/nanopolish)
 #set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_MULTITHREADED      ON)
 #set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost 1.69.0 COMPONENTS system date_time filesystem iostreams coroutine context REQUIRED)
+find_package(Boost 1.69.0 COMPONENTS system date_time filesystem iostreams coroutine REQUIRED)
 #find_package(hdf5 1.8 REQUIRED HINTS
 #        ${CMAKE_INSTALL_PREFIX}/include
 #        )
@@ -210,7 +210,6 @@ set(SOURCE
         src/scripts/EmbedFast5.cpp src/scripts/EmbedFast5.hpp
         src/scripts/TopKmers.cpp src/scripts/TopKmers.hpp
         src/EmbedUtils.cpp src/EmbedUtils.hpp
-        src/BedFile.cpp src/BedFile.hpp
         src/scripts/SignalAlignToBed.cpp src/scripts/SignalAlignToBed.hpp
         src/PositionsFile.cpp src/PositionsFile.hpp
         src/AlignmentFile.cpp src/AlignmentFile.hpp
@@ -218,7 +217,11 @@ set(SOURCE
         src/AssignmentFile.cpp src/AssignmentFile.hpp
         src/MaxKmers.cpp src/MaxKmers.hpp
         src/MarginalizeVariants.cpp src/MarginalizeVariants.hpp
-        src/VariantCall.cpp src/VariantCall.hpp src/FullSaEvent.cpp src/FullSaEvent.hpp)
+        src/VariantCall.cpp src/VariantCall.hpp
+        src/FullSaEvent.cpp src/FullSaEvent.hpp)
+#
+#        src/scripts/SplitByRefPosition.cpp src/scripts/SplitByRefPosition.hpp
+#        src/PerPositonKmers.cpp src/PerPositonKmers.hpp)
 
 set(TEST_CPP tests/allTests.cpp)
 

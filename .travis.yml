@@ -33,6 +33,7 @@ install:
   - ./bootstrap.sh --with-libraries=system,date_time,filesystem,iostreams,coroutine,context >/dev/null #--prefix=/usr/
 #  - ./bootstrap.sh >/dev/null #--prefix=/usr/
   - echo something
+  - sudo ./b2
   - sudo ./b2 install
   #  Install htslib
   - cd $HOME/build/adbailey4/

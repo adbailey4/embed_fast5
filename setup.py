@@ -18,6 +18,8 @@ from timeit import default_timer as timer
 
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
+from setuptools.command.install import install
+
 from distutils.version import LooseVersion
 
 
@@ -89,9 +91,24 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
         # Copy *_test file to tests directory
-        test_bin = os.path.join(self.build_temp, 'test_embed')
-        copy_test_file(test_bin)
+        embed_cpp_tests = os.path.join(self.build_temp, 'test_embed')
+        embed_main = os.path.join(self.build_temp, 'embed_main')
+        copy_test_file(embed_cpp_tests)
+        copy_test_file(embed_main)
         print()  # Add empty line for nicer output
+
+
+class PostInstallCommand(install):
+    """Post-installation for installation mode."""
+    def run(self):
+        install.run(self)
+        build_temp = self.build_lib.replace("lib", "temp")
+        source = os.path.join(os.path.dirname(os.path.abspath(__file__)), build_temp, "embed_main")
+        target = os.path.join(self.install_scripts, "embed_main")
+        if os.path.isfile(target):
+            os.remove(target)
+
+        self.copy_file(source, target)
 
 
 def main():
@@ -107,7 +124,7 @@ def main():
         packages=find_packages('embed'),
         package_dir={'': 'src'},
         ext_modules=[CMakeExtension('embed.bindings')],
-        cmdclass=dict(build_ext=CMakeBuild),
+        cmdclass=dict(build_ext=CMakeBuild, install=PostInstallCommand),
         scripts=["src/scripts/split_multi_fast5.py", "src/scripts/embed_fast5s.py"],
         author_email='andbaile@ucsc.com',
         install_requires=['py3helpers[seq_tools]>=0.2.9',

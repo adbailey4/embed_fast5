@@ -5,7 +5,7 @@ from contextlib import closing
 import subprocess
 from Bio import SeqIO
 from embed.fast5 import Fast5
-from py3helpers.utils import list_dir, get_all_sub_directories, merge_dicts, merge_lists
+from py3helpers.utils import get_all_sub_directories
 from py3helpers.multiprocess import *
 
 
@@ -63,10 +63,10 @@ def call_nanopolish_index(build_dir, fast5_dir, fastq):
 
 
 def call_embed_main(main_cpp_dir, fastq):
-    """Call embed on all files"""
+    """Call python_scripts on all files"""
     main_cpp_path = os.path.join(main_cpp_dir, "embed_main")
     assert os.path.exists(main_cpp_path), "embed_main does not exist in directory {}".format(main_cpp_dir)
-    embed_command = main_cpp_path + " embed -r {fastq}".format(fastq=fastq)
+    embed_command = main_cpp_path + " python_scripts -r {fastq}".format(fastq=fastq)
     try:
         command = embed_command.split()
         proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -130,7 +130,7 @@ def embed_fastqs_into_fast5s(fastq_file, fast5_dirs, fastq_readdb=None):
 
 
 def multiprocess_embed_fastqs_into_fast5s(fastq_file, fast5_dirs, fastq_readdb=None, worker_count=2):
-    """Multiprocess embed fastqs into fast5 file using readdb file
+    """Multiprocess python_scripts fastqs into fast5 file using readdb file
     :param fastq_file: path to fastq file
     :param fast5_dirs: list of fast5 directories
     :param fastq_readdb: path to readdb. If not set it assumes the readdb is in fastq directory
@@ -152,7 +152,7 @@ def multiprocess_embed_fastqs_into_fast5s(fastq_file, fast5_dirs, fastq_readdb=N
 
 
 def embed_fastqs_wrapper(fast5_path, fastq_string):
-    """Multiprocess embed fastqs into fast5 file using readdb file
+    """Multiprocess python_scripts fastqs into fast5 file using readdb file
     :param fast5_path: path to fast5 file
     :param fastq_string: fastq in string format
     :return: number of reads processed

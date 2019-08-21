@@ -33,7 +33,6 @@ class AlignmentFile
   full_sa_coro::pull_type iterate();
   full_sa_coro::pull_type filter_by_ref_bases(string& bases);
   vector<VariantCall> get_variant_calls(string& ambig_bases, std::map<string, string> *ambig_bases_map);
-  vector<VariantCall> get_variant_calls2(string &ambig_bases, std::map<string, string> *ambig_bases_map);
     //
   string file_path;
   bool good_file;

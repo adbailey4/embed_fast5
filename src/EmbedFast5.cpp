@@ -300,5 +300,5 @@ int embed_fast5_main(int argc, char** argv)
 }
 
 
-// taskManager run -c '/home/ubuntu/embed_fast5/build/main_cpp embed -r ../rel3-nanopore-wgs-3574887596-FAB43577_2.fastq' && taskManager run -c 'python /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/run_deep_mod_r9.py --config /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/r9_pipeline.config.json' -r r94_ucsc_deepmod_1000_reads_04_11_19.txt
+// taskManager run -c '/home/ubuntu/embed_fast5/build/main_cpp python_scripts -r ../rel3-nanopore-wgs-3574887596-FAB43577_2.fastq' && taskManager run -c 'python /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/run_deep_mod_r9.py --config /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/r9_pipeline.config.json' -r r94_ucsc_deepmod_1000_reads_04_11_19.txt
 // taskManager run -c 'python /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/run_deep_mod_r9.py --config /home/ubuntu/modification_detection_pipeline/multi_fast5_pipeline/r9_pipeline.config.json' --to andbaile@ucsc.edu -r

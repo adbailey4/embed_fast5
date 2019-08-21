@@ -2,9 +2,14 @@
 // Created by Andrew Bailey on 2019-06-18.
 //
 
+// Embed
 #include "EmbedUtils.hpp"
+
+// Boost libraries.
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
+
+// Standard library.
 #include <string>
 #include <sys/stat.h>
 #include <iostream>
@@ -172,19 +177,6 @@ namespace embed_utils {
         return out;
     }
 
-    std::vector<std::string> split_string2(string s, string delimiter, uint64_t size) {
-      vector<string> out;
-      out.reserve(size);
-      size_t pos = 0;
-      std::string token;
-      while ((pos = s.find(delimiter)) != std::string::npos) {
-        token = s.substr(0, pos);
-        out.push_back(token);
-        s.erase(0, pos + delimiter.length());
-      }
-      out.push_back(s);
-      return out;
-    }
 //    https://www.geeksforgeeks.org/sort-string-characters/
     string sort_string(string &str)
     {
@@ -371,5 +363,6 @@ namespace embed_utils {
     tuple<uint64_t, uint64_t, uint64_t, uint64_t> output(hours, minutes, seconds, microseconds);
     return output;
   }
+  \
 }
 

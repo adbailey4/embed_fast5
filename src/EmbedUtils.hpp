@@ -5,15 +5,16 @@
 #ifndef EMBED_FAST5_UTILS_H
 #define EMBED_FAST5_UTILS_H
 
+//Boost Libraries
+#include <boost/filesystem.hpp>
+#include <boost/coroutine2/all.hpp>
+#include <boost/range/iterator_range.hpp>
+
+// Standard Libraries
 #include <exception>
 #include <string>
 #include <sstream>
 #include <iostream>
-#include <boost/filesystem.hpp>
-#include <boost/coroutine2/all.hpp>
-
-#include <boost/range/iterator_range.hpp>
-#include <string>
 
 using namespace boost::filesystem;
 using namespace boost::coroutines2;

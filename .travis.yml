@@ -48,11 +48,6 @@ install:
 #  - source ~/.bashrc
   - cd /home/travis/build/adbailey4/embed_fast5
   - python setup.py install
-  - mkdir cmake-build-debug
-  - cd cmake-build-debug
-  - cmake ../
-  - make
-
 
 script:
-  - make check
+  - python setup.py test

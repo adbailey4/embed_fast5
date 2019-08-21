@@ -13,6 +13,7 @@
 import unittest
 import tempfile
 import shutil
+import os
 from embed.split_multi_read import *
 from py3helpers.utils import list_dir
 
@@ -22,7 +23,7 @@ class TestSplitMultiRead(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestSplitMultiRead, cls).setUpClass()
-        cls.HOME = '/'.join(os.path.abspath(__file__).split("/")[:-3])
+        cls.HOME = '/'.join(os.path.abspath(__file__).split("/")[:-2])
 
         cls.test_create_file = os.path.join(cls.HOME, "tests/test_files/test_create_file.fast5")
 

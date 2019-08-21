@@ -14,6 +14,7 @@ import unittest
 import tempfile
 import shutil
 import sys
+import os
 from embed.embedding_helpers import *
 from embed.fast5 import Fast5
 from py3helpers.utils import list_dir
@@ -24,7 +25,7 @@ class TestSplitMultiRead(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestSplitMultiRead, cls).setUpClass()
-        cls.HOME = '/'.join(os.path.abspath(__file__).split("/")[:-3])
+        cls.HOME = '/'.join(os.path.abspath(__file__).split("/")[:-2])
         cls.test_files_dir = os.path.join(cls.HOME, "tests/test_files/test_readdb/")
         cls.read_db = os.path.join(cls.HOME, "tests/test_files/test_readdb/new_individual.fastq.index.readdb")
         cls.fastq = os.path.join(cls.HOME, "tests/test_files/test_readdb/new_individual.fastq")

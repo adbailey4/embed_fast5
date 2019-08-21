@@ -2,30 +2,44 @@
 // Created by Andrew Bailey on 03/15/19.
 //
 
-#include "EmbedUtils.hpp"
+// embed source
+#include "FolderHandler.hpp"
 #include "MaxKmers.hpp"
 #include "AlignmentFile.hpp"
 #include "MarginalizeVariants.hpp"
-#include "scripts/TopKmers.hpp"
-#include "scripts/FilterAlignments.hpp"
+#include "TopKmers.hpp"
+#include "FilterAlignments.hpp"
+#include "EmbedFast5.hpp"
+
+// fast5
 #include "fast5.hpp"
-#include "iostream"
+
+// nanopolish
 #include "nanopolish_squiggle_read.h"
-#include "scripts/EmbedFast5.hpp"
 #include "nanopolish_read_db.h"
-#include "omp.h"
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
+
+// boost
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
+
+// gtest
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
+// openMP
+#include <omp.h>
+
+// Standard Libray
+#include <iostream>
 #include <numeric>
+
 
 using namespace boost::filesystem;
 using namespace std;
 using namespace embed_utils;
 using ::testing::ElementsAreArray;
 
-
+// Keep track of a bunch of paths
 #define ORIGINAL_FAST51 "/tests/test_files/DEAMERNANOPORE_20161117_FNFAB43577_MN16450_mux_scan_MA_821_R9_4_NA12878_11_17_16_95723_ch458_read26_strand.fast5"
 #define EMPTY_FAST51 "/tests/test_files/empty_tester.fast5"
 #define SIGNAL_FAST51 "/tests/test_files/just_signal.fast5"
@@ -42,8 +56,9 @@ using ::testing::ElementsAreArray;
 #define ASSIGNMENT_FILE1 "tests/test_files/assignment_files/d6160b0b-a35e-43b5-947f-adaa1abade28.sm.assignments.tsv"
 #define ASSIGNMENT_DIR1 "tests/test_files/assignment_files"
 #define ALIGNMENT_FILE_MOD1 "tests/test_files/alignment_files/7d31de25-8c15-46d8-a08c-3d5043258c89.sm.forward.tsv"
-
 #define TEST_FILES1 "tests/test_files/"
+#define READ_DB_DIR1 "/tests/test_files/new_individual_files"
+
 
 path HOME = "This is not a path";
 path ORIGINAL_FAST5 = ORIGINAL_FAST51;
@@ -63,6 +78,7 @@ path CORRECT_OUTPUT = CORRECT_OUTPUT1;
 path ASSIGNMENT_FILE = ASSIGNMENT_FILE1;
 path TEST_FILES = TEST_FILES1;
 path ASSIGNMENT_DIR = ASSIGNMENT_DIR1;
+path READ_DB_DIR = READ_DB_DIR1;
 
 
 TEST (Fast5AccessTest, isValidFile) {
@@ -196,6 +212,7 @@ TEST (Fast5WriteTests, test_event_table_to_basecalled_table) {
 
     ReadDB read_db;
     read_db.load(read_db_path);
+    cd(READ_DB_DIR.string().c_str());
 
     SquiggleRead sr(read_id, read_db);
     auto basecall_table = event_table_to_basecalled_table(sr.events[0], 10);
@@ -231,6 +248,7 @@ TEST (Fast5WriteTests, test_generate_basecall_table) {
     string test_read((const std::string) NO_EVENT.string());
     string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
 
+    cd(READ_DB_DIR.string().c_str());
 
     ReadDB read_db;
     read_db.load(read_db_path);
@@ -243,7 +261,7 @@ TEST (Fast5WriteTests, test_generate_basecall_table) {
     EXPECT_TRUE(emtpy_f.have_basecall_group());
     EXPECT_EQ(original_f.get_basecall_group_list()[0], basecall_groups[0]);
 
-//    remove(NO_FAST5);
+    remove(NO_FAST5);
 }
 
 TEST (Fast5EmbedTests, test_embed_using_readdb) {
@@ -380,21 +398,6 @@ TEST (AlignmentFileTests, test_get_variant_calls) {
   }
 }
 
-TEST (AlignmentFileTests, test_get_variant_calls2) {
-  AlignmentFile af(ALIGNMENT_FILE_MOD.string());
-  string bases = "f";
-  std::map<string, string> ambig_bases = create_ambig_bases();
-  vector<VariantCall> data = af.get_variant_calls2(bases, &ambig_bases);
-  for (auto i: data){
-    EXPECT_EQ("+", i.strand);
-    EXPECT_EQ("rna_fake", i.contig);
-    EXPECT_EQ("AF", i.bases);
-    EXPECT_FLOAT_EQ(1.0, std::accumulate(i.normalized_probs.begin(),
-                                         i.normalized_probs.end(), 0.0));
-
-  }
-}
-
 
 TEST (AlignmentFileTests, test_filter) {
   path tempdir = temp_directory_path() / "temp";
@@ -460,12 +463,10 @@ TEST (AlignmentFileTests, test_write_to_file) {
 
   MarginalizeVariants mf;
   mf.load_variants(&data);
-  path tempdir = temp_directory_path() / "temp";
-  tempdir = "/Users/andrewbailey/CLionProjects/embed_fast5/tests/test_files/bed_files";
-  path bed_file = tempdir / "test.bed";
-
-  mf.write_to_file(bed_file);
-  EXPECT_TRUE(compareFiles(bed_file.string(), bed_file.string()));
+  path bed_file = TEST_FILES / "bed_files/test.bed";
+  path bed_file2 = temp_directory_path() / "test2.bed";
+  mf.write_to_file(bed_file2);
+  EXPECT_TRUE(compareFiles(bed_file.string(), bed_file2.string()));
 }
 
 
@@ -544,7 +545,7 @@ TEST (MaxKmersTests, test_add_to_heap) {
   eventkmer my_kmer = eventkmer("AAAAA", 10, "t", 1.2);
   mk.add_to_heap(my_kmer);
   eventkmer my_kmer2 = eventkmer("AAAAA", 10, "t", 1.4);
-#pragma omp parallel for shared(mk, my_kmer2)
+#pragma omp parallel for shared(mk, my_kmer2) default(none)
   for (int i = 0; i < 10; i++){
     mk.add_to_heap(my_kmer2);
   }
@@ -599,18 +600,13 @@ TEST (util_functions, test_split){
   string csv = "asdf,asdf,sdf,df";
   string tsv = "asdf\tasdf\tsdf\tdf";
   vector<string> split_answer{"asdf","asdf","sdf","df"};
-  vector<string> something = split_string2(csv, ",");
   vector<string> something2 = split_string(csv, ',');
 
-  ASSERT_THAT(split_answer, ElementsAreArray(something));
   ASSERT_THAT(split_answer, ElementsAreArray(something2));
 
-  vector<string> something3 = split_string2(tsv, "\t");
   vector<string> something4 = split_string(tsv, '\t');
 
-  ASSERT_THAT(split_answer, ElementsAreArray(something3));
   ASSERT_THAT(split_answer, ElementsAreArray(something4));
-
 }
 
 TEST (util_functions, test_all_string_permutations){
@@ -687,6 +683,15 @@ TEST (util_functions, test_list_files_in_dir) {
   }
   EXPECT_EQ(0, counter);
 
+  counter = 0;
+  ext = "";
+  dir_coro::pull_type data = list_files_in_dir(ALIGNMENT_DIR, ext);
+  while (data){
+    path something = data.get();
+    counter += 1;
+    data();
+  }
+  EXPECT_EQ(4, counter);
 }
 
 TEST (util_functions, test_create_ambig_bases) {
@@ -708,6 +713,10 @@ TEST (util_functions, test_get_time) {
   EXPECT_EQ("hours: 0 minutes: 0", the_time.substr(0, 19));
 }
 
+//TEST (folder_handler, test_constructor){
+//  FolderHandler fh(ALIGNMENT_DIR, 1, "");
+//  vector<string> something = fh.get_batch();
+//}
 
 int main(int argc, char **argv) {
   H5Eset_auto(0, nullptr, nullptr);
@@ -730,7 +739,7 @@ int main(int argc, char **argv) {
   ASSIGNMENT_DIR = HOME / ASSIGNMENT_DIR;
   ALIGNMENT_FILE_MOD = HOME / ALIGNMENT_FILE_MOD;
   TEST_FILES = HOME / TEST_FILES;
-
+  READ_DB_DIR = HOME / READ_DB_DIR;
   ::testing::InitGoogleMock(&argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

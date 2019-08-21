@@ -1,12 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 project(embed_fast5)
 
-#add_subdirectory(submodules/pybind11)
-
-
-
 set(CMAKE_C_STANDARD 99)
-
 SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
@@ -17,10 +12,16 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -gdwarf-3")
 SET(LIBDIR "/usr/lib" CACHE STRING "Some user-specified option")
 SET(INCLUDEDIR "/usr/include" CACHE STRING "Some user-specified option")
 
+SET(PYTHON_ONLY TRUE CACHE STRING "Some user-specified option")
+
+
+message("CMakeInstall Prefix: ${CMAKE_INSTALL_PREFIX}")
+
+# GTEST INSTALL
+############################################################################################################
 if(APPLE)
     set(CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS} -undefined dynamic_lookup")
 endif(APPLE)
-
 # Download and unpack googletest at configure time
 configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
@@ -35,17 +36,14 @@ execute_process(COMMAND ${CMAKE_COMMAND} --build .
 if(result)
     message(FATAL_ERROR "Build step for googletest failed: ${result}")
 endif()
-
 # Prevent overriding the parent project's compiler/linker
 # settings on Windows
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
 # Add googletest directly to our build. This defines
 # the gtest and gtest_main targets.
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
         EXCLUDE_FROM_ALL)
-
 # The gtest/gtest_main targets carry header search path
 # dependencies automatically when using CMake 2.8.11 or
 # later. Otherwise we have to add them here ourselves.
@@ -53,18 +51,27 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
     include_directories("${gtest_SOURCE_DIR}/include")
 endif()
 message(gtest_SOURCE_DIR: ${gtest_SOURCE_DIR})
+############################################################################################################
 
 
-set(NANOPOLISH_HOME ${CMAKE_SOURCE_DIR}/submodules/nanopolish)
 
+# BOOST LIBRARY
+############################################################################################################
 #set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_MULTITHREADED      ON)
 #set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost 1.69.0 COMPONENTS system date_time filesystem iostreams coroutine REQUIRED)
+find_package(Boost 1.69.0 COMPONENTS system date_time filesystem iostreams coroutine context REQUIRED)
 #find_package(hdf5 1.8 REQUIRED HINTS
 #        ${CMAKE_INSTALL_PREFIX}/include
 #        )
+message(Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS})
 
+############################################################################################################
+
+
+# HDF LIBRARY
+############################################################################################################
 find_library(HDF5_LIBRARIES libhdf5.a
         HINTS ${NANOPOLISH_HOME}/lib
         ${CMAKE_INSTALL_PREFIX}/lib
@@ -77,21 +84,27 @@ find_path(HDF5_INCLUDE_DIRS hdf5.h
         ${CMAKE_INSTALL_PREFIX}/include
         ${INCLUDEDIR}
         /usr/include)
-
-
-message("CMakeInstall Prefix: ${CMAKE_INSTALL_PREFIX}")
-message(Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS})
 message(HDF5_INCLUDE_DIRS: "${HDF5_INCLUDE_DIRS}")
 message(HDF5_LIBRARIES: "${HDF5_LIBRARIES}")
+include_directories(${HDF5_INCLUDE_DIRS})
+############################################################################################################
 
+# EIGEN LIBRARY
+############################################################################################################
 find_path(EIGEN3_INCLUDE_DIR Eigen HINTS
         ${CMAKE_INSTALL_PREFIX}/include
         ${NANOPOLISH_HOME}
         ${INCLUDEDIR}
         PATH_SUFFIXES eigen3 eigen)
 
+include_directories(${EIGEN3_INCLUDE_DIR})
 message(EIGEN3_INCLUDE_DIR: "${EIGEN3_INCLUDE_DIR}")
 
+############################################################################################################
+
+
+# HTSLIB LIBRARY
+############################################################################################################
 find_library(HTSLIB_LIBRARY NAMES libhts.a
         HINTS "${NANOPOLISH_HOME}/htslib"
         ${CMAKE_INSTALL_PREFIX}/lib
@@ -105,46 +118,27 @@ find_path(HTSLIB_INCLUDE_DIR htslib/hts.h
         /usr/include
         ${INCLUDEDIR})
 
+message(HTSLIB_LIBRARIES: "${HTSLIB_LIBRARY}")
+message(HTSLIB_INCLUDE_DIRS: "${HTSLIB_INCLUDE_DIR}")
+include_directories(${HTSLIB_INCLUDE_DIRS})
 
-set(HTSLIB_LIBRARIES ${HTSLIB_LIBRARY} )
-set(HTSLIB_INCLUDE_DIRS ${HTSLIB_INCLUDE_DIR} )
+############################################################################################################
 
-message(HTSLIB_LIBRARIES: "${HTSLIB_LIBRARIES}")
-message(HTSLIB_INCLUDE_DIRS: "${HTSLIB_INCLUDE_DIRS}")
-
+# OPENSSL_LIB LIBRARY
+############################################################################################################
 find_library(OPENSSL_LIB libcrypto.a
         HINTS "${NANOPOLISH_HOME}/lib"
         ${CMAKE_INSTALL_PREFIX}/lib
         /usr/local/opt/openssl/lib
         /usr/lib
         ${LIBDIR})
-
-#find_path(OPENSSL_INCLUDE_DIR htslib/hts.h
-#        HINTS ${OPENSSL_LIB}
-#        ${CMAKE_INSTALL_PREFIX}/include
-#        /usr/local/opt/openssl/include
-#        /usr/include)
-
 message(OPENSSL_LIB: ${OPENSSL_LIB})
-#message(OPENSSL_INCLUDE_DIR: ${OPENSSL_INCLUDE_DIR})
+############################################################################################################
 
 
-include_directories(${EIGEN3_INCLUDE_DIR})
-#include_directories(${OPENSSL_INCLUDE_DIR})
-include_directories(${HTSLIB_INCLUDE_DIRS})
-include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${HDF5_INCLUDE_DIRS})
-include_directories(${Eigen3_INCLUDE_DIRS})
-
-link_directories(/usr/local/lib)
-link_directories(/usr/lib)
-
-# my includes
-include_directories(${CMAKE_SOURCE_DIR}/src)
-include_directories(${CMAKE_SOURCE_DIR}/inc)
-include_directories(${CMAKE_SOURCE_DIR}/fast5/include)
-include_directories(${CMAKE_SOURCE_DIR}/fast5/include/fast5)
-
+# NANOPOLISH LIBRARY
+############################################################################################################
+set(NANOPOLISH_HOME ${CMAKE_SOURCE_DIR}/submodules/nanopolish)
 # nanopolish includes
 include_directories(${NANOPOLISH_HOME}/src)
 include_directories(${NANOPOLISH_HOME}/src/alignment)
@@ -155,10 +149,6 @@ include_directories(${NANOPOLISH_HOME}/src/pore_model)
 include_directories(${NANOPOLISH_HOME}/src/test)
 include_directories(${NANOPOLISH_HOME}/src/thirdparty)
 include_directories(${NANOPOLISH_HOME}/src/thirdparty/scrappie)
-include_directories(/usr/local/include)
-include_directories(/usr/include)
-
-
 
 set(nanopolish_source
         ${NANOPOLISH_HOME}/src/nanopolish_call_variants.cpp
@@ -203,62 +193,59 @@ set(nanopolish_source
         ${NANOPOLISH_HOME}/src/thirdparty/scrappie/event_detection.c
         ${NANOPOLISH_HOME}/src/thirdparty/stdaln.c)
 
-#file(GLOB SOURCE_CPP impl/*.cpp)
-#file(GLOB CPP_HEADERS inc/*.hpp)
-
+set(NANOPOLISH ${NANOPOLISH_HOME}/src/main/nanopolish.cpp)
+set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} ${OPENSSL_LIB} -lz -lm -ldl -lpthread -lbz2 -lcurl -llzma)
+# nanopolish main
+#add_executable(nanopolish ${NANOPOLISH} ${nanopolish_source})
+#target_link_libraries(nanopolish ${NP_LIBRARY})
+############################################################################################################
+# my library
+set(EMBED_LIBRARY ${Boost_LIBRARIES} ${NP_LIBRARY} ${HTSLIB_LIBRARY})
+# my includes
+include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR}/fast5/include)
+include_directories(${CMAKE_SOURCE_DIR}/fast5/include/fast5)
+# my sources
+set(TEST_CPP tests/allTests.cpp)
+set(MAIN_CPP src/main.cpp)
 set(SOURCE
-        src/scripts/EmbedFast5.cpp src/scripts/EmbedFast5.hpp
-        src/scripts/TopKmers.cpp src/scripts/TopKmers.hpp
+        src/EmbedFast5.cpp src/EmbedFast5.hpp
+        src/TopKmers.cpp src/TopKmers.hpp
         src/EmbedUtils.cpp src/EmbedUtils.hpp
-        src/scripts/SignalAlignToBed.cpp src/scripts/SignalAlignToBed.hpp
+        src/SignalAlignToBed.cpp src/SignalAlignToBed.hpp
         src/PositionsFile.cpp src/PositionsFile.hpp
         src/AlignmentFile.cpp src/AlignmentFile.hpp
-        src/scripts/FilterAlignments.cpp src/scripts/FilterAlignments.hpp
+        src/FilterAlignments.cpp src/FilterAlignments.hpp
         src/AssignmentFile.cpp src/AssignmentFile.hpp
         src/MaxKmers.cpp src/MaxKmers.hpp
         src/MarginalizeVariants.cpp src/MarginalizeVariants.hpp
         src/VariantCall.cpp src/VariantCall.hpp
-        src/FullSaEvent.cpp src/FullSaEvent.hpp)
-#
-#        src/scripts/SplitByRefPosition.cpp src/scripts/SplitByRefPosition.hpp
-#        src/PerPositonKmers.cpp src/PerPositonKmers.hpp)
-
-set(TEST_CPP tests/allTests.cpp)
-
-set(MAIN_CPP main.cpp)
-
-set(NANOPOLISH ${NANOPOLISH_HOME}/src/main/nanopolish.cpp)
-
-set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} ${OPENSSL_LIB} -lz -lm -ldl -lpthread -lbz2 -lcurl -llzma)
-set(EMBED_LIBRARY ${Boost_LIBRARIES} ${NP_LIBRARY} )
-
-
-# nanopolish main
-add_executable(nanopolish ${NANOPOLISH} ${nanopolish_source})
-target_link_libraries(nanopolish ${NP_LIBRARY})
-
-# main and tests
+        src/FullSaEvent.cpp src/FullSaEvent.hpp
+        src/SplitByRefPosition.cpp src/SplitByRefPosition.hpp
+        src/PerPositonKmers.cpp src/PerPositonKmers.hpp
+        src/ReferenceHandler.cpp src/ReferenceHandler.hpp
+        src/FolderHandler.cpp src/FolderHandler.hpp)
+############################################################################################################
+# main
 add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE})
 target_link_libraries(embed_main ${EMBED_LIBRARY})
-
-add_executable(test_embed ${TEST_CPP} ${SOURCE} ${nanopolish_source})
-target_link_libraries(test_embed ${HDF5_LIBRARIES} gtest_main gmock_main ${EMBED_LIBRARY})
+# pybind
+add_subdirectory(submodules/pybind11)
+pybind11_add_module(bindings src/embed/PythonBindings.cpp)
+############################################################################################################
 
 # testing
-
+add_executable(test_embed ${TEST_CPP} ${SOURCE} ${nanopolish_source})
+target_link_libraries(test_embed ${HDF5_LIBRARIES} gtest_main gmock_main ${EMBED_LIBRARY})
 enable_testing()
+# cpp tests
 add_test(cpp_tests test_embed ${CMAKE_SOURCE_DIR})
+# python tests
 message(PYTHON_EXECUTABLE: "${PYTHON_EXECUTABLE}")
-
-add_test(NAME test_split_multi_read COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/embed/test/test_split_multi_read.py
+add_test(NAME test_split_multi_read COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test_split_multi_read.py
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-add_test(NAME test_embedding_helpers COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/embed/test/test_embedding_helpers.py
+add_test(NAME test_embedding_helpers COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test_embedding_helpers.py
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
+# make check command for testing
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)
-
-#pybind11_add_module(cmake_example5 example.cpp)
-#pybind11_add_module(some_embed2 impl/PythonBindings.cpp)
-#execute_process(COMMAND python3 -m pybind11 --includes OUTPUT_VARIABLE SHASTA_PYTHON_INCLUDES)
-#add_definitions(${SHASTA_PYTHON_INCLUDES})
-#install(PROGRAMS impl/PythonBindings.cpp DESTINATION bin)

@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
-"""Create setup script for instalation of embed fast5"""
+"""Create setup script for installation of python_scripts fast5"""
 ########################################################################
 # File: setup.py
-#  executablgite: setup.py
+#  executable: setup.py
 #
-# Author: Andrew Bailey
+# Author: Andrew Bailey (https://www.benjack.io/2018/02/02/python-cpp-revisited.html)
 # History: 3/21/19 Created
 ########################################################################
-from timeit import default_timer as timer
 
 import os
 import re
 import sys
 import platform
 import subprocess
+from shutil import copyfile, copymode
+from timeit import default_timer as timer
 
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
 
@@ -24,6 +25,27 @@ class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
+
+
+def copy_test_file(src_file):
+    """
+    Copy ``src_file`` to `tests/bin` directory, ensuring parent directory
+    exists. Messages like `creating directory /path/to/package` and
+    `copying directory /src/path/to/package -> path/to/package` are
+    displayed on standard output. Adapted from scikit-build.
+    """
+    # Create directory if needed
+    dest_dir = os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), 'tests', 'bin')
+    if dest_dir != "" and not os.path.exists(dest_dir):
+        print("creating directory {}".format(dest_dir))
+        os.makedirs(dest_dir)
+
+    # Copy file
+    dest_file = os.path.join(dest_dir, os.path.basename(src_file))
+    print("copying {} -> {}".format(src_file, dest_file))
+    copyfile(src_file, dest_file)
+    copymode(src_file, dest_file)
 
 
 class CMakeBuild(build_ext):
@@ -52,7 +74,7 @@ class CMakeBuild(build_ext):
 
         if platform.system() == "Windows":
             cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
-            if sys.maxsize > 2**32:
+            if sys.maxsize > 2 ** 32:
                 cmake_args += ['-A', 'x64']
             build_args += ['--', '/m']
         else:
@@ -66,18 +88,10 @@ class CMakeBuild(build_ext):
             os.makedirs(self.build_temp)
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
-
-# setup(
-#     name='embed',
-#     version='0.0.1',
-#     author='Dean Moldovan',
-#     author_email='dean0x7d@gmail.com',
-#     description='A test project using pybind11 and CMake',
-#     long_description='',
-#     ext_modules=[CMakeExtension('cmake_example3')],
-#     cmdclass=dict(build_ext=CMakeBuild),
-#     zip_safe=False,
-# )
+        # Copy *_test file to tests directory
+        test_bin = os.path.join(self.build_temp, 'test_embed')
+        copy_test_file(test_bin)
+        print()  # Add empty line for nicer output
 
 
 def main():
@@ -87,22 +101,24 @@ def main():
         name="embed",
         version='0.0.5',
         description='Embed fast5 with event table from nanopolish model',
-        url='https://github.com/adbailey4/embed_fast5',
+        url="https://github.com/adbailey4/embed_fast5",
         author='Andrew Bailey',
         license='MIT',
-        packages=['embed'],
-        # ext_modules=[CMakeExtension('cmake_example2')],
-        # cmdclass=dict(build_ext=CMakeBuild),
-        scripts=["bin/split_multi_fast5", "bin/embed_fast5s"],
+        packages=find_packages('embed'),
+        package_dir={'': 'src'},
+        ext_modules=[CMakeExtension('embed.bindings')],
+        cmdclass=dict(build_ext=CMakeBuild),
+        scripts=["src/scripts/split_multi_fast5.py", "src/scripts/embed_fast5s.py"],
         author_email='andbaile@ucsc.com',
         install_requires=['py3helpers[seq_tools]>=0.2.9',
                           'pandas>=0.24.2',
                           'h5py>=2.9.0'],
-        zip_safe=False
+        zip_safe=False,
+        test_suite='tests'
     )
 
     stop = timer()
-    print("Running Time = {} seconds".format(stop-start), file=sys.stderr)
+    print("Running Time = {} seconds".format(stop - start), file=sys.stderr)
 
 
 if __name__ == "__main__":

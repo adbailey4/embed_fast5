@@ -8,10 +8,10 @@
 #include <string>
 #include <fast5.hpp>
 #include <boost/filesystem.hpp>
-#include "scripts/EmbedFast5.hpp"
-#include "scripts/TopKmers.hpp"
-#include "scripts/FilterAlignments.hpp"
-#include "scripts/SignalAlignToBed.hpp"
+#include "EmbedFast5.hpp"
+#include "TopKmers.hpp"
+#include "FilterAlignments.hpp"
+#include "SignalAlignToBed.hpp"
 #include "nanopolish_squiggle_read.h"
 #include "nanopolish_index.h"
 #include "nanopolish_extract.h"
@@ -26,7 +26,7 @@ int print_usage(int argc, char **argv);
 static std::map< std::string, std::function<int(int, char**)> > programs = {
     {"help",        print_usage},
     {"--help",      print_usage},
-    {"embed",       embed_fast5_main},
+    {"python_scripts",       embed_fast5_main},
     {"index",       index_main},
     {"extract",     extract_main},
     {"filter_by_positions",      filter_alignments_main},
@@ -37,7 +37,7 @@ static std::map< std::string, std::function<int(int, char**)> > programs = {
 
 int print_usage(int, char **)
 {
-    std::cout << "usage: embed [options]" << std::endl;
+    std::cout << "usage: python_scripts [options]" << std::endl;
     std::cout << "  valid commands: " << std::endl;
     for (const auto &item : programs){
         std::cout << "    " << item.first << std::endl;

@@ -77,7 +77,7 @@ void MarginalizeVariants::load_variants(vector<VariantCall>* vector_of_calls){
       bed_entry.stop = i.reference_index + 1;
       bed_entry.bases = i.bases;
       size_t n_entries = i.normalized_probs.size();
-      bed_entry.hits.reserve(i.normalized_probs.size());
+      bed_entry.hits.resize(i.normalized_probs.size());
       for (size_t j = 0; j < n_entries; ++j) {
         bed_entry.hits.push_back(0.0);
       }

@@ -104,7 +104,7 @@ void AlignmentFile::push_iterate(full_sa_coro::push_type& yield){
     in_file.seekg(0, ios::beg);
     string line;
     while(getline(this->in_file, line)) {
-      vector<string> fields = split_string2(line, "\t");
+      vector<string> fields = split_string(line, '\t');
       if (fields.size() != 16) {
         continue;
       } else {

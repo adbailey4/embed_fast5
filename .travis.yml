@@ -10,7 +10,7 @@ notifications: # set notification options
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install build-essential autotools-dev autoconf cmake curl libbz2-dev zlib1g-dev liblzma-dev libeigen3-dev libhdf5-dev
+  - sudo apt-get install build-essential autotools-dev autoconf curl libbz2-dev zlib1g-dev liblzma-dev libeigen3-dev libhdf5-dev
   - sudo apt-get update
 
 install:
@@ -24,6 +24,17 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - pwd
   - gcc --version
+#  install cmake
+  - version=3.14
+  - build=2
+  - mkdir ~/temp
+  - cd ~/temp
+  - wget https://cmake.org/files/v$version/cmake-$version.$build.tar.gz
+  - tar -xzvf cmake-$version.$build.tar.gz
+  - cd cmake-$version.$build/
+  - ./bootstrap
+  - make -j4
+  - sudo make install
   - cmake --version
 #  Install boost
   - cd $HOME/build/adbailey4/

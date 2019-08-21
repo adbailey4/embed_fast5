@@ -224,7 +224,8 @@ set(SOURCE
         src/SplitByRefPosition.cpp src/SplitByRefPosition.hpp
         src/PerPositonKmers.cpp src/PerPositonKmers.hpp
         src/ReferenceHandler.cpp src/ReferenceHandler.hpp
-        src/FolderHandler.cpp src/FolderHandler.hpp)
+        src/FolderHandler.cpp src/FolderHandler.hpp
+        src/VariantPath.cpp src/VariantPath.hpp)
 ############################################################################################################
 # main
 add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE})

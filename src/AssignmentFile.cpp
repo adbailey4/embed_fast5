@@ -18,6 +18,7 @@ AssignmentFile::~AssignmentFile()
 
 AssignmentFile::AssignmentFile(const string& input_reads_filename){
   this->file_path = input_reads_filename;
+  this->k = 0;
 }
 
 /**

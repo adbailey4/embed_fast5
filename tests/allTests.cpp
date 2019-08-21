@@ -354,6 +354,26 @@ TEST (PositionsFileTests, test_load) {
     EXPECT_TRUE(contains(pf.m_data[contig], 419));
 }
 
+TEST (PositionsFileTests, test_iterate) {
+  PositionsFile pf(POSITIONS_FILE.string());
+  for (auto &position: pf.iterate()) {
+    EXPECT_EQ("gi_ecoli", position.contig);
+  }
+  PositionsFile pf2(POSITIONS_FILE.string());
+
+  positions_coro::pull_type data = pf2.iterate();
+  PositionLine something = data.get();
+  PositionLine true_something("gi_ecoli", 419, "+", "C", "E");
+  EXPECT_EQ(true_something, something);
+
+}
+
+TEST (PositionsFileTests, test_load_positions_map) {
+  PositionsFile pf(POSITIONS_FILE.string());
+  pf.load_positions_map();
+  EXPECT_EQ(make_tuple("C", "E"), pf.positions_map["gi_ecoli+"][419]);
+}
+
 TEST (PositionsFileTests, test_is_in) {
     PositionsFile pf(POSITIONS_FILE.string(), 5);
     string contig = "gi_ecoli+";

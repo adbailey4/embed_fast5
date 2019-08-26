@@ -19,9 +19,9 @@ PositionsFile::~PositionsFile()
 /**
  * Default constructor for PositionsFile.
  */
-PositionsFile::PositionsFile()
-= default;
-
+PositionsFile::PositionsFile(){
+  this->ambig_bases = create_ambig_bases();
+}
 /**
  * Constructor which only initializes file path and does not "load" data.
  * @param input_reads_filename: path to positions file
@@ -29,6 +29,7 @@ PositionsFile::PositionsFile()
 PositionsFile::PositionsFile(const std::string& input_reads_filename)
 {
   this->file_path = input_reads_filename;
+  this->ambig_bases = create_ambig_bases();
 }
 /**
  * Constructor for PositionsFile.
@@ -39,6 +40,7 @@ PositionsFile::PositionsFile(const std::string& input_reads_filename)
 PositionsFile::PositionsFile(const std::string& input_reads_filename, int64_t k){
   throw_assert(k!=0, "k is zero. Check initialization of PositionsFile")
   this->file_path = input_reads_filename;
+  this->ambig_bases = create_ambig_bases();
   this->load_interval_map(k);
 }
 
@@ -71,6 +73,19 @@ void PositionsFile::load_interval_map(int64_t k)
  * [contig+strand][position] = {change_from, change_to}
  *
   @param input_reads_filename: path to positions file
+  @param k: kmer length
+ */
+void PositionsFile::load_positions_map(const std::string& input_reads_filename){
+  this->file_path = input_reads_filename;
+  this->load_positions_map();
+}
+
+
+/**
+ * Load positions into map
+ *
+ * [contig+strand][position] = {change_from, change_to}
+ *
   @param k: kmer length
  */
 void PositionsFile::load_positions_map()

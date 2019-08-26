@@ -1,5 +1,3 @@
-#include <utility>
-
 //
 // Created by Andrew Bailey on 2019-07-15.
 //
@@ -26,6 +24,7 @@ class AlignmentFile
 {
  public:
   explicit AlignmentFile(string input_reads_filename);
+  AlignmentFile(string input_reads_filename, bool is_rna);
   ~AlignmentFile();
   string get_strand();
   int64_t get_k();
@@ -36,7 +35,9 @@ class AlignmentFile
     //
   string file_path;
   bool good_file;
+  bool rna = false;
   string strand;
+  string read_id;
   int64_t k;
   AlignmentFile(const AlignmentFile&) = delete;
   AlignmentFile& operator=(const AlignmentFile&) = delete;

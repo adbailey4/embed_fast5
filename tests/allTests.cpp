@@ -10,6 +10,8 @@
 #include "TopKmers.hpp"
 #include "FilterAlignments.hpp"
 #include "EmbedFast5.hpp"
+#include "VariantPath.hpp"
+#include "LoadVariantPaths.hpp"
 
 // fast5
 #include "fast5.hpp"
@@ -50,6 +52,7 @@ using ::testing::ElementsAreArray;
 #define R94_FASTQ1 "tests/test_files/r94_tests/small_sample.fastq"
 #define R94_TEST_DIR1 "tests/test_files/r94_tests"
 #define POSITIONS_FILE1 "tests/test_files/positions_tests/CCWGG_ecoli_k12_mg1655.positions"
+#define TEST_POSITIONS_FILE2 "tests/test_files/positions_tests/short_test.positions"
 #define ALIGNMENT_FILE1 "tests/test_files/positions_tests/5cc86bac-79fd-4897-8631-8f1c55954a45.sm.backward.tsv"
 #define ALIGNMENT_DIR1 "tests/test_files/positions_tests/"
 #define CORRECT_OUTPUT1 "tests/test_files/positions_tests/correct_outputs/"
@@ -58,7 +61,10 @@ using ::testing::ElementsAreArray;
 #define ALIGNMENT_FILE_MOD1 "tests/test_files/alignment_files/7d31de25-8c15-46d8-a08c-3d5043258c89.sm.forward.tsv"
 #define TEST_FILES1 "tests/test_files/"
 #define READ_DB_DIR1 "/tests/test_files/new_individual_files"
-
+#define RRNA_SIGNAL_FILES1 "tests/test_files/rRNA_test_files/rRNA_signal_files"
+#define RRNA_TEST_FILES1 "tests/test_files/rRNA_test_files"
+#define RRNA_TEST_VARIANTS1 "tests/test_files/rRNA_test_files/rRNA_signal_files/1a424c03-7f13-4565-b991-3f7d9c36bf86.sm.forward.tsv"
+#define DNA_TEST_VARIANTS1 "tests/test_files/alignment_files/c53bec1d-8cd7-43d0-8e40-e5e363fa9fca.sm.backward.tsv"
 
 path HOME = "This is not a path";
 path ORIGINAL_FAST5 = ORIGINAL_FAST51;
@@ -79,6 +85,13 @@ path ASSIGNMENT_FILE = ASSIGNMENT_FILE1;
 path TEST_FILES = TEST_FILES1;
 path ASSIGNMENT_DIR = ASSIGNMENT_DIR1;
 path READ_DB_DIR = READ_DB_DIR1;
+path TEST_POSITIONS_FILE = TEST_POSITIONS_FILE2;
+path RRNA_SIGNAL_FILES = RRNA_SIGNAL_FILES1;
+path RRNA_TEST_FILES = RRNA_TEST_FILES1;
+path RRNA_TEST_VARIANTS = RRNA_TEST_VARIANTS1;
+path DNA_TEST_VARIANTS = DNA_TEST_VARIANTS1;
+
+
 
 
 TEST (Fast5AccessTest, isValidFile) {
@@ -404,7 +417,7 @@ TEST (AlignmentFileTests, test_filter_by_ref_bases) {
 }
 
 TEST (AlignmentFileTests, test_get_variant_calls) {
-  AlignmentFile af(ALIGNMENT_FILE_MOD.string());
+  AlignmentFile af(ALIGNMENT_FILE_MOD.string(), true);
   string bases = "f";
   std::map<string, string> ambig_bases = create_ambig_bases();
   vector<VariantCall> data = af.get_variant_calls(bases, &ambig_bases);
@@ -415,6 +428,41 @@ TEST (AlignmentFileTests, test_get_variant_calls) {
     EXPECT_FLOAT_EQ(1.0, std::accumulate(i.normalized_probs.begin(),
                                          i.normalized_probs.end(), 0.0));
 
+  }
+  AlignmentFile af2(RRNA_TEST_VARIANTS.string(), true);
+  string bases2 = "Y";
+  vector<VariantCall> data2 = af2.get_variant_calls(bases2, &ambig_bases);
+  for (auto i: data2){
+    EXPECT_EQ("+", i.strand);
+    EXPECT_EQ("ecoli_MRE600", i.contig);
+    EXPECT_EQ("CT", i.bases);
+    EXPECT_FLOAT_EQ(1.0, std::accumulate(i.normalized_probs.begin(),
+                                         i.normalized_probs.end(), 0.0));
+  }
+  bases2 = "K";
+  vector<VariantCall> data3 = af2.get_variant_calls(bases2, &ambig_bases);
+  for (auto i: data3){
+    EXPECT_EQ("+", i.strand);
+    EXPECT_EQ("ecoli_MRE600", i.contig);
+    EXPECT_EQ("GT", i.bases);
+    EXPECT_FLOAT_EQ(1.0, std::accumulate(i.normalized_probs.begin(),
+                                         i.normalized_probs.end(), 0.0));
+  }
+
+  AlignmentFile af3(DNA_TEST_VARIANTS.string(), false);
+  bases2 = "P";
+  vector<VariantCall> data4 = af3.get_variant_calls(bases2, &ambig_bases);
+  for (auto i: data4){
+    EXPECT_EQ("-", i.strand);
+    EXPECT_EQ("gi_ecoli", i.contig);
+    EXPECT_EQ("CE", i.bases);
+    float number = std::accumulate(i.normalized_probs.begin(),
+                                   i.normalized_probs.end(), 0.0);
+    if (isnan(number)){
+      cout << "nan?" << "\n";
+    }
+    EXPECT_FLOAT_EQ(1.0, std::accumulate(i.normalized_probs.begin(),
+                                         i.normalized_probs.end(), 0.0));
   }
 }
 
@@ -711,7 +759,7 @@ TEST (util_functions, test_list_files_in_dir) {
     counter += 1;
     data();
   }
-  EXPECT_EQ(4, counter);
+  EXPECT_EQ(5, counter);
 }
 
 TEST (util_functions, test_create_ambig_bases) {
@@ -738,6 +786,64 @@ TEST (util_functions, test_get_time) {
 //  vector<string> something = fh.get_batch();
 //}
 
+TEST (VariantPathTests, test_load_positions_file){
+  VariantPath vp;
+  vp.load_positions_file(TEST_POSITIONS_FILE.string());
+  vector<uint64_t> path_multiplier_answer = {1, 3, 12};
+  ASSERT_THAT(path_multiplier_answer, ElementsAreArray(vp.path_multiplier["gi_ecoli+"]));
+  EXPECT_EQ(3, vp.num_positions["gi_ecoli+"]);
+  EXPECT_EQ(48, vp.num_ids["gi_ecoli+"]);
+  EXPECT_EQ("LP", vp.all_variant_chars);
+  EXPECT_EQ(0, vp.position_to_path_index["gi_ecoli+"][419]);
+  EXPECT_EQ(1, vp.position_to_path_index["gi_ecoli+"][507]);
+  EXPECT_EQ(2, vp.position_to_path_index["gi_ecoli+"][1089]);
+}
+
+TEST (VariantPathTests, test_id_2_path_2_id){
+  VariantPath vp(TEST_POSITIONS_FILE.string());
+  uint64_t n_ids = vp.num_ids["gi_ecoli+"];
+  for (uint64_t i = 0; i < n_ids; ++i){
+//    cout << i << " (";
+//    vector<uint64_t> path = vp.id_to_path("gi_ecoli+", i);
+//    for (auto &j: path){
+//      cout << j;
+//    }
+//    cout << ")\n";
+    EXPECT_EQ(i, vp.path_to_id("gi_ecoli+", vp.id_to_path("gi_ecoli+", i)));
+  }
+}
+
+TEST (VariantPathTests, test_variant_call_to_path_to_id){
+//  create some variant calls
+  vector<VariantCall> some_calls(3);
+  VariantCall vc("gi_ecoli", "+", 419, "CE");
+  vc.normalized_probs = {0.2, 0.8};
+  some_calls[0] = vc;
+  VariantCall vc1("gi_ecoli", "+", 507, "CEO");
+  vc1.normalized_probs = {0.2, 0.7, 0.1};
+  some_calls[1] = vc1;
+  VariantCall vc2("gi_ecoli", "+", 1089, "CEO");
+  vc2.normalized_probs = {0.2, 0.2, 0.8};
+  some_calls[2] = vc2;
+//  tests
+  VariantPath vp(TEST_POSITIONS_FILE.string());
+  vector<uint64_t> id_answer = {2, 2, 3};
+  ASSERT_THAT(id_answer, ElementsAreArray(vp.variant_call_to_path(some_calls)));
+  EXPECT_EQ(44, vp.variant_call_to_id(some_calls));
+}
+
+
+TEST (LoadVariantPathsTests, test_load_variants){
+  path positions_file = RRNA_TEST_FILES/"/16S_final_branch_points.positions";
+  LoadVariantPaths lvp(positions_file.string(), RRNA_SIGNAL_FILES.string());
+  path output_per_path = RRNA_TEST_FILES/"test_output_dir/per_path_counts.tsv";
+  path output_per_read = RRNA_TEST_FILES/"test_output_dir/per_read_calls.tsv";
+
+  lvp.write_per_path_counts(output_per_path.string());
+  lvp.write_per_read_calls(output_per_read.string());
+
+}
+
 int main(int argc, char **argv) {
   H5Eset_auto(0, nullptr, nullptr);
   HOME = argv[1];
@@ -760,6 +866,11 @@ int main(int argc, char **argv) {
   ALIGNMENT_FILE_MOD = HOME / ALIGNMENT_FILE_MOD;
   TEST_FILES = HOME / TEST_FILES;
   READ_DB_DIR = HOME / READ_DB_DIR;
+  TEST_POSITIONS_FILE = HOME / TEST_POSITIONS_FILE;
+  RRNA_SIGNAL_FILES = HOME / RRNA_SIGNAL_FILES;
+  RRNA_TEST_FILES = HOME / RRNA_TEST_FILES;
+  RRNA_TEST_VARIANTS = HOME / RRNA_TEST_VARIANTS;
+  DNA_TEST_VARIANTS = HOME / DNA_TEST_VARIANTS;
   ::testing::InitGoogleMock(&argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

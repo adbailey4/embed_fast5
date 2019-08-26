@@ -73,9 +73,12 @@ class PositionsFile
   positions_coro::pull_type iterate();
   void load_interval_map(int64_t k);
   void load_positions_map();
+  void load_positions_map(const std::string& input_reads_filename);
   bool is_in(string& contig, int64_t position);
   //
   string file_path;
+  map<string, string> ambig_bases;
+
   map<string, interval_set<int64_t>> m_data;
   map<string, map<uint64_t, tuple<string, string>>> positions_map;
 

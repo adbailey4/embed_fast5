@@ -312,8 +312,8 @@ namespace embed_utils {
   std::map<string, string> create_ambig_bases() {
 
     std::map<string, string> ambig_hash;
-    ambig_hash.insert(std::pair<string, string>("R", "AG") );
-    ambig_hash.insert(std::pair<string, string>("Y", "CT") );
+    ambig_hash.insert(std::pair<string, string>("R", "AG"));
+    ambig_hash.insert(std::pair<string, string>("Y", "CT"));
     ambig_hash.insert(std::pair<string, string>("S", "CG"));
     ambig_hash.insert(std::pair<string, string>("W", "AT"));
     ambig_hash.insert(std::pair<string, string>("K", "GT"));
@@ -329,6 +329,36 @@ namespace embed_utils {
     ambig_hash.insert(std::pair<string, string>("f", "AF"));
     ambig_hash.insert(std::pair<string, string>("U", "ACEGOT"));
     ambig_hash.insert(std::pair<string, string>("Z", "JT"));
+    ambig_hash.insert(std::pair<string, string>("j", "Tp"));
+    ambig_hash.insert(std::pair<string, string>("k", "Gb"));
+    ambig_hash.insert(std::pair<string, string>("l", "Gd"));
+    ambig_hash.insert(std::pair<string, string>("m", "Ce"));
+    ambig_hash.insert(std::pair<string, string>("n", "Th"));
+    ambig_hash.insert(std::pair<string, string>("o", "Ai"));
+
+    ambig_hash.insert(std::pair<string, string>("AG", "R"));
+    ambig_hash.insert(std::pair<string, string>("CT", "Y"));
+    ambig_hash.insert(std::pair<string, string>("CG", "S"));
+    ambig_hash.insert(std::pair<string, string>("AT", "W"));
+    ambig_hash.insert(std::pair<string, string>("GT", "K"));
+    ambig_hash.insert(std::pair<string, string>("AC", "M"));
+    ambig_hash.insert(std::pair<string, string>("CGT", "B"));
+    ambig_hash.insert(std::pair<string, string>("AGT", "D"));
+    ambig_hash.insert(std::pair<string, string>("ACT", "H"));
+    ambig_hash.insert(std::pair<string, string>("ACG", "V"));
+    ambig_hash.insert(std::pair<string, string>("ACGT", "X"));
+    ambig_hash.insert(std::pair<string, string>("CEO", "L"));
+    ambig_hash.insert(std::pair<string, string>("CE", "P"));
+    ambig_hash.insert(std::pair<string, string>("AI", "Q"));
+    ambig_hash.insert(std::pair<string, string>("AF", "f"));
+    ambig_hash.insert(std::pair<string, string>("ACEGOT", "U"));
+    ambig_hash.insert(std::pair<string, string>("JT", "Z"));
+    ambig_hash.insert(std::pair<string, string>("Tp", "j"));
+    ambig_hash.insert(std::pair<string, string>("Gb", "k"));
+    ambig_hash.insert(std::pair<string, string>("Gd", "l"));
+    ambig_hash.insert(std::pair<string, string>("Ce", "m"));
+    ambig_hash.insert(std::pair<string, string>("Th", "n"));
+    ambig_hash.insert(std::pair<string, string>("Ai", "o"));
 
     return ambig_hash;
   }

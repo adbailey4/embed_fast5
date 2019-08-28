@@ -91,6 +91,7 @@ int64_t AlignmentFile::get_k(){
     std::vector<std::string> fields = split_string(line, '\t');
     kmer_len = fields[2].length();
     read_id = fields[3];
+    contig = fields[0];
   }
   return kmer_len;
 }

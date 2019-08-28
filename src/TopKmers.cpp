@@ -51,7 +51,7 @@ void generate_master_assignment_table(string assignment_dir, string& output_dir,
   path* array_of_files = &all_tsvs[0];
 
 // looping through the files
-#pragma omp parallel for shared(array_of_files, mk, number_of_files)
+#pragma omp parallel for shared(array_of_files, mk, number_of_files, cout)
   for(int64_t i=0; i < number_of_files; i++) {
 
     path current_file = array_of_files[i];

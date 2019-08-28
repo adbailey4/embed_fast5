@@ -19,7 +19,7 @@ class VariantPath {
  public:
   map<string, uint64_t> num_positions;
   map<string, uint64_t> num_ids;
-  map<string, map<uint64_t, string>> index_to_variant;
+  map<string, vector<vector<string>>> index_to_variant;
   map<string, map<uint64_t, uint64_t>> position_to_path_index;
   map<string, vector<uint64_t>> path_multiplier;
   string all_variant_chars;
@@ -32,9 +32,9 @@ class VariantPath {
   void load_positions_file(const string &path);
   uint64_t path_to_id(const string &contig_strand, vector<uint64_t> path);
   vector<uint64_t> id_to_path(const string &contig_strand, uint64_t path_id);
-  vector<uint64_t> variant_call_to_path(vector<VariantCall> &variants);
-  uint64_t variant_call_to_id(vector<VariantCall> &variants);
-  vector<string> path_to_bases(const string &contig_strand, vector<uint64_t> &path);
+  vector<uint64_t> variant_call_to_path(const string &contig_strand, vector<VariantCall> &variants);
+  uint64_t variant_call_to_id(const string &contig_strand, vector<VariantCall> &variants);
+  string path_to_bases(const string &contig_strand, vector<uint64_t> &path);
 
 //  vector<uint64_t> all_ids_through_node(const string &contig_strand, uint64_t position, uint64_t variant_index);
 };

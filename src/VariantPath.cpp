@@ -4,6 +4,7 @@
 
 // embed library
 #include "VariantPath.hpp"
+#include "EmbedUtils.hpp"
 
 // std lib
 #include <iostream>
@@ -38,10 +39,12 @@ void VariantPath::load_positions_file(const string &positions_file_path) {
   pf.load_positions_map(positions_file_path);
   uint64_t variant_count;
   std::set<string> variants;
+  uint64_t position_index = 0;
   for (std::pair<std::string, map<uint64_t, tuple<string, string>>> contig_map : pf.positions_map) {
     uint64_t multiplier = 1;
     string change_to;
     uint64_t start;
+    vector<vector<string>> all_positions_index_to_variant;
     for (std::pair<uint64_t, tuple<string, string>> position_map: contig_map.second){
 //      contig_map.first is the contig_strand
       path_multiplier[contig_map.first].push_back(multiplier);
@@ -55,12 +58,14 @@ void VariantPath::load_positions_file(const string &positions_file_path) {
 //      keep track of variant ambiguous bases
       variants.insert(pf.ambig_bases[change_to]);
   //      keep track index to base
-      index_to_variant[contig_map.first] = {{0, "_"}};
-      start = 1;
+      vector<string> positional_index_to_variant;
+      positional_index_to_variant.emplace_back("-");
       for (auto &i: change_to){
-        index_to_variant[contig_map.first][start] = i;
+        positional_index_to_variant.emplace_back(1, i);
       }
+      all_positions_index_to_variant.emplace_back(positional_index_to_variant);
     }
+    index_to_variant[contig_map.first] = all_positions_index_to_variant;
     num_ids[contig_map.first] = multiplier;
   }
   string variants_string;
@@ -112,13 +117,16 @@ vector<uint64_t> VariantPath::id_to_path(const string &contig_strand, uint64_t p
  * Convert vector of variants to path
  @param variants: vector of variant calls
  */
-vector<uint64_t> VariantPath::variant_call_to_path(vector<VariantCall> &variants){
+vector<uint64_t> VariantPath::variant_call_to_path(const string &contig_strand, vector<VariantCall> &variants){
   vector<uint64_t> path;
-  string contig_strand = variants[0].contig+variants[0].strand;
   path.resize(num_positions[contig_strand], 0);
   for (auto &i: variants){
     uint64_t max_index = std::max_element(i.normalized_probs.begin(), i.normalized_probs.end())-i.normalized_probs.begin();
-    path[position_to_path_index[contig_strand][i.reference_index]] = max_index + 1;
+    try{
+      path[position_to_path_index.at(contig_strand).at(i.reference_index)] = max_index + 1;
+    } catch (const std::out_of_range& oor){
+      continue;
+    }
   }
   return path;
 }
@@ -128,8 +136,8 @@ vector<uint64_t> VariantPath::variant_call_to_path(vector<VariantCall> &variants
  * Convert vector of variants to path
  @param variants: vector of variant calls
  */
-uint64_t VariantPath::variant_call_to_id(vector<VariantCall> &variants){
-  return this->path_to_id(variants[0].contig+variants[0].strand, this->variant_call_to_path(variants));
+uint64_t VariantPath::variant_call_to_id(const string &contig_strand, vector<VariantCall> &variants){
+  return this->path_to_id(contig_strand, this->variant_call_to_path(contig_strand,variants));
 }
 
 /**
@@ -137,11 +145,13 @@ uint64_t VariantPath::variant_call_to_id(vector<VariantCall> &variants){
  * @param contig_strand: contig+strand string
  * @param path: vector of indices representing path through variant positions
  */
-vector<string> VariantPath::path_to_bases(const string &contig_strand, vector<uint64_t> &path){
-  vector<string> bases;
-  bases.reserve(path.size());
+string VariantPath::path_to_bases(const string &contig_strand, vector<uint64_t> &path){
+  string bases;
+  uint64_t position_index = 0;
+  throw_assert(this->index_to_variant[contig_strand].size() == path.size(), "Length of path does not equal length of expected variants")
   for (auto &index: path){
-    bases.push_back(this->index_to_variant[contig_strand][index]);
+    bases += this->index_to_variant[contig_strand][position_index][index];
+    position_index += 1;
   }
   return bases;
 }

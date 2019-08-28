@@ -38,7 +38,7 @@ void signalalign_to_bed(string& sa_input_dir, string& output_file_path, string a
   }
   uint64_t number_of_files = all_tsvs.size();
 //  uint64_t number_of_files = 4;
-#pragma omp parallel for shared(all_tsvs, mv, number_of_files, ambig_bases, ambig_bases_map)
+#pragma omp parallel for shared(all_tsvs, mv, number_of_files, ambig_bases, ambig_bases_map, cout)
   for(uint64_t i=0; i < number_of_files; i++) {
     cout << all_tsvs[i] << "\n";
     path current_file = all_tsvs[i];

@@ -37,6 +37,7 @@ class AlignmentFile
   bool good_file;
   bool rna = false;
   string strand;
+  string contig;
   string read_id;
   int64_t k;
   AlignmentFile(const AlignmentFile&) = delete;

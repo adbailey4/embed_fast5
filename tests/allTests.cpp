@@ -828,21 +828,40 @@ TEST (VariantPathTests, test_variant_call_to_path_to_id){
 //  tests
   VariantPath vp(TEST_POSITIONS_FILE.string());
   vector<uint64_t> id_answer = {2, 2, 3};
-  ASSERT_THAT(id_answer, ElementsAreArray(vp.variant_call_to_path(some_calls)));
-  EXPECT_EQ(44, vp.variant_call_to_id(some_calls));
+  ASSERT_THAT(id_answer, ElementsAreArray(vp.variant_call_to_path("gi_ecoli+", some_calls)));
+  EXPECT_EQ(44, vp.variant_call_to_id("gi_ecoli+", some_calls));
 }
 
+TEST (VariantPathTests, test_path_to_bases){
+  VariantPath vp(TEST_POSITIONS_FILE.string());
+  vector<uint64_t> id_answer = {1, 1, 1};
+  EXPECT_EQ("CCC", vp.path_to_bases("gi_ecoli+", id_answer));
+  id_answer = {0, 0, 0};
+  EXPECT_EQ("---", vp.path_to_bases("gi_ecoli+", id_answer));
+  id_answer = {1, 2, 2};
+  EXPECT_EQ("CEE", vp.path_to_bases("gi_ecoli+", id_answer));
+  id_answer = {0, 1, 3};
+  EXPECT_EQ("-CO", vp.path_to_bases("gi_ecoli+", id_answer));
+  id_answer = {0, 1, 3, 3};
+  ASSERT_THROW(vp.path_to_bases("gi_ecoli+", id_answer), AssertionFailureException);
+}
 
 TEST (LoadVariantPathsTests, test_load_variants){
   path positions_file = RRNA_TEST_FILES/"/16S_final_branch_points.positions";
-  LoadVariantPaths lvp(positions_file.string(), RRNA_SIGNAL_FILES.string());
-  path output_per_path = RRNA_TEST_FILES/"test_output_dir/per_path_counts.tsv";
-  path output_per_read = RRNA_TEST_FILES/"test_output_dir/per_read_calls.tsv";
+  LoadVariantPaths lvp(positions_file.string(), RRNA_SIGNAL_FILES.string(), true, 10);
+  path tempdir = temp_directory_path() / "temp";
 
-  lvp.write_per_path_counts(output_per_path.string());
+  path output_per_read = tempdir/"per_read_calls.tsv";
+  path correct_per_read = RRNA_TEST_FILES/"test_output_dir/per_read_calls.tsv";
   lvp.write_per_read_calls(output_per_read.string());
+  EXPECT_TRUE(compareFiles(correct_per_read.string(), output_per_read.string()));
 
+  path output_per_path = tempdir/"per_path_counts.tsv";
+  lvp.write_per_path_counts(output_per_path.string());
+  path correct_per_path = RRNA_TEST_FILES/"test_output_dir/per_path_counts.tsv";
+  EXPECT_TRUE(compareFiles(correct_per_path.string(), output_per_path.string()));
 }
+
 
 int main(int argc, char **argv) {
   H5Eset_auto(0, nullptr, nullptr);

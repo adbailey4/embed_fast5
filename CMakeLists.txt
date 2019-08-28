@@ -233,7 +233,9 @@ add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE})
 target_link_libraries(embed_main ${EMBED_LIBRARY})
 # pybind
 add_subdirectory(submodules/pybind11)
-pybind11_add_module(bindings src/embed/PythonBindings.cpp)
+pybind11_add_module(bindings src/embed/PythonBindings.cpp ${nanopolish_source} ${SOURCE})
+target_link_libraries(bindings PRIVATE ${EMBED_LIBRARY} ${HDF5_LIBRARIES})
+
 ############################################################################################################
 
 # testing

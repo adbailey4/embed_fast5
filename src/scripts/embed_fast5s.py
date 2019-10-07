@@ -38,10 +38,10 @@ def parse_args():
                         help="Output directory for edited fastq if it is in wrong format")
     parser.add_argument('--no_fastq', action='store_true',
                         dest='no_fastq', required=False,
-                        help="If set this will not python_scripts fastqs into the files")
+                        help="If set this will not embed fastqs into the files")
     parser.add_argument('--no_events', action='store_true',
                         dest='no_events', required=False,
-                        help="If set this will not python_scripts event tables into the files")
+                        help="If set this will not embed event tables into the files")
     parser.add_argument('--no_index', action='store_true',
                         dest='no_index', required=False,
                         help="If set this will not generate index files")
@@ -72,7 +72,7 @@ def main():
     assert os.path.exists(args.fastq+".index"), "Indexing did not work. Please use nanopolish to index files"
     assert os.path.exists(args.fastq+".index.readdb"), "Indexing did not work. Please use nanopolish to index files"
 
-    # will not python_scripts fastqs if set
+    # will not embed fastqs if set
     if not args.no_fastq:
         if args.debug:
             n_processed = embed_fastqs_into_fast5s(args.fastq, [args.fast5_dir])
@@ -81,7 +81,7 @@ def main():
                                                                 worker_count=args.nb_jobs)
         print("[embed_fast5s] {} reads with Fastqs embedded".format(n_processed))
 
-    # will not python_scripts events if set
+    # will not embed events if set
     if not args.no_events:
         # sometimes nanopolish readdb does not find the fast5 files
         os.chdir(args.fast5_dir)

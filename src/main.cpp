@@ -26,7 +26,7 @@ int print_usage(int argc, char **argv);
 static std::map< std::string, std::function<int(int, char**)> > programs = {
     {"help",        print_usage},
     {"--help",      print_usage},
-    {"python_scripts",       embed_fast5_main},
+    {"embed",       embed_fast5_main},
     {"index",       index_main},
     {"extract",     extract_main},
     {"filter_by_positions",      filter_alignments_main},
@@ -37,7 +37,7 @@ static std::map< std::string, std::function<int(int, char**)> > programs = {
 
 int print_usage(int, char **)
 {
-    std::cout << "usage: python_scripts [options]" << std::endl;
+    std::cout << "usage: embed [options]" << std::endl;
     std::cout << "  valid commands: " << std::endl;
     for (const auto &item : programs){
         std::cout << "    " << item.first << std::endl;

@@ -16,6 +16,7 @@ class LoadVariantPaths {
  public:
   VariantPath vp;
   vector<tuple<string, string, uint64_t>> read_id_path_id_map;
+  vector<vector<VariantCall>> read_id_to_variant_calls;
   map<string, map<uint64_t, uint64_t>> counts;
   std::vector<omp_lock_t> locks;
   uint64_t num_locks;

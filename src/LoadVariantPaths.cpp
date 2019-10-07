@@ -54,6 +54,7 @@ void LoadVariantPaths::read_in_sa_files(const string &full_sa_dir, bool rna){
   int64_t number_of_files = all_tsvs.size();
   string* array_of_files = &all_tsvs[0];
   read_id_path_id_map.resize(number_of_files);
+  read_id_to_variant_calls.resize(number_of_files);
 // looping through the files
 #pragma omp parallel for shared(array_of_files, number_of_files, rna) default(none)
   for(int64_t i=0; i < number_of_files; i++) {
@@ -66,6 +67,7 @@ void LoadVariantPaths::read_in_sa_files(const string &full_sa_dir, bool rna){
     uint64_t path_id = this->vp.variant_call_to_id(contig_strand, calls);
 //  keep track fo variant path and counts per path
     read_id_path_id_map[i] = make_tuple(contig_strand, af.read_id, path_id);
+    read_id_to_variant_calls[i] = calls;
 //  set lock for creating and addition of path id if needed
     omp_set_lock(&(locks[path_id % num_locks]));
     counts[contig_strand][path_id] += 1;
@@ -79,9 +81,23 @@ void LoadVariantPaths::read_in_sa_files(const string &full_sa_dir, bool rna){
 void LoadVariantPaths::write_per_read_calls(const string &output_path){
   std::ofstream out_file;
   out_file.open(output_path);
+  bool comma = false;
   // loop through all contigs
-  out_file << "contig_strand" << '\t' << "read_id" << '\t' << "path_id" << '\t' << "path" << '\t' << "nucleotide_path" << '\n';
+  out_file << "contig_strand" << '\t' << "read_id" << '\t' << "path_id" << '\t' << "path" << '\t' << "nucleotide_path";
+  for (auto &variant: read_id_to_variant_calls[0]) {
+    out_file << '\t';
+    for (auto &base: variant.bases){
+      if (comma){
+        out_file << ",";
+      }
+      out_file << base;
+      comma = true;
+    }
+    comma = false;
+  }
+  out_file << '\n';
 
+  uint64_t index = 0;
   for (auto &id_tuple: read_id_path_id_map){
 //    loop through contig map
     out_file << get<0>(id_tuple) << '\t' << get<1>(id_tuple) << '\t' << get<2>(id_tuple) <<  '\t';
@@ -93,7 +109,20 @@ void LoadVariantPaths::write_per_read_calls(const string &output_path){
     for (auto &base: vp.path_to_bases(get<0>(id_tuple), path)){
       out_file << base;
     }
+    for (auto &call: read_id_to_variant_calls[index]){
+      out_file << "\t";
+      for (auto &prob: call.normalized_probs){
+        if (comma){
+          out_file << ",";
+        }
+        out_file << prob;
+        comma = true;
+      }
+      comma = false;
+    }
     out_file << "\n";
+
+    index += 1;
   }
   out_file.close();
 }

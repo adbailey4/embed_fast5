@@ -57,7 +57,12 @@ install:
   - ./configure
   - make
   - sudo make install
-#  - echo "PATH=$HOME/build/adbailey4/bin/:$PATH" >> ~/.bashrc
+#  Install HDF5
+  - cd $HOME/build/adbailey4/
+  - wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.gz
+  - tar -xzf hdf5-1.10.4.tar.gz || exit 255
+  - cd hdf5-1.10.4 && ./configure --enable-threadsafe --disable-hl && make && make install
+  #  - echo "PATH=$HOME/build/adbailey4/bin/:$PATH" >> ~/.bashrc
 #  - source ~/.bashrc
   - cd /home/travis/build/adbailey4/embed_fast5
   - python setup.py install

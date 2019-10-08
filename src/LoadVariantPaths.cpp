@@ -100,18 +100,32 @@ void LoadVariantPaths::write_per_read_calls(const string &output_path){
   uint64_t index = 0;
   for (auto &id_tuple: read_id_path_id_map){
 //    loop through contig map
+// write contig_strand, read_id, path_id, and path
     out_file << get<0>(id_tuple) << '\t' << get<1>(id_tuple) << '\t' << get<2>(id_tuple) <<  '\t';
     vector<uint64_t> path = vp.id_to_path(get<0>(id_tuple), get<2>(id_tuple));
     for (auto &node: path){
       out_file << node;
     }
+//    write bases
     out_file << '\t';
     for (auto &base: vp.path_to_bases(get<0>(id_tuple), path)){
       out_file << base;
     }
-    for (auto &call: read_id_to_variant_calls[index]){
-      out_file << "\t";
-      for (auto &prob: call.normalized_probs){
+//    write variant probabilities
+    vector<vector<double>> all_probs;
+    all_probs.resize(vp.num_positions[get<0>(id_tuple)]);
+    for (int i = 0 ; i < vp.num_positions[get<0>(id_tuple)] ; i++)
+      all_probs[i].resize(vp.index_to_variant[get<0>(id_tuple)][i].size() - 1, 0);
+    for (auto &i: read_id_to_variant_calls[index]){
+      try{
+        all_probs[vp.position_to_path_index.at(get<0>(id_tuple)).at(i.reference_index)] = i.normalized_probs;
+      } catch (const std::out_of_range& oor){
+        continue;
+      }
+    }
+    for (auto &vec_of_probs: all_probs){
+      out_file << '\t';
+      for (auto &prob: vec_of_probs){
         if (comma){
           out_file << ",";
         }

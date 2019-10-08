@@ -39,11 +39,9 @@ void VariantPath::load_positions_file(const string &positions_file_path) {
   pf.load_positions_map(positions_file_path);
   uint64_t variant_count;
   std::set<string> variants;
-  uint64_t position_index = 0;
   for (std::pair<std::string, map<uint64_t, tuple<string, string>>> contig_map : pf.positions_map) {
     uint64_t multiplier = 1;
     string change_to;
-    uint64_t start;
     vector<vector<string>> all_positions_index_to_variant;
     for (std::pair<uint64_t, tuple<string, string>> position_map: contig_map.second){
 //      contig_map.first is the contig_strand

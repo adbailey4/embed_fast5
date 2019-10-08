@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create setup script for installation of python_scripts fast5"""
+"""Create setup script for installation of embed_fast5"""
 ########################################################################
 # File: setup.py
 #  executable: setup.py
@@ -121,7 +121,7 @@ def main():
         url="https://github.com/adbailey4/embed_fast5",
         author='Andrew Bailey',
         license='MIT',
-        packages=find_packages('embed'),
+        packages=find_packages('src'),
         package_dir={'': 'src'},
         ext_modules=[CMakeExtension('embed.bindings')],
         cmdclass=dict(build_ext=CMakeBuild, install=PostInstallCommand),

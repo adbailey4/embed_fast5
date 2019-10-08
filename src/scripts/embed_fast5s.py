@@ -67,7 +67,7 @@ def main():
 
     # index fastq files to fast5s
     if not args.no_index:
-        call_nanopolish_index(args.embed_build_dir, args.fast5_dir, args.fastq)
+        call_nanopolish_index(args.fast5_dir, args.fastq)
 
     assert os.path.exists(args.fastq+".index"), "Indexing did not work. Please use nanopolish to index files"
     assert os.path.exists(args.fastq+".index.readdb"), "Indexing did not work. Please use nanopolish to index files"
@@ -85,7 +85,7 @@ def main():
     if not args.no_events:
         # sometimes nanopolish readdb does not find the fast5 files
         os.chdir(args.fast5_dir)
-        call_embed_main(args.embed_build_dir, args.fastq)
+        call_embed_main(args.fastq)
 
 
 if __name__ == "__main__":

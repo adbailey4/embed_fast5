@@ -51,7 +51,7 @@ class TestSplitMultiRead(unittest.TestCase):
             fast5_file = os.path.join(tempdir, "test.fast5")
             shutil.copyfile(self.fast5, fast5_file)
 
-            works = call_nanopolish_index(self.build_dir, tempdir, fastq_file)
+            works = call_nanopolish_index(tempdir, fastq_file)
             self.assertTrue(works)
             output = list_dir(tempdir)
             self.assertEqual(len(output), 6)
@@ -68,9 +68,9 @@ class TestSplitMultiRead(unittest.TestCase):
             self.assertRaises(IndexError, fh.get_fastq)
             fh.close()
 
-            works = call_nanopolish_index(self.build_dir, tempdir, fastq_file)
+            works = call_nanopolish_index(tempdir, fastq_file)
             self.assertTrue(works)
-            works = call_embed_main(self.build_dir, fastq_file)
+            works = call_embed_main(fastq_file)
             self.assertTrue(works)
             output = list_dir(tempdir)
             self.assertEqual(len(output), 6)
@@ -155,7 +155,7 @@ class TestSplitMultiRead(unittest.TestCase):
             self.assertRaises(IndexError, fh.get_basecall_data)
             fh.close()
 
-            embed_command = "embed_fast5s --fast5_dir {} --fastq {} " \
+            embed_command = "embed_fast5s.py --fast5_dir {} --fastq {} " \
                             "--jobs {} --embed_build_dir {} --output_dir {}".format(fast5_dir,
                                                                                     fastq,
                                                                                     1,

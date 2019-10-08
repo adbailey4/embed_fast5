@@ -36,13 +36,11 @@ def parse_readdb(readdb, directories=None):
                         yield split_line[0], full_path
 
 
-def call_nanopolish_index(build_dir, fast5_dir, fastq):
+def call_nanopolish_index(fast5_dir, fastq):
     """Call nanopolish index on some files"""
-    nanopolish_path = os.path.join(build_dir, "nanopolish")
-    assert os.path.exists(nanopolish_path), "Nanopolish does not exist in directory {}".format(build_dir)
     fast5_dir = os.path.abspath(fast5_dir)
     fastq = os.path.abspath(fastq)
-    nanopolish_command = nanopolish_path + " index -d {fast5_dir} {fastq}".format(fast5_dir=fast5_dir, fastq=fastq)
+    nanopolish_command = "embed_main index -d {fast5_dir} {fastq}".format(fast5_dir=fast5_dir, fastq=fastq)
     try:
         command = nanopolish_command.split()
         proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -62,11 +60,9 @@ def call_nanopolish_index(build_dir, fast5_dir, fastq):
     return True
 
 
-def call_embed_main(main_cpp_dir, fastq):
+def call_embed_main(fastq):
     """Call embed on all files"""
-    main_cpp_path = os.path.join(main_cpp_dir, "embed_main")
-    assert os.path.exists(main_cpp_path), "embed_main does not exist in directory {}".format(main_cpp_dir)
-    embed_command = main_cpp_path + " embed -r {fastq}".format(fastq=fastq)
+    embed_command = "embed_main embed -r {fastq}".format(fastq=fastq)
     try:
         command = embed_command.split()
         proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

@@ -468,7 +468,8 @@ TEST (AlignmentFileTests, test_get_variant_calls) {
 
 
 TEST (AlignmentFileTests, test_filter) {
-  path tempdir = temp_directory_path() / "temp";
+  path tempdir = temp_directory_path()/ "temp";
+  create_directory(tempdir);
   path test_output = tempdir / "test_output.assignment.tsv";
   AlignmentFile af(ALIGNMENT_FILE.string());
   PositionsFile pf(POSITIONS_FILE.string(), 5);
@@ -850,7 +851,7 @@ TEST (LoadVariantPathsTests, test_load_variants){
   path positions_file = RRNA_TEST_FILES/"/16S_final_branch_points.positions";
   LoadVariantPaths lvp(positions_file.string(), RRNA_SIGNAL_FILES.string(), true, 10);
   path tempdir = temp_directory_path() / "temp";
-
+  create_directory(tempdir);
   path output_per_read = tempdir/"per_read_calls.tsv";
   path correct_per_read = RRNA_TEST_FILES/"test_output_dir/per_read_calls.tsv";
   lvp.write_per_read_calls(output_per_read.string());

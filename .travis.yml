@@ -54,7 +54,7 @@ install:
   - tar -vxjf htslib-1.9.tar.bz2
   - ls
   - cd htslib-1.9
-  - ./configure
+  - ./configure --prefix /usr/local
   - make
   - sudo make install
 #  Install HDF5

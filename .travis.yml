@@ -61,6 +61,8 @@ install:
   - cd $HOME/build/adbailey4/
   - wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.gz
   - tar -xzf hdf5-1.10.4.tar.gz || exit 255
+  - export CXXFLAGS="$CXXFLAGS -fPIC"
+  - export CFLAGS="$CFLAGS -fPIC"
   - cd hdf5-1.10.4 && ./configure --prefix /usr/local --enable-threadsafe --disable-hl && make && sudo make install
 #  - echo "LD_LIBRARY_PATH=/home/travis/build/adbailey4/hdf5-1.10.4/hdf5/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
 #  - source ~/.bashrc

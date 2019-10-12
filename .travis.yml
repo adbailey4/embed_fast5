@@ -9,11 +9,15 @@ notifications: # set notification options
   email: false
 
 before_install:
+  - export CXXFLAGS="$CXXFLAGS -fPIC"
+  - export CFLAGS="$CFLAGS -fPIC"
   - sudo apt-get update -qq
   - sudo apt-get install build-essential autotools-dev autoconf curl libbz2-dev zlib1g-dev liblzma-dev libeigen3-dev
   - sudo apt-get update
 
 install:
+  - export CXXFLAGS="$CXXFLAGS -fPIC"
+  - export CFLAGS="$CFLAGS -fPIC"
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
     wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
     else
@@ -24,8 +28,6 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - pwd
   - gcc --version
-  - export CXXFLAGS="$CXXFLAGS -fPIC"
-  - export CFLAGS="$CFLAGS -fPIC"
 #  install cmake
   - sudo apt remove --purge --auto-remove cmake
   - version=3.14

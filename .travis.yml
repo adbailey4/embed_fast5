@@ -69,7 +69,7 @@ install:
   - cc --version
   - c++ --version
   #  Install boost
-  - cd $HOME/build/UCSC-nanopore-cgl/
+  - cd $HOME/build/adbailey4
   - wget -O boost_1_69_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download
   - tar xzf boost_1_69_0.tar.gz >/dev/null
   - cd boost_1_69_0/
@@ -88,13 +88,13 @@ install:
   #  Install HDF5
   - export CFLAGS="$CFLAGS -fPIC"
   - export CXXFLAGS="$CXXFLAGS -fPIC"
-  - cd $HOME/build/UCSC-nanopore-cgl/
+  - cd $HOME/build/adbailey4
   - wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.gz
   - tar -xzf hdf5-1.10.4.tar.gz || exit 255
   - cd hdf5-1.10.4 && ./configure --prefix /usr/local --enable-threadsafe --disable-hl && make && sudo make install
 #  - echo "LD_LIBRARY_PATH=/home/travis/build/adbailey4/hdf5-1.10.4/hdf5/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
 #  - source ~/.bashrc
-  - cd /home/travis/build/adbailey4/embed_fast5
+  - cd $HOME/build/adbailey4/embed_fast5
   - python setup.py install
 
 script:

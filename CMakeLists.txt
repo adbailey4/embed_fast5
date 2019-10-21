@@ -1,22 +1,20 @@
+############################################################################################################
 cmake_minimum_required(VERSION 3.7)
 project(embed_fast5)
-
+############################################################################################################
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_C_STANDARD 99)
-SET(CMAKE_CXX_STANDARD 11)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-3")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -gdwarf-3")
-
-SET(LIBDIR "/usr/lib" CACHE STRING "Some user-specified option")
-SET(INCLUDEDIR "/usr/include" CACHE STRING "Some user-specified option")
-
-SET(PYTHON_ONLY TRUE CACHE STRING "Some user-specified option")
-
-
+set(LIBDIR "/usr/lib" CACHE STRING "Some user-specified option")
+set(INCLUDEDIR "/usr/include" CACHE STRING "Some user-specified option")
+set(PYTHON_ONLY TRUE CACHE STRING "Some user-specified option")
 message("CMakeInstall Prefix: ${CMAKE_INSTALL_PREFIX}")
-
+############################################################################################################
 # GTEST INSTALL
 ############################################################################################################
 if(APPLE)
@@ -52,9 +50,6 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
 endif()
 message(gtest_SOURCE_DIR: ${gtest_SOURCE_DIR})
 ############################################################################################################
-
-
-
 # BOOST LIBRARY
 ############################################################################################################
 #set(Boost_USE_STATIC_LIBS        ON)
@@ -66,10 +61,45 @@ find_package(Boost 1.69.0 COMPONENTS system date_time filesystem iostreams corou
 #        )
 message(Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
-
 ############################################################################################################
-
-
+# ZLIB LIBRARY
+############################################################################################################
+find_package(ZLIB)
+if (ZLIB_FOUND)
+    include_directories(${ZLIB_INCLUDE_DIRS})
+endif()
+message(Zlib: ${ZLIB_LIBRARIES})
+############################################################################################################
+# DL LIBRARY
+############################################################################################################
+find_library(LIBDL_LIBRARY NAMES dl)
+message(LibDL: ${LIBDL_LIBRARY})
+############################################################################################################
+# M LIBRARY
+############################################################################################################
+find_library(LIBM_LIBRARY NAMES m)
+message(LibM: ${LIBM_LIBRARY})
+############################################################################################################
+# pthread LIBRARY
+############################################################################################################
+find_library(LIBPTHREAD_LIBRARY NAMES pthread)
+message(LibPthread: ${LIBPTHREAD_LIBRARY})
+############################################################################################################
+# BZ2 LIBRARY
+############################################################################################################
+find_library(LIBBZ2_LIBRARY NAMES bz2)
+message(LibBZ2: ${LIBBZ2_LIBRARY})
+############################################################################################################
+# CURL LIBRARY
+############################################################################################################
+find_library(LIBCURL_LIBRARY NAMES curl)
+message(LibCURL: ${LIBCURL_LIBRARY})
+############################################################################################################
+# LZMA LIBRARY
+############################################################################################################
+find_library(LIBLZMA_LIBRARY NAMES lzma)
+message(LibLZMA: ${LIBLZMA_LIBRARY})
+############################################################################################################
 # HDF LIBRARY
 ############################################################################################################
 find_library(HDF5_LIBRARIES libhdf5.a
@@ -88,7 +118,6 @@ message(HDF5_INCLUDE_DIRS: "${HDF5_INCLUDE_DIRS}")
 message(HDF5_LIBRARIES: "${HDF5_LIBRARIES}")
 include_directories(${HDF5_INCLUDE_DIRS})
 ############################################################################################################
-
 # EIGEN LIBRARY
 ############################################################################################################
 find_path(EIGEN3_INCLUDE_DIR Eigen HINTS
@@ -99,10 +128,7 @@ find_path(EIGEN3_INCLUDE_DIR Eigen HINTS
 
 include_directories(${EIGEN3_INCLUDE_DIR})
 message(EIGEN3_INCLUDE_DIR: "${EIGEN3_INCLUDE_DIR}")
-
 ############################################################################################################
-
-
 # HTSLIB LIBRARY
 ############################################################################################################
 find_library(HTSLIB_LIBRARY NAMES libhts.a
@@ -121,9 +147,7 @@ find_path(HTSLIB_INCLUDE_DIR htslib/hts.h
 message(HTSLIB_LIBRARIES: "${HTSLIB_LIBRARY}")
 message(HTSLIB_INCLUDE_DIRS: "${HTSLIB_INCLUDE_DIR}")
 include_directories(${HTSLIB_INCLUDE_DIRS})
-
 ############################################################################################################
-
 # OPENSSL_LIB LIBRARY
 ############################################################################################################
 find_library(OPENSSL_LIB libcrypto.a
@@ -134,8 +158,6 @@ find_library(OPENSSL_LIB libcrypto.a
         ${LIBDIR})
 message(OPENSSL_LIB: ${OPENSSL_LIB})
 ############################################################################################################
-
-
 # NANOPOLISH LIBRARY
 ############################################################################################################
 set(NANOPOLISH_HOME ${CMAKE_SOURCE_DIR}/submodules/nanopolish)
@@ -194,13 +216,13 @@ set(nanopolish_source
         ${NANOPOLISH_HOME}/src/thirdparty/stdaln.c)
 
 set(NANOPOLISH ${NANOPOLISH_HOME}/src/main/nanopolish.cpp)
-set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} ${OPENSSL_LIB} -lz -lm -ldl -lpthread -lbz2 -lcurl -llzma)
+set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} ${OPENSSL_LIB} ${ZLIB_LIBRARIES} ${LIBDL_LIBRARY} ${LIBM_LIBRARY} ${LIBPTHREAD_LIBRARY} ${LIBBZ2_LIBRARY} ${LIBCURL_LIBRARY} ${LIBLZMA_LIBRARY})
 # nanopolish main
 #add_executable(nanopolish ${NANOPOLISH} ${nanopolish_source})
 #target_link_libraries(nanopolish ${NP_LIBRARY})
 ############################################################################################################
 # my library
-set(EMBED_LIBRARY ${Boost_LIBRARIES} ${NP_LIBRARY} ${HTSLIB_LIBRARY})
+set(EMBED_LIBRARY ${Boost_LIBRARIES} ${NP_LIBRARY})
 # my includes
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/fast5/include)

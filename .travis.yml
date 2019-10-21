@@ -1,5 +1,3 @@
-python:
-  - 3.5
 notifications: # set notification options
   slack:
     rooms:
@@ -8,50 +6,76 @@ notifications: # set notification options
     on_failure: always
   email: false
 
+language: generic
+
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - cmake-data
+            - gcc-5
+            - g++-5
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - cmake-data
+            - gcc-6
+            - g++-6
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.6
+          packages:
+            - clang-3.6
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=clang-3.6 && CXX=clang-3.6"
+
 before_install:
-  - export CXXFLAGS="$CXXFLAGS -fPIC"
-  - export CFLAGS="$CFLAGS -fPIC"
+  #  - eval "${MATRIX_EVAL}"
   - sudo apt-get update -qq
-  - sudo apt-get install build-essential autotools-dev autoconf curl libbz2-dev zlib1g-dev liblzma-dev libeigen3-dev
+  - sudo apt-get install build-essential autotools-dev autoconf curl libbz2-dev zlib1g-dev liblzma-dev libeigen3-dev -y
   - sudo apt-get update
 
 install:
-  - export CXXFLAGS="$CXXFLAGS -fPIC"
-  - export CFLAGS="$CFLAGS -fPIC"
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-    wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-    wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda config --set always_yes yes --set changeps1 no
   - pwd
-  - gcc --version
-#  install cmake
-  - sudo apt remove --purge --auto-remove cmake
-  - version=3.14
-  - build=2
-  - mkdir ~/temp
-  - cd ~/temp
-  - wget https://cmake.org/files/v$version/cmake-$version.$build.tar.gz
-  - tar -xzvf cmake-$version.$build.tar.gz
-  - cd cmake-$version.$build/
-  - ./bootstrap
-  - make -j4
-  - sudo make install
+  - python --version
   - cmake --version
-#  Install boost
-  - cd $HOME/build/adbailey4/
+  - gcc --version
+  - g++ --version
+  - cc --version
+  - c++ --version
+  #  Install boost
+  - cd $HOME/build/UCSC-nanopore-cgl/
   - wget -O boost_1_69_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download
   - tar xzf boost_1_69_0.tar.gz >/dev/null
   - cd boost_1_69_0/
   - ./bootstrap.sh --show-libraries
   - ./bootstrap.sh --with-libraries=system,date_time,filesystem,iostreams,coroutine,context >/dev/null #--prefix=/usr/
-#  - ./bootstrap.sh >/dev/null #--prefix=/usr/
-  - echo something
-  - sudo ./b2
-  - sudo ./b2 install
+  - sudo ./b2 && sudo ./b2 install
   #  Install htslib
   - cd $HOME/build/adbailey4/
   - wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2
@@ -61,8 +85,10 @@ install:
   - ./configure --prefix /usr/local
   - make
   - sudo make install
-#  Install HDF5
-  - cd $HOME/build/adbailey4/
+  #  Install HDF5
+  - export CFLAGS="$CFLAGS -fPIC"
+  - export CXXFLAGS="$CXXFLAGS -fPIC"
+  - cd $HOME/build/UCSC-nanopore-cgl/
   - wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.gz
   - tar -xzf hdf5-1.10.4.tar.gz || exit 255
   - cd hdf5-1.10.4 && ./configure --prefix /usr/local --enable-threadsafe --disable-hl && make && sudo make install

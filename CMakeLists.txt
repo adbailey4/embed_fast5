@@ -10,9 +10,6 @@ set(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-3")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -gdwarf-3")
-set(LIBDIR "/usr/lib" CACHE STRING "Some user-specified option")
-set(INCLUDEDIR "/usr/include" CACHE STRING "Some user-specified option")
-set(PYTHON_ONLY TRUE CACHE STRING "Some user-specified option")
 message("CMakeInstall Prefix: ${CMAKE_INSTALL_PREFIX}")
 ############################################################################################################
 # GTEST INSTALL
@@ -148,15 +145,15 @@ message(HTSLIB_LIBRARIES: "${HTSLIB_LIBRARY}")
 message(HTSLIB_INCLUDE_DIRS: "${HTSLIB_INCLUDE_DIR}")
 include_directories(${HTSLIB_INCLUDE_DIRS})
 ############################################################################################################
-# OPENSSL_LIB LIBRARY
-############################################################################################################
-find_library(OPENSSL_LIB libcrypto.a
-        HINTS "${NANOPOLISH_HOME}/lib"
-        ${CMAKE_INSTALL_PREFIX}/lib
-        /usr/local/opt/openssl/lib
-        /usr/lib
-        ${LIBDIR})
-message(OPENSSL_LIB: ${OPENSSL_LIB})
+## OPENSSL_LIB LIBRARY
+#############################################################################################################
+#find_library(OPENSSL_LIB libcrypto.a
+#        HINTS "${NANOPOLISH_HOME}/lib"
+#        ${CMAKE_INSTALL_PREFIX}/lib
+#        /usr/local/opt/openssl/lib
+#        /usr/lib
+#        ${LIBDIR})
+#message(OPENSSL_LIB: ${OPENSSL_LIB})
 ############################################################################################################
 # NANOPOLISH LIBRARY
 ############################################################################################################
@@ -216,7 +213,7 @@ set(nanopolish_source
         ${NANOPOLISH_HOME}/src/thirdparty/stdaln.c)
 
 set(NANOPOLISH ${NANOPOLISH_HOME}/src/main/nanopolish.cpp)
-set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} ${OPENSSL_LIB} ${ZLIB_LIBRARIES} ${LIBDL_LIBRARY} ${LIBM_LIBRARY} ${LIBPTHREAD_LIBRARY} ${LIBBZ2_LIBRARY} ${LIBCURL_LIBRARY} ${LIBLZMA_LIBRARY})
+set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} ${ZLIB_LIBRARIES} ${LIBDL_LIBRARY} ${LIBM_LIBRARY} ${LIBPTHREAD_LIBRARY} ${LIBBZ2_LIBRARY} ${LIBCURL_LIBRARY} ${LIBLZMA_LIBRARY}) #${OPENSSL_LIB}
 # nanopolish main
 #add_executable(nanopolish ${NANOPOLISH} ${nanopolish_source})
 #target_link_libraries(nanopolish ${NP_LIBRARY})

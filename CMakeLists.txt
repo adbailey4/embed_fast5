@@ -1,5 +1,8 @@
 ############################################################################################################
 cmake_minimum_required(VERSION 3.7)
+set(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_C_FLAGS_DEBUG  "${CMAKE_C_FLAGS_DEBUG} -O0 -g -Wall --pedantic -fopenmp -funroll-loops  -DNDEBUG")
 project(embed_fast5)
 ############################################################################################################
 set(CMAKE_VERBOSE_MAKEFILE OFF)

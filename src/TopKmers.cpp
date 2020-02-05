@@ -21,9 +21,12 @@ using namespace embed_utils;
  * @param output_dir: path to output directory where new builtAssignment.tsv will be written
  * @param heap_size: number of max kmers to keep for each kmer
  * @param alphabet: alphabet used to generate kmers
+ * @param n_threads: set number of threads to use: default 2
+
  */
 
-void generate_master_assignment_table(string assignment_dir, string& output_dir, int heap_size, string& alphabet){
+string generate_master_assignment_table(string assignment_dir, string& output_dir, int heap_size, string& alphabet, unsigned int n_threads){
+  omp_set_num_threads((int) n_threads); // Use 4 threads for all consecutive parallel regions
 
   path p(assignment_dir);
   path output_path = make_dir(output_dir);
@@ -67,6 +70,7 @@ void generate_master_assignment_table(string assignment_dir, string& output_dir,
   path log_file = output_path / "built_log.tsv";
 
   mk.write_to_file(output_file, log_file);
+  return output_file.string();
 }
 
 
@@ -182,7 +186,7 @@ void parse_top_kmers_main_options(int argc, char** argv)
 }
 
 
-int top_kmers_main(int argc, char** argv)
+auto top_kmers_main(int argc, char** argv) -> int
 {
   parse_top_kmers_main_options(argc, argv);
 
@@ -194,8 +198,7 @@ int top_kmers_main(int argc, char** argv)
   }
 #endif
 
-  omp_set_num_threads(opt::threads); // Use 4 threads for all consecutive parallel regions
-  generate_master_assignment_table(opt::assignment_dir, opt::output_dir, opt::heap_size, opt::alphabet);
+  generate_master_assignment_table(opt::assignment_dir, opt::output_dir, (int) opt::heap_size, opt::alphabet, opt::threads);
 
   return EXIT_SUCCESS;
 }

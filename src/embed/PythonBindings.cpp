@@ -10,6 +10,7 @@
 #include <pybind11/stl.h>
 
 #include "LoadVariantPaths.hpp"
+#include "TopKmers.hpp"
 
 int add1(int i, int j) {
     return i + j;
@@ -38,23 +39,28 @@ PYBIND11_MODULE(bindings, module) {
            ;
 
   module.doc() = R"pbdoc(
-        Pybind11 example plugin
-        -----------------------
-        .. currentmodule:: cmake_example
-        .. autosummary::
-           :toctree: _generate
-           add
-           subtract
+        Embed Wrappers:
+        - add
+        - subtract
+        - LoadVariantPaths
+        - generate_master_assignment_table
     )pbdoc";
 
   module.def("add", &add1, R"pbdoc(
         Add two numbers
-        Some other explanation about the add function.
     )pbdoc");
 
   module.def("subtract", [](int i, int j) { return i - j; }, R"pbdoc(
         Subtract two numbers
-        Some other explanation about the subtract function.
+    )pbdoc");
+
+  module.def("generate_master_assignment_table", &generate_master_assignment_table, R"pbdoc(
+  - Generate the master assignment table by parsing assignment files and outputting the top n kmers to a files
+ @param assignment_dir: path to assignment files directory
+ @param output_dir: path to output directory where new builtAssignment.tsv will be written
+ @param heap_size: number of max kmers to keep for each kmer
+ @param alphabet: alphabet used to generate kmers
+
     )pbdoc");
 
 #ifdef VERSION_INFO

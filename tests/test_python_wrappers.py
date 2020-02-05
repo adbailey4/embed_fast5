@@ -49,6 +49,17 @@ class TestPythonWrappers(unittest.TestCase):
             self.assertTrue(filecmp.cmp(correct_per_path, output_per_path))
             self.assertTrue(filecmp.cmp(correct_per_read, output_per_read))
 
+    def test_generate_master_assignment_table(self):
+        assignment_dir = os.path.join(self.HOME,"tests/test_files/assignment_files")
+        heap_size = 1000
+        alphabet = "ATGC"
+        n_threads = 2
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_dir = temp_dir
+            a = bindings.generate_master_assignment_table(assignment_dir, output_dir, heap_size, alphabet, n_threads)
+            size = os.stat(a).st_size
+            self.assertEqual(438960, size)
+
 
 if __name__ == '__main__':
     unittest.main()

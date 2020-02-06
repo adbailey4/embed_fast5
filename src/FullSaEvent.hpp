@@ -17,7 +17,7 @@ class FullSaEvent {
   uint64_t reference_index;
   string reference_kmer;
   string read_file;
-  string read_strand;
+  string strand;
   uint64_t event_index;
   double event_mean;
   double event_noise;
@@ -30,7 +30,7 @@ class FullSaEvent {
   double ont_model_mean;
   string path_kmer;
   ~FullSaEvent();
-  FullSaEvent(string contig, uint64_t reference_index, string reference_kmer, string read_file, string read_strand,
+  FullSaEvent(string contig, uint64_t reference_index, string reference_kmer, string read_file, string strand,
               uint64_t event_index, double event_mean, double event_noise, double event_duration, string aligned_kmer,
               double scaled_mean_current, double scaled_noise, double posterior_probability, double descaled_event_mean,
               double ont_model_mean, string path_kmer);

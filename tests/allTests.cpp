@@ -566,7 +566,7 @@ TEST (AssignmentFileTests, test_iterate_assignment) {
     AssignmentFile af(ASSIGNMENT_FILE.string());
     float answer = 83.7093;
     for (auto &x: af.iterate()){
-      EXPECT_FLOAT_EQ(x.mean, answer);
+      EXPECT_FLOAT_EQ(x.descaled_event_mean, answer);
       break;
     }
 }
@@ -582,17 +582,16 @@ TEST (AssignmentFileTests, test_get_k) {
 
 
 TEST (MaxKmersTests, test_create_kmers) {
-  MaxKmers mk = MaxKmers(10, "ATGC", 5);
+  MaxKmers<eventkmer> mk(10, "ATGC", 5);
   string alphabet = "ATGC";
   vector<string> kmers = mk.create_kmers(alphabet, 5);
   EXPECT_EQ(kmers.size(), 1024);
   kmers = mk.create_kmers(alphabet, 6);
   EXPECT_EQ(kmers.size(), 4096);
-
 }
 
 TEST (MaxKmersTests, test_get_kmer_index) {
-  MaxKmers mk = MaxKmers(10, "ATGC", 5);
+  MaxKmers<eventkmer> mk(10, "ATGC", 5);
   string poly_a = "AAAAA";
   int poly_a_index = mk.get_kmer_index(poly_a);
   EXPECT_EQ(poly_a_index, 0);
@@ -602,7 +601,7 @@ TEST (MaxKmersTests, test_get_kmer_index) {
 }
 
 TEST (MaxKmersTests, test_get_index_kmer) {
-  MaxKmers mk = MaxKmers(10, "ATGC", 5);
+  MaxKmers<eventkmer> mk(10, "ATGC", 5);
   string poly_a = mk.get_index_kmer(0);
   EXPECT_EQ(poly_a, "AAAAA");
   string poly_t = mk.get_index_kmer(1023);
@@ -610,7 +609,7 @@ TEST (MaxKmersTests, test_get_index_kmer) {
 }
 
 TEST (MaxKmersTests, test_add_to_heap) {
-  MaxKmers mk = MaxKmers(10, "ATGC", 5);
+  MaxKmers<eventkmer> mk(10, "ATGC", 5);
   eventkmer my_kmer = eventkmer("AAAAA", 10, "t", 1.2);
   mk.add_to_heap(my_kmer);
   eventkmer my_kmer2 = eventkmer("AAAAA", 10, "t", 1.4);
@@ -618,16 +617,35 @@ TEST (MaxKmersTests, test_add_to_heap) {
   for (int i = 0; i < 10; i++){
     mk.add_to_heap(my_kmer2);
   }
-  eventkmer match = mk.kmer_queues[0].top();
-  EXPECT_EQ(match.kmer, my_kmer2.kmer);
+  auto match = mk.kmer_queues[0].top();
+  EXPECT_EQ(match.path_kmer, my_kmer2.path_kmer);
   EXPECT_EQ(match.strand, my_kmer2.strand);
-  EXPECT_EQ(match.mean, my_kmer2.mean);
-  EXPECT_EQ(match.prob, my_kmer2.prob);
+  EXPECT_EQ(match.descaled_event_mean, my_kmer2.descaled_event_mean);
+  EXPECT_FLOAT_EQ(match.posterior_probability, my_kmer2.posterior_probability);
 
+  MaxKmers<FullSaEvent> mk2(10, "ATGC", 5);
+  FullSaEvent my_kmer3("a", 1, "string reference_kmer", "string read_file", "t",
+      10, 20, 20, 20, "string aligned_kmer",
+      20, 20, 1.2, 10,
+      3, "AAAAA");
+  mk2.add_to_heap(my_kmer3);
+  FullSaEvent my_kmer4("a", 1, "string reference_kmer", "string read_file", "t",
+                       10, 20, 20, 20, "string aligned_kmer",
+                       20, 20, 1.4, 10,
+                       3, "AAAAA");
+#pragma omp parallel for shared(mk2, my_kmer4) default(none)
+  for (int i = 0; i < 10; i++){
+    mk2.add_to_heap(my_kmer4);
+  }
+  auto match2 = mk.kmer_queues[0].top();
+  EXPECT_EQ(match2.path_kmer, my_kmer4.path_kmer);
+  EXPECT_EQ(match2.strand, my_kmer4.strand);
+  EXPECT_EQ(match2.descaled_event_mean, my_kmer4.descaled_event_mean);
+  EXPECT_FLOAT_EQ(match2.posterior_probability, my_kmer4.posterior_probability);
 }
 
 TEST (MaxKmersTests, test_write_to_file) {
-  MaxKmers mk = MaxKmers(10, "ATGC", 5);
+  MaxKmers<eventkmer> mk(10, "ATGC", 5);
   for (int i = 10; i > 0; i--){
     eventkmer my_kmer = eventkmer("AAAAA", 10, "t", i);
     mk.add_to_heap(my_kmer);

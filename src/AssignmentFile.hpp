@@ -14,12 +14,12 @@ using namespace boost::coroutines2;
 
 struct eventkmer
 {
-  string kmer;
-  float mean;
+  string path_kmer;
+  float descaled_event_mean;
   string strand;
-  float prob;
+  float posterior_probability;
   eventkmer(string kmer, float mean, string strand, float prob) :
-      kmer(move(kmer)), mean(mean), strand(move(strand)), prob(prob)
+      path_kmer(move(kmer)), descaled_event_mean(mean), strand(move(strand)), posterior_probability(prob)
   {
   }
   ~eventkmer()

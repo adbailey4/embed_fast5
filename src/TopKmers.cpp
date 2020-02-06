@@ -4,8 +4,8 @@
 
 #include "TopKmers.hpp"
 #include "AssignmentFile.hpp"
+#include "AlignmentFile.hpp"
 #include "MaxKmers.hpp"
-#include "EmbedUtils.hpp"
 #include <getopt.h>
 #include <boost/filesystem.hpp>
 
@@ -48,18 +48,66 @@ string generate_master_assignment_table(string assignment_dir, string& output_di
     }
   }
 
-  MaxKmers mk = MaxKmers(heap_size, alphabet, kmer_length);
+  MaxKmers<eventkmer> mk(heap_size, alphabet, kmer_length);
 
   int64_t number_of_files = all_tsvs.size();
   path* array_of_files = &all_tsvs[0];
 
 // looping through the files
-#pragma omp parallel for shared(array_of_files, mk, number_of_files, cout)
+#pragma omp parallel for shared(array_of_files, mk, number_of_files, cout) default(none)
   for(int64_t i=0; i < number_of_files; i++) {
 
     path current_file = array_of_files[i];
     cout << current_file << "\n";
     AssignmentFile af = AssignmentFile(current_file.string());
+    for (auto &event: af.iterate()){
+      mk.add_to_heap(event);
+    }
+//        if (current_file.filename().string() == "0a4e473d-4713-4c7f-9e18-c465ea6d5b8c.sm.forward.tsv"){
+//        }
+  }
+  path output_file = output_path / "builtAssignment.tsv";
+  path log_file = output_path / "built_log.tsv";
+
+  mk.write_to_file(output_file, log_file);
+  return output_file.string();
+}
+
+string generate_master_assignment_table2(string assignment_dir, string& output_dir, int heap_size, string& alphabet, unsigned int n_threads){
+  omp_set_num_threads((int) n_threads); // Use 4 threads for all consecutive parallel regions
+
+  path p(assignment_dir);
+  path output_path = make_dir(output_dir);
+
+  directory_iterator end_itr;
+//    Get all tsvs to process
+  vector<path> all_tsvs;
+  int kmer_length = 0;
+  int counter = 0;
+  for (directory_iterator itr(p); itr != end_itr; ++itr) {
+//        filter for files that are regular, end with tsv and are not empty
+    if (is_regular_file(itr->path()) and itr->path().extension().string() == ".tsv" and getFilesize(itr->path().string()) > 0) {
+      all_tsvs.push_back(itr->path());
+      if (counter == 0){
+        AlignmentFile af(itr->path().string());
+        kmer_length = af.get_k();
+        counter += 1;
+      }
+    }
+  }
+
+  MaxKmers<FullSaEvent> mk(heap_size, alphabet, kmer_length);
+
+  int64_t number_of_files = all_tsvs.size();
+  path* array_of_files = &all_tsvs[0];
+
+// looping through the files
+#pragma omp parallel for shared(array_of_files, mk, number_of_files, cout) default(none)
+  for(int64_t i=0; i < number_of_files; i++) {
+
+    path current_file = array_of_files[i];
+    cout << current_file << "\n";
+    AlignmentFile af(current_file.string());
     for (auto &event: af.iterate()){
       mk.add_to_heap(event);
     }

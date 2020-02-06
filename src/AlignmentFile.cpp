@@ -108,7 +108,7 @@ void AlignmentFile::filter_by_positions(PositionsFile *pf, boost::filesystem::pa
   for (auto &event: this->iterate()) {
       string contig_strand = event.contig+this->strand;
       if (pf->is_in(contig_strand, event.reference_index) || !are_characters_in_string(bases, event.path_kmer)) {
-        out_file << event.path_kmer << '\t' << event.read_strand << '\t' << event.descaled_event_mean << '\t' <<  event.posterior_probability << '\n';
+        out_file << event.path_kmer << '\t' << event.strand << '\t' << event.descaled_event_mean << '\t' << event.posterior_probability << '\n';
     }
   }
   out_file.close();

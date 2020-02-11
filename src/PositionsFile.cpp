@@ -131,7 +131,7 @@ void PositionsFile::positions_coroutine(positions_coro::push_type& yield){
     while(getline(in_file, line)) {
       std::vector<std::string> fields = embed_utils::split_string(line, '\t');
       string contig = fields[0];
-      int64_t start_position = embed_utils::convert_to_int(fields[1]);
+      int64_t start_position = embed_utils::string_to_int(fields[1]);
       string strand = fields[2];
       string change_from = fields[3];
       string change_to = fields[4];

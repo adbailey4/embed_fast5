@@ -24,25 +24,45 @@ typedef coroutine<path> dir_coro;
 
 
 namespace embed_utils{
-  bool are_characters_in_string(string &characters, string &my_string);
-  size_t getFilesize(const std::string& filename);
-  int64_t convert_to_int(std::string& str_int);
-  path make_dir(path output_path);
-  bool compareFiles(const std::string& p1, const std::string& p2);
-  bool copyDir(path const & source, path const & destination);
+  bool are_characters_in_string(string &characters, string& my_string);
+  size_t get_file_size(const path &filename);
+  int64_t string_to_int(std::string& str_int);
+  path make_dir(path &output_path);
+  bool compare_files(const path &p1, const path &p2);
+  bool copyDir(const path& source, const path& destination);
   std::vector<std::string> split_string(string& in, char delimiter);
-  std::vector<std::string> split_string2(string s, string delimiter, uint64_t size=16);
-  float convert_to_float(std::string& str_int);
+  float string_to_float(std::string& str_int);
   string sort_string(string &str);
-  vector<string> all_lexicographic_recur(string characters, string data, int last, int index);
-  vector<string> all_string_permutations(string characters, int length);
-  string remove_duplicate_characters(string input_string);
+  vector<string> all_lexicographic_recur(string &characters, string &data, uint64_t last, uint64_t index);
+  vector<string> all_string_permutations(string &characters, int &length);
+  string remove_duplicate_characters(string &input_string);
   void dir_iterator_coroutine(dir_coro::push_type& yield, path& directory, string& ext);
   dir_coro::pull_type list_files_in_dir(path& directory, string& ext);
   std::map<string, string> create_ambig_bases();
   tuple<uint64_t, uint64_t, uint64_t, uint64_t> get_time(std::function<void()> bound_function);
   string get_time_string(std::function<void()> bound_function);
+  int64_t lines_in_file(path &file_path);
+  uint64_t number_of_columns(const path &file_path, char sep='\t');
+  path make_dir(path &output_path);
 
+  /**
+  * Remove all empty file paths from vector
+  *
+  * @param file_paths: vector of paths to files
+  * @param ext: extension to keep. ".tsv"
+  */
+  template<class T>
+  vector<path> filter_emtpy_files(vector<T>& file_paths, string ext){
+    vector<path> all_files;
+    for (auto& a_string: file_paths) {
+      path a_path(a_string);
+  //        filter for files that are regular, end with tsv and are not empty
+      if (is_regular_file(a_path) and a_path.extension().string() == ext and get_file_size(a_path.string()) > 0) {
+        all_files.push_back(a_path);
+      }
+    }
+    return all_files;
+  }
 }
 
 
@@ -123,38 +143,37 @@ class AssertionFailureException : public std::exception
   }
 
   /// The assertion message
-  virtual const char* what() const throw()
+  const char* what() const noexcept override
   {
     return report.c_str();
   }
 
   /// The expression which was asserted to be true
-  const char* Expression() const throw()
+  const char* Expression() const noexcept
   {
     return expression;
   }
 
   /// Source file
-  const char* File() const throw()
+  const char* File() const noexcept
   {
     return file;
   }
 
   /// Source line
-  int Line() const throw()
+  int Line() const noexcept
   {
     return line;
   }
 
   /// Description of failure
-  const char* Message() const throw()
+  const char* Message() const noexcept
   {
     return message.c_str();
   }
 
-  ~AssertionFailureException() throw()
-  {
-  }
+  ~AssertionFailureException() noexcept override
+  = default;
 };
 
 

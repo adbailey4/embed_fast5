@@ -110,17 +110,19 @@ void MarginalizeVariants::write_to_file(path& path_to_bed) {
     for (pair<std::string, pair<map<uint64_t, bed_line>, map<uint64_t, bed_line>>> contig: this->per_genomic_position){
 //      first of pair is plus strand
       for (pair<uint64_t, bed_line> strand: contig.second.first){
-        myfile << contig.first << "\t" << strand.second.start << "\t" << strand.second.stop << "\t" << "+" << "\t" << strand.second.coverage << "\t" << strand.second.bases << "\t";
+        myfile << contig.first << "\t" << strand.second.start << "\t" << strand.second.stop << "\t" << "+" << "\t" << strand.second.coverage << "\t" << strand.second.bases;
         for (uint64_t hit: strand.second.hits) {
-          myfile << hit << "\t" ;
+          myfile << "\t";
+          myfile << hit;
         }
         myfile << "\n";
       }
 //      second of pair is minus strand
       for (pair<uint64_t, bed_line> strand2: contig.second.second){
-        myfile << contig.first << "\t" << strand2.second.start << "\t" << strand2.second.stop << "\t" << "-" << "\t" << strand2.second.coverage << "\t" << strand2.second.bases << "\t";
+        myfile << contig.first << "\t" << strand2.second.start << "\t" << strand2.second.stop << "\t" << "-" << "\t" << strand2.second.coverage << "\t" << strand2.second.bases;
         for (uint64_t hit: strand2.second.hits) {
-          myfile << hit << "\t" ;
+          myfile << "\t";
+          myfile << hit;
         }
         myfile << "\n";
       }

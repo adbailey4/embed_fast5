@@ -37,8 +37,8 @@ void AssignmentFile::assignment_coroutine(event_kmer_coro::push_type& yield){
       vector<string> fields = split_string(line, '\t');
       string kmer = fields[0];
       string strand = fields[1];
-      float mean = convert_to_float(fields[2]);
-      float prob = convert_to_float(fields[3]);
+      float mean = string_to_float(fields[2]);
+      float prob = string_to_float(fields[3]);
       yield(eventkmer(kmer, mean, strand, prob));
     }
   } else  {

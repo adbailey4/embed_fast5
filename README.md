@@ -10,11 +10,12 @@ Embed fast5 signal files with a correctly formatted kmer to event alignment give
 * Eigen (`sudo apt-get install libeigen3-dev`)
 * OpenSSL (`sudo apt-get install libssl-dev`)
 ### Install instructions  
-
-
 * `git clone https://github.com/adbailey4/embed_fast5.git` 
 * `cd embed_fast5`
 * `python setup.py install`
+* `python setup.py test`
+
+### TODO REMOVE this
 * `mkdir cmake-build-debug` This is named this way so tests can find the executables
 * `cd cmake-build-debug`
 * `cmake ../ -DLIBDIR= -DINCLUDEDIR=` If you want to add include dirs or search for libraries in non standard directories you can add these flags to do so

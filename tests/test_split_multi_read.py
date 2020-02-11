@@ -25,11 +25,11 @@ class TestSplitMultiRead(unittest.TestCase):
         super(TestSplitMultiRead, cls).setUpClass()
         cls.HOME = '/'.join(os.path.abspath(__file__).split("/")[:-2])
 
-        cls.test_create_file = os.path.join(cls.HOME, "tests/test_files/test_create_file.fast5")
+        cls.test_create_file = os.path.join(cls.HOME, "tests/test_files/fast5s/test_create_file.fast5")
 
 
-        multi_fast5_with_fastq = os.path.join(cls.HOME, "tests/test_files/multi_read_test.fast5")
-        multi_fast5_without_fastq = os.path.join(cls.HOME, "tests/test_files/multi_read_test_no_fastq.fast5")
+        multi_fast5_with_fastq = os.path.join(cls.HOME, "tests/test_files/fast5s/multi_read_test.fast5")
+        multi_fast5_without_fastq = os.path.join(cls.HOME, "tests/test_files/fast5s/multi_read_test_no_fastq.fast5")
 
         with tempfile.TemporaryDirectory() as tempdir:
             cls.test_file_with_fastq = os.path.join(tempdir, "test_file.fast5")
@@ -44,7 +44,7 @@ class TestSplitMultiRead(unittest.TestCase):
 
     def test_multiprocess_generate_individual_reads(self):
         with tempfile.TemporaryDirectory() as tempdir:
-            fast5_file_dir = os.path.join(self.HOME, "tests/test_files/")
+            fast5_file_dir = os.path.join(self.HOME, "tests/test_files/fast5s")
             total_n_processed, total_error = multiprocess_generate_individual_reads(fast5_file_dir, tempdir,
                                                                                     worker_count=2)
             self.assertEqual(total_n_processed, 10)
@@ -58,7 +58,7 @@ class TestSplitMultiRead(unittest.TestCase):
 
     def test_generate_individual_reads(self):
         with tempfile.TemporaryDirectory() as tempdir:
-            fast5_file_dir = os.path.join(self.HOME, "tests/test_files/")
+            fast5_file_dir = os.path.join(self.HOME, "tests/test_files/fast5s")
             total_n_processed, total_error = generate_individual_reads(fast5_file_dir, tempdir)
             self.assertEqual(total_n_processed, 10)
             self.assertEqual(total_error, 10)

@@ -128,9 +128,14 @@ void AlignmentFile::push_iterate(full_sa_coro::push_type& yield){
       if (fields.size() != 16) {
         continue;
       } else {
-        FullSaEvent sa(fields[0], convert_to_int(fields[1]), fields[2], fields[3], fields[4], convert_to_int(fields[5]), convert_to_float(fields[6]),
-                    convert_to_float(fields[7]), convert_to_float(fields[8]), fields[9], convert_to_float(fields[10]), convert_to_float(fields[11]),
-                    convert_to_float(fields[12]), convert_to_float(fields[13]), convert_to_float(fields[14]), fields[15]);
+        FullSaEvent sa(fields[0],
+                       string_to_int(fields[1]), fields[2], fields[3], fields[4],
+                       string_to_int(fields[5]), string_to_float(fields[6]),
+                       string_to_float(fields[7]), string_to_float(fields[8]), fields[9], string_to_float(fields[10]),
+                       string_to_float(fields[11]),
+                       string_to_float(fields[12]),
+                       string_to_float(fields[13]),
+                       string_to_float(fields[14]), fields[15]);
         yield(sa);
       }
     }

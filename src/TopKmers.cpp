@@ -13,116 +13,41 @@ using namespace std;
 using namespace boost::filesystem;
 using namespace embed_utils;
 
-
 /**
- * Generate the master assignment table by parsing assignment files and outputting the top n kmers to a files
+ * Wrapper over generate_master_kmer_table so we can infer file type by looking at the number of columns.
+ * Generate the master table by parsing event table files and outputting the top n kmers to a files
  *
- * @param assignment_dir: path to assignment files directory
+ * @param event_table_files: vector of strings of files
  * @param output_dir: path to output directory where new builtAssignment.tsv will be written
  * @param heap_size: number of max kmers to keep for each kmer
  * @param alphabet: alphabet used to generate kmers
  * @param n_threads: set number of threads to use: default 2
-
+ * @param verbose: print out files as they are being processed
  */
+string generate_master_kmer_table_wrapper(vector<string> event_table_files, string& output_dir, uint64_t heap_size, string& alphabet, uint64_t n_threads, bool verbose) {
+  uint64_t n_col = number_of_columns(event_table_files[0]);
+  throw_assert(n_col == 16 or n_col == 4,
+               "Incorrect number of columns in tsv: " + event_table_files[0])
+  string output_file;
+  if (n_col == 4) {
+    output_file = generate_master_kmer_table<AssignmentFile, eventkmer>(event_table_files,
+                                                                               output_dir,
+                                                                               heap_size,
+                                                                               alphabet,
+                                                                               n_threads,
+                                                                               verbose);
 
-string generate_master_assignment_table(string assignment_dir, string& output_dir, int heap_size, string& alphabet, unsigned int n_threads){
-  omp_set_num_threads((int) n_threads); // Use 4 threads for all consecutive parallel regions
+  } else if (n_col == 16) {
+    output_file = generate_master_kmer_table<AlignmentFile, FullSaEvent>(event_table_files,
+                                                                                output_dir,
+                                                                                heap_size,
+                                                                                alphabet,
+                                                                                n_threads,
+                                                                                verbose);
 
-  path p(assignment_dir);
-  path output_path = make_dir(output_dir);
-
-  directory_iterator end_itr;
-//    Get all tsvs to process
-  vector<path> all_tsvs;
-  int kmer_length = 0;
-  int counter = 0;
-  for (directory_iterator itr(p); itr != end_itr; ++itr) {
-//        filter for files that are regular, end with tsv and are not empty
-    if (is_regular_file(itr->path()) and itr->path().extension().string() == ".tsv" and getFilesize(itr->path().string()) > 0) {
-      all_tsvs.push_back(itr->path());
-      if (counter == 0){
-        AssignmentFile af = AssignmentFile(itr->path().string());
-        kmer_length = af.get_k();
-        counter += 1;
-      }
-    }
   }
-
-  MaxKmers<eventkmer> mk(heap_size, alphabet, kmer_length);
-
-  int64_t number_of_files = all_tsvs.size();
-  path* array_of_files = &all_tsvs[0];
-
-// looping through the files
-#pragma omp parallel for shared(array_of_files, mk, number_of_files, cout) default(none)
-  for(int64_t i=0; i < number_of_files; i++) {
-
-    path current_file = array_of_files[i];
-    cout << current_file << "\n";
-    AssignmentFile af = AssignmentFile(current_file.string());
-    for (auto &event: af.iterate()){
-      mk.add_to_heap(event);
-    }
-//        if (current_file.filename().string() == "0a4e473d-4713-4c7f-9e18-c465ea6d5b8c.sm.forward.tsv"){
-//        }
-  }
-  path output_file = output_path / "builtAssignment.tsv";
-  path log_file = output_path / "built_log.tsv";
-
-  mk.write_to_file(output_file, log_file);
-  return output_file.string();
+  return output_file;
 }
-
-string generate_master_assignment_table2(string assignment_dir, string& output_dir, int heap_size, string& alphabet, unsigned int n_threads){
-  omp_set_num_threads((int) n_threads); // Use 4 threads for all consecutive parallel regions
-
-  path p(assignment_dir);
-  path output_path = make_dir(output_dir);
-
-  directory_iterator end_itr;
-//    Get all tsvs to process
-  vector<path> all_tsvs;
-  int kmer_length = 0;
-  int counter = 0;
-  for (directory_iterator itr(p); itr != end_itr; ++itr) {
-//        filter for files that are regular, end with tsv and are not empty
-    if (is_regular_file(itr->path()) and itr->path().extension().string() == ".tsv" and getFilesize(itr->path().string()) > 0) {
-      all_tsvs.push_back(itr->path());
-      if (counter == 0){
-        AlignmentFile af(itr->path().string());
-        kmer_length = af.get_k();
-        counter += 1;
-      }
-    }
-  }
-
-  MaxKmers<FullSaEvent> mk(heap_size, alphabet, kmer_length);
-
-  int64_t number_of_files = all_tsvs.size();
-  path* array_of_files = &all_tsvs[0];
-
-// looping through the files
-#pragma omp parallel for shared(array_of_files, mk, number_of_files, cout) default(none)
-  for(int64_t i=0; i < number_of_files; i++) {
-
-    path current_file = array_of_files[i];
-    cout << current_file << "\n";
-    AlignmentFile af(current_file.string());
-    for (auto &event: af.iterate()){
-      mk.add_to_heap(event);
-    }
-//        if (current_file.filename().string() == "0a4e473d-4713-4c7f-9e18-c465ea6d5b8c.sm.forward.tsv"){
-//        }
-  }
-  path output_file = output_path / "builtAssignment.tsv";
-  path log_file = output_path / "built_log.tsv";
-
-  mk.write_to_file(output_file, log_file);
-  return output_file.string();
-}
-
-
-
 
 // Getopt
 //
@@ -141,12 +66,11 @@ static const char *TOP_KMER_USAGE_MESSAGE =
     "  -v, --verbose                        display verbose output\n"
     "      --version                        display version\n"
     "      --help                           display this help and exit\n"
-    "  -d, --assignment_dir=DIR             directory of signalalign assignment files\n"
+    "  -d, --event_directory=DIR            directory of signalalign event table files\n"
     "  -o, --output_dir=DIR                 path to directory to output master assignment table\n"
     "  -t, --threads=NUMBER                 number of threads\n"
     "  -s, --heap_size=NUMBER               size of heap for each kmer\n"
     "  -a, --alphabet=STRING                alphabet for kmers\n"
-
 
     "\nReport bugs to " PACKAGE_BUGREPORT2 "\n\n";
 
@@ -167,7 +91,7 @@ enum { OPT_HELP = 1, OPT_VERSION };
 
 static const struct option longopts[] = {
     { "verbose",          no_argument,       nullptr, 'v' },
-    { "assignment_dir",   required_argument, nullptr, 'd' },
+    { "event_directory",  required_argument, nullptr, 'd' },
     { "output_dir",       required_argument, nullptr, 'o' },
     { "heap_size",        required_argument, nullptr, 's' },
     { "alphabet",         required_argument, nullptr, 'a' },
@@ -245,8 +169,13 @@ auto top_kmers_main(int argc, char** argv) -> int
     exit(1);
   }
 #endif
-
-  generate_master_assignment_table(opt::assignment_dir, opt::output_dir, (int) opt::heap_size, opt::alphabet, opt::threads);
+  vector<string> all_files;
+  path p(opt::assignment_dir);
+  string ext = ".tsv";
+  for (auto& file: list_files_in_dir(p, ext)){
+    all_files.push_back(file.string());
+  }
+  generate_master_kmer_table_wrapper(all_files, opt::output_dir, opt::heap_size, opt::alphabet, opt::threads, opt::verbose);
 
   return EXIT_SUCCESS;
 }

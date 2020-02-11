@@ -12,14 +12,15 @@
 #include "LoadVariantPaths.hpp"
 #include "TopKmers.hpp"
 
-int add1(int i, int j) {
-    return i + j;
-}
-
 using namespace pybind11;
 
 
 PYBIND11_MODULE(bindings, module) {
+  module.doc() = R"pbdoc(
+        Embed Wrappers:
+        - LoadVariantPaths
+        - generate_master_kmer_table
+    )pbdoc";
 
   class_<LoadVariantPaths>(module, "LoadVariantPaths")
       .def(init<const std::string &, const std::string &, bool, uint64_t >(),
@@ -38,30 +39,22 @@ PYBIND11_MODULE(bindings, module) {
            pybind11::arg("output_path"))
            ;
 
-  module.doc() = R"pbdoc(
-        Embed Wrappers:
-        - add
-        - subtract
-        - LoadVariantPaths
-        - generate_master_assignment_table
-    )pbdoc";
-
-  module.def("add", &add1, R"pbdoc(
-        Add two numbers
-    )pbdoc");
-
-  module.def("subtract", [](int i, int j) { return i - j; }, R"pbdoc(
-        Subtract two numbers
-    )pbdoc");
-
-  module.def("generate_master_assignment_table", &generate_master_assignment_table, R"pbdoc(
+  module.def("generate_master_kmer_table", &generate_master_kmer_table_wrapper, R"pbdoc(
   - Generate the master assignment table by parsing assignment files and outputting the top n kmers to a files
  @param assignment_dir: path to assignment files directory
  @param output_dir: path to output directory where new builtAssignment.tsv will be written
  @param heap_size: number of max kmers to keep for each kmer
  @param alphabet: alphabet used to generate kmers
+ @param n_threads: set number of threads to use: default 2
+ @param verbose: print file names: default false
 
-    )pbdoc");
+    )pbdoc",
+    pybind11::arg("event_table_files"),
+    pybind11::arg("output_dir"),
+    pybind11::arg("heap_size"),
+    pybind11::arg("alphabet"),
+    pybind11::arg("n_threads") = 2,
+    pybind11::arg("verbose") = false);
 
 #ifdef VERSION_INFO
   m.attr("__version__") = VERSION_INFO;

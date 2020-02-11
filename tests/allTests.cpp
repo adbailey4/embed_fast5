@@ -42,10 +42,10 @@ using namespace embed_utils;
 using ::testing::ElementsAreArray;
 
 // Keep track of a bunch of paths
-#define ORIGINAL_FAST51 "/tests/test_files/DEAMERNANOPORE_20161117_FNFAB43577_MN16450_mux_scan_MA_821_R9_4_NA12878_11_17_16_95723_ch458_read26_strand.fast5"
-#define EMPTY_FAST51 "/tests/test_files/empty_tester.fast5"
-#define SIGNAL_FAST51 "/tests/test_files/just_signal.fast5"
-#define NO_FAST51 "/tests/test_files/non_existent.fast5"
+#define ORIGINAL_FAST51 "/tests/test_files/fast5s/DEAMERNANOPORE_20161117_FNFAB43577_MN16450_mux_scan_MA_821_R9_4_NA12878_11_17_16_95723_ch458_read26_strand.fast5"
+#define EMPTY_FAST51 "/tests/test_files/fast5s/empty_tester.fast5"
+#define SIGNAL_FAST51 "/tests/test_files/fast5s/just_signal.fast5"
+#define NO_FAST51 "/tests/test_files/fast5s/non_existent.fast5"
 #define NO_EVENT1 "/tests/test_files/new_individual_files/read_002f9702-c19e-48c2-8e72-9021adbd4a48.fast5"
 #define READ_DB1 "/tests/test_files/new_individual_files/new_individual.fastq"
 #define R94_FAST51 "tests/test_files/r94_tests/fast5"
@@ -65,6 +65,8 @@ using ::testing::ElementsAreArray;
 #define RRNA_TEST_FILES1 "tests/test_files/rRNA_test_files"
 #define RRNA_TEST_VARIANTS1 "tests/test_files/rRNA_test_files/rRNA_signal_files/1a424c03-7f13-4565-b991-3f7d9c36bf86.sm.forward.tsv"
 #define DNA_TEST_VARIANTS1 "tests/test_files/alignment_files/c53bec1d-8cd7-43d0-8e40-e5e363fa9fca.sm.backward.tsv"
+#define TOP_KMERS_ASSIGNMENT1 "tests/test_files/test_top_kmers/builtAssignment2.tsv"
+#define TOP_KMERS_ALIGNMENT1 "tests/test_files/test_top_kmers/builtAssignment1.tsv"
 
 path HOME = "This is not a path";
 path ORIGINAL_FAST5 = ORIGINAL_FAST51;
@@ -90,8 +92,8 @@ path RRNA_SIGNAL_FILES = RRNA_SIGNAL_FILES1;
 path RRNA_TEST_FILES = RRNA_TEST_FILES1;
 path RRNA_TEST_VARIANTS = RRNA_TEST_VARIANTS1;
 path DNA_TEST_VARIANTS = DNA_TEST_VARIANTS1;
-
-
+path TOP_KMERS_ASSIGNMENT = TOP_KMERS_ASSIGNMENT1;
+path TOP_KMERS_ALIGNMENT = TOP_KMERS_ALIGNMENT1;
 
 
 TEST (Fast5AccessTest, isValidFile) {
@@ -102,262 +104,261 @@ TEST (Fast5AccessTest, isValidFile) {
 
 TEST (Fast5AccessTest, hasRequiredFields) {
 //    Original Fast5 outputs
-    fast5::File f;
-    f.open(ORIGINAL_FAST5.string());
-    EXPECT_TRUE(f.have_channel_id_params());
-    EXPECT_TRUE(f.have_sampling_rate());
-    EXPECT_TRUE(f.have_tracking_id_params());
-    EXPECT_TRUE(f.have_context_tags_params());
-    EXPECT_TRUE(f.have_eventdetection_events());
+  fast5::File f;
+  f.open(ORIGINAL_FAST5.string());
+  EXPECT_TRUE(f.have_channel_id_params());
+  EXPECT_TRUE(f.have_sampling_rate());
+  EXPECT_TRUE(f.have_tracking_id_params());
+  EXPECT_TRUE(f.have_context_tags_params());
+  EXPECT_TRUE(f.have_eventdetection_events());
 //    just raw and UniqueGlobalKey
-    fast5::File f2;
-    f2.open(SIGNAL_FAST5.string());
-    EXPECT_TRUE(f2.have_channel_id_params());
-    EXPECT_TRUE(f2.have_sampling_rate());
-    EXPECT_TRUE(f2.have_tracking_id_params());
-    EXPECT_TRUE(f2.have_context_tags_params());
-    EXPECT_FALSE(f2.have_eventdetection_events());
+  fast5::File f2;
+  f2.open(SIGNAL_FAST5.string());
+  EXPECT_TRUE(f2.have_channel_id_params());
+  EXPECT_TRUE(f2.have_sampling_rate());
+  EXPECT_TRUE(f2.have_tracking_id_params());
+  EXPECT_TRUE(f2.have_context_tags_params());
+  EXPECT_FALSE(f2.have_eventdetection_events());
 
 //    Empty fast5 file
-    fast5::File f3;
-    f3.open(EMPTY_FAST5.string());
-    EXPECT_FALSE(f3.have_channel_id_params());
-    EXPECT_FALSE(f3.have_sampling_rate());
-    EXPECT_FALSE(f3.have_tracking_id_params());
-    EXPECT_FALSE(f3.have_context_tags_params());
-    EXPECT_FALSE(f3.have_eventdetection_events());
+  fast5::File f3;
+  f3.open(EMPTY_FAST5.string());
+  EXPECT_FALSE(f3.have_channel_id_params());
+  EXPECT_FALSE(f3.have_sampling_rate());
+  EXPECT_FALSE(f3.have_tracking_id_params());
+  EXPECT_FALSE(f3.have_context_tags_params());
+  EXPECT_FALSE(f3.have_eventdetection_events());
 
 }
 
 TEST (Fast5AccessTest, test_copyFile){
-    EXPECT_TRUE(is_regular_file(EMPTY_FAST5));
-    EXPECT_TRUE(fast5::File::is_valid_file(EMPTY_FAST5.string()));
-    if (exists(NO_FAST5)){
-        remove(NO_FAST5);
-    }
+  EXPECT_TRUE(is_regular_file(EMPTY_FAST5));
+  EXPECT_TRUE(fast5::File::is_valid_file(EMPTY_FAST5.string()));
+  if (exists(NO_FAST5)){
+      remove(NO_FAST5);
+  }
 
-    copy_file(EMPTY_FAST5, NO_FAST5);
-    EXPECT_TRUE(is_regular_file(NO_FAST5));
-    EXPECT_TRUE(fast5::File::is_valid_file(NO_FAST5.string()));
+  copy_file(EMPTY_FAST5, NO_FAST5);
+  EXPECT_TRUE(is_regular_file(NO_FAST5));
+  EXPECT_TRUE(fast5::File::is_valid_file(NO_FAST5.string()));
 
-    remove(NO_FAST5);
-    EXPECT_FALSE(exists(NO_FAST5));
+  remove(NO_FAST5);
+  EXPECT_FALSE(exists(NO_FAST5));
 
 }
 
 TEST (Fast5AccessTest, test_addChannelParams) {
 //    crete test file
-    if (exists(NO_FAST5)){
-        remove(NO_FAST5);
-    }
+  if (exists(NO_FAST5)){
+      remove(NO_FAST5);
+  }
 
-    copy_file(EMPTY_FAST5, NO_FAST5);
+  copy_file(EMPTY_FAST5, NO_FAST5);
 
-    fast5::File emtpy_f;
-    emtpy_f.open(NO_FAST5.string(), true);
+  fast5::File emtpy_f;
+  emtpy_f.open(NO_FAST5.string(), true);
 
-    fast5::File original_f;
-    original_f.open(ORIGINAL_FAST5.string());
+  fast5::File original_f;
+  original_f.open(ORIGINAL_FAST5.string());
 
-    auto channel_id_params = original_f.get_channel_id_params();
-    emtpy_f.add_channel_id_params(channel_id_params);
+  auto channel_id_params = original_f.get_channel_id_params();
+  emtpy_f.add_channel_id_params(channel_id_params);
 
-    EXPECT_TRUE(emtpy_f.have_channel_id_params());
-    EXPECT_TRUE(emtpy_f.have_sampling_rate());
+  EXPECT_TRUE(emtpy_f.have_channel_id_params());
+  EXPECT_TRUE(emtpy_f.have_sampling_rate());
 //    remove test file
-    remove(NO_FAST5);
+  remove(NO_FAST5);
 }
 
 TEST (Fast5WriteTests, test_addBasecalledGroup) {
 //    crete test file
-    if (exists(NO_FAST5)){
-        remove(NO_FAST5);
-    }
+  if (exists(NO_FAST5)){
+      remove(NO_FAST5);
+  }
 
-    copy_file(EMPTY_FAST5, NO_FAST5);
+  copy_file(EMPTY_FAST5, NO_FAST5);
 
-    fast5::File emtpy_f;
-    emtpy_f.open(NO_FAST5.string(), true);
+  fast5::File emtpy_f;
+  emtpy_f.open(NO_FAST5.string(), true);
 
-    fast5::File original_f;
-    original_f.open(ORIGINAL_FAST5.string());
+  fast5::File original_f;
+  original_f.open(ORIGINAL_FAST5.string());
 
-    bool have_basecall_group = original_f.have_basecall_group();
-    EXPECT_TRUE(have_basecall_group);
+  bool have_basecall_group = original_f.have_basecall_group();
+  EXPECT_TRUE(have_basecall_group);
 
-    auto basecall_groups = original_f.get_basecall_group_list();
-    auto basecall_events = original_f.get_basecall_events(0);
-    unsigned basecall_group_number = 0;
+  auto basecall_groups = original_f.get_basecall_group_list();
+  auto basecall_events = original_f.get_basecall_events(0);
+  unsigned basecall_group_number = 0;
 
-    emtpy_f.add_basecall_events(basecall_group_number, basecall_groups[0], basecall_events);
+  emtpy_f.add_basecall_events(basecall_group_number, basecall_groups[0], basecall_events);
 
-    auto fastq = original_f.get_basecall_fastq(0);
-    emtpy_f.add_basecall_fastq(basecall_group_number, basecall_groups[0], fastq);
+  auto fastq = original_f.get_basecall_fastq(0);
+  emtpy_f.add_basecall_fastq(basecall_group_number, basecall_groups[0], fastq);
 
-    EXPECT_TRUE(emtpy_f.have_basecall_group());
-    EXPECT_EQ(original_f.get_basecall_group_list()[0], basecall_groups[0]);
+  EXPECT_TRUE(emtpy_f.have_basecall_group());
+  EXPECT_EQ(original_f.get_basecall_group_list()[0], basecall_groups[0]);
 //    remove test file
-    emtpy_f.close();
-    original_f.close();
-    remove(NO_FAST5);
+  emtpy_f.close();
+  original_f.close();
+  remove(NO_FAST5);
 }
 
 TEST (Fast5WriteTests, test_event_table_to_basecalled_table) {
 //    crete test file
-    if (exists(NO_FAST5)){
-        remove(NO_FAST5);
-    }
-    copy_file(EMPTY_FAST5, NO_FAST5);
+  if (exists(NO_FAST5)){
+      remove(NO_FAST5);
+  }
+  copy_file(EMPTY_FAST5, NO_FAST5);
 
-    fast5::File emtpy_f;
-    emtpy_f.open(NO_FAST5.string(), true);
+  fast5::File emtpy_f;
+  emtpy_f.open(NO_FAST5.string(), true);
 
-    fast5::File original_f;
-    original_f.open(ORIGINAL_FAST5.string());
+  fast5::File original_f;
+  original_f.open(ORIGINAL_FAST5.string());
 
-    auto basecall_groups = original_f.get_basecall_group_list();
-    unsigned basecall_group_number = 0;
+  auto basecall_groups = original_f.get_basecall_group_list();
+  unsigned basecall_group_number = 0;
 
-    const string& read_db_path(READ_DB.string());
+  const string& read_db_path(READ_DB.string());
 //    const string& test_read(NO_EVENT.string());
-    string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
+  string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
 
 
-    ReadDB read_db;
-    read_db.load(read_db_path);
-    cd(READ_DB_DIR.string().c_str());
+  ReadDB read_db;
+  read_db.load(read_db_path);
+  cd(READ_DB_DIR.string().c_str());
 
-    SquiggleRead sr(read_id, read_db);
-    auto basecall_table = event_table_to_basecalled_table(sr.events[0], 10);
+  SquiggleRead sr(read_id, read_db);
+  auto basecall_table = event_table_to_basecalled_table(sr.events[0], 10);
 
-    emtpy_f.add_basecall_events(basecall_group_number, basecall_groups[0], basecall_table);
+  emtpy_f.add_basecall_events(basecall_group_number, basecall_groups[0], basecall_table);
 
-    EXPECT_TRUE(emtpy_f.have_basecall_group());
-    EXPECT_EQ(original_f.get_basecall_group_list()[0], basecall_groups[0]);
+  EXPECT_TRUE(emtpy_f.have_basecall_group());
+  EXPECT_EQ(original_f.get_basecall_group_list()[0], basecall_groups[0]);
 //    remove test file
-    emtpy_f.close();
-    original_f.close();
+  emtpy_f.close();
+  original_f.close();
 //    remove(NO_FAST5);
 }
 
 TEST (Fast5WriteTests, test_generate_basecall_table) {
 //    crete test file
-    if (exists(NO_FAST5)){
-        remove(NO_FAST5);
-    }
+  if (exists(NO_FAST5)){
+      remove(NO_FAST5);
+  }
 
-    copy_file(EMPTY_FAST5, NO_FAST5);
+  copy_file(EMPTY_FAST5, NO_FAST5);
 
-    fast5::File emtpy_f;
-    emtpy_f.open(NO_FAST5.string(), true);
+  fast5::File emtpy_f;
+  emtpy_f.open(NO_FAST5.string(), true);
 
-    fast5::File original_f;
-    original_f.open(ORIGINAL_FAST5.string());
+  fast5::File original_f;
+  original_f.open(ORIGINAL_FAST5.string());
 
-    auto basecall_groups = original_f.get_basecall_group_list();
-    unsigned basecall_group_number = 0;
+  auto basecall_groups = original_f.get_basecall_group_list();
+  unsigned basecall_group_number = 0;
 
-    string read_db_path((const std::string) READ_DB.string());
-    string test_read((const std::string) NO_EVENT.string());
-    string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
+  string read_db_path((const std::string) READ_DB.string());
+  string test_read((const std::string) NO_EVENT.string());
+  string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
 
-    cd(READ_DB_DIR.string().c_str());
+  cd(READ_DB_DIR.string().c_str());
 
-    ReadDB read_db;
-    read_db.load(read_db_path);
+  ReadDB read_db;
+  read_db.load(read_db_path);
 
-    SquiggleRead sr(read_id, read_db);
-    auto basecall_table = generate_basecall_table(sr);
+  SquiggleRead sr(read_id, read_db);
+  auto basecall_table = generate_basecall_table(sr);
 
-    emtpy_f.add_basecall_events(basecall_group_number, basecall_groups[0], basecall_table);
+  emtpy_f.add_basecall_events(basecall_group_number, basecall_groups[0], basecall_table);
 
-    EXPECT_TRUE(emtpy_f.have_basecall_group());
-    EXPECT_EQ(original_f.get_basecall_group_list()[0], basecall_groups[0]);
+  EXPECT_TRUE(emtpy_f.have_basecall_group());
+  EXPECT_EQ(original_f.get_basecall_group_list()[0], basecall_groups[0]);
 
-    remove(NO_FAST5);
+  remove(NO_FAST5);
 }
 
 TEST (Fast5EmbedTests, test_embed_using_readdb) {
 //    crete test file
-    if (exists(NO_FAST5)){
-        remove(NO_FAST5);
-    }
 
-    copy_file(NO_EVENT, NO_FAST5);
+  if (exists(NO_FAST5)){
+      remove(NO_FAST5);
+  }
 
-    const string& read_db_path(READ_DB.string());
-    string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
+  copy_file(NO_EVENT, NO_FAST5);
 
-    ReadDB read_db;
-    read_db.load(read_db_path);
+  const string& read_db_path(READ_DB.string());
+  string read_id("002f9702-c19e-48c2-8e72-9021adbd4a48");
 
-    embed_single_read(read_db, read_id, NO_FAST5.string());
+  ReadDB read_db;
+  read_db.load(read_db_path);
 
-    remove(NO_FAST5);
+  embed_single_read(read_db, read_id, NO_FAST5.string());
+
+  remove(NO_FAST5);
 }
 
 TEST (Fast5EmbedTests, test_r94_embed) {
 //    crete test file
-
-    path tempdir = temp_directory_path() / "temp";
-    path fast5_dir = tempdir / "fast5";
+  path tempdir = temp_directory_path() / "temp";
+  path fast5_dir = tempdir / "fast5";
 
 //    cout << tempdir << "\n";
-    path read_db_path = tempdir / R94_FASTQ.filename();
-    if (exists(tempdir)){
-        remove_all(tempdir);
-    }
-    copyDir(R94_TEST_DIR, tempdir);
-    ReadDB read_db;
-    read_db.load(read_db_path.string());
-    cd(fast5_dir.string().c_str());
+  path read_db_path = tempdir / R94_FASTQ.filename();
+  if (exists(tempdir)){
+      remove_all(tempdir);
+  }
+  copyDir(R94_TEST_DIR, tempdir);
+  ReadDB read_db;
+  read_db.load(read_db_path.string());
+  cd(fast5_dir.string().c_str());
 
-    embed_using_readdb(read_db_path.string(), read_db);
+  embed_using_readdb(read_db_path.string(), read_db);
 
-    path some_file = "DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch108_read1153_strand.fast5";
-    fast5::File original_f;
-    original_f.open((fast5_dir / some_file).string());
-    EXPECT_EQ(original_f.get_basecall_group_list()[0], "1D_000");
+  path some_file = "DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch108_read1153_strand.fast5";
+  fast5::File original_f;
+  original_f.open((fast5_dir / some_file).string());
+  EXPECT_EQ(original_f.get_basecall_group_list()[0], "1D_000");
 
-    remove_all(tempdir);
+  remove_all(tempdir);
 
 }
 
 TEST (Fast5EmbedTests, test_multiprocess_embed_using_readdb){
-
-    path tempdir = temp_directory_path() / "temp";
-    path fast5_dir = tempdir / "fast5";
+  path tempdir = temp_directory_path() / "temp";
+  path fast5_dir = tempdir / "fast5";
 
 //    cout << tempdir << "\n";
-    path read_db_path = tempdir / R94_FASTQ.filename();
-    if (exists(tempdir)){
-        remove_all(tempdir);
-    }
-    copyDir(R94_TEST_DIR, tempdir);
-    ReadDB read_db;
-    read_db.load(read_db_path.string());
-    cd(fast5_dir.string().c_str());
+  path read_db_path = tempdir / R94_FASTQ.filename();
+  if (exists(tempdir)){
+      remove_all(tempdir);
+  }
+  copyDir(R94_TEST_DIR, tempdir);
+  ReadDB read_db;
+  read_db.load(read_db_path.string());
+  cd(fast5_dir.string().c_str());
 
-    int num_threads = 5;
-    omp_set_num_threads(num_threads);
+  int num_threads = 5;
+  omp_set_num_threads(num_threads);
 
-    #ifndef H5_HAVE_THREADSAFE
-        if(num_threads > 1) {
-            fprintf(stderr, "You enabled multi-threading but you do not have a threadsafe HDF5\n");
-            fprintf(stderr, "Please recompile libhdf5 or run with -t 1\n");
-            exit(1);
-        }
-    #endif
+  #ifndef H5_HAVE_THREADSAFE
+      if(num_threads > 1) {
+          fprintf(stderr, "You enabled multi-threading but you do not have a threadsafe HDF5\n");
+          fprintf(stderr, "Please recompile libhdf5 or run with -t 1\n");
+          exit(1);
+      }
+  #endif
 
 
-    multiprocess_embed_using_readdb(read_db_path.string(), read_db);
+  multiprocess_embed_using_readdb(read_db_path.string(), read_db);
 
-    path some_file = "DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch108_read1153_strand.fast5";
-    fast5::File original_f;
-    original_f.open((fast5_dir / some_file).string());
-    EXPECT_EQ(original_f.get_basecall_group_list()[0], "1D_000");
+  path some_file = "DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_89607_ch108_read1153_strand.fast5";
+  fast5::File original_f;
+  original_f.open((fast5_dir / some_file).string());
+  EXPECT_EQ(original_f.get_basecall_group_list()[0], "1D_000");
 
-    remove_all(tempdir);
+  remove_all(tempdir);
 
 }
 
@@ -535,24 +536,28 @@ TEST (AlignmentFileTests, test_write_to_file) {
   path bed_file = TEST_FILES / "bed_files/test.bed";
   path bed_file2 = temp_directory_path() / "test2.bed";
   mf.write_to_file(bed_file2);
-  EXPECT_TRUE(compareFiles(bed_file.string(), bed_file2.string()));
+  EXPECT_TRUE(compare_files(bed_file, bed_file2));
 }
 
 
 
 TEST (filter_alignments, test_filter_alignment_files) {
+
   path input_dir = temp_directory_path() / "input" ;
   path output_dir = temp_directory_path() / "output" ;
   copyDir(ALIGNMENT_DIR, input_dir);
   string empty;
-//    omp_set_num_threads(2); // Use 2 threads
-  filter_alignment_files(input_dir.string(), POSITIONS_FILE.string(), output_dir.string(), empty);
+  string in_dir(input_dir.string());
+  const string& pos_file(POSITIONS_FILE.string());
+  string out_dir(output_dir.string());
+  //    omp_set_num_threads(2); // Use 2 threads
+  filter_alignment_files(in_dir, pos_file, out_dir, empty);
 
   directory_iterator end_itr;
 //    Get all tsvs to process
   for (directory_iterator itr(output_dir); itr != end_itr; ++itr) {
 
-      EXPECT_TRUE(compareFiles(itr->path().string(), (CORRECT_OUTPUT / itr->path().filename()).string()));
+      EXPECT_TRUE(compare_files(itr->path(), CORRECT_OUTPUT / itr->path().filename()));
 
   }
   remove_all(input_dir);
@@ -579,7 +584,9 @@ TEST (AssignmentFileTests, test_get_k) {
   EXPECT_EQ(6, answer);
 }
 
-
+TEST (MaxKmersTests, test_max_kmer_initialization) {
+  ASSERT_THROW(MaxKmers<eventkmer> mk(10, "ATGC", 0), std::exception);
+}
 
 TEST (MaxKmersTests, test_create_kmers) {
   MaxKmers<eventkmer> mk(10, "ATGC", 5);
@@ -602,9 +609,11 @@ TEST (MaxKmersTests, test_get_kmer_index) {
 
 TEST (MaxKmersTests, test_get_index_kmer) {
   MaxKmers<eventkmer> mk(10, "ATGC", 5);
-  string poly_a = mk.get_index_kmer(0);
+  size_t index = 0;
+  string poly_a = mk.get_index_kmer(index);
   EXPECT_EQ(poly_a, "AAAAA");
-  string poly_t = mk.get_index_kmer(1023);
+  index = 1023;
+  string poly_t = mk.get_index_kmer(index);
   EXPECT_EQ(poly_t, "TTTTT");
 }
 
@@ -678,7 +687,8 @@ TEST (util_functions, test_sort_string){
 TEST (util_functions , test_all_lexicographic_recur){
   string alphabet = "AC";
   int length = 2;
-  vector<string> kmers = all_lexicographic_recur(alphabet, "  ", length-1, 0);
+  string data = "  ";
+  vector<string> kmers = all_lexicographic_recur(alphabet, data, length-1, 0);
   EXPECT_EQ(kmers.size(), 4);
 
 }
@@ -698,12 +708,16 @@ TEST (util_functions, test_split){
 
 TEST (util_functions, test_all_string_permutations){
   vector<string> correct_kmers = {"CC", "CS", "SC", "SS"};
-  vector<string> kmers = all_string_permutations("CS", 2);
+  string cs = "CS";
+  int length = 2;
+  vector<string> kmers = all_string_permutations(cs, length);
 
   for(int i=0; i < 4; ++i){
     EXPECT_EQ(kmers[i], correct_kmers[i]);
   }
-  kmers = all_string_permutations("CC", 2);
+  string cc = "CC";
+
+  kmers = all_string_permutations(cc, length);
   correct_kmers = {"CC"};
   for(int i=0; i < 1; ++i){
     EXPECT_EQ(kmers[i], correct_kmers[i]);
@@ -712,7 +726,8 @@ TEST (util_functions, test_all_string_permutations){
 }
 
 TEST (util_functions, test_remove_duplicate_characters){
-  string output = remove_duplicate_characters("ATGCCCCCC");
+  string test("ATGCCCCCC");
+  string output = remove_duplicate_characters(test);
   EXPECT_EQ(output, "ATGC");
 }
 
@@ -734,19 +749,19 @@ TEST (util_functions, test_is_character_in_string){
 
 TEST (util_functions, test_convert_to_float) {
   string number = "121.212";
-  float something = convert_to_float(number);
+  float something = string_to_float(number);
   EXPECT_FLOAT_EQ(121.212, something);
   number = "-121.212";
-  something = convert_to_float(number);
+  something = string_to_float(number);
   EXPECT_FLOAT_EQ(-121.212, something);
 }
 
 TEST (util_functions, test_convert_to_int) {
   string number = "121";
-  int64_t something = convert_to_int(number);
+  int64_t something = string_to_int(number);
   EXPECT_FLOAT_EQ(121, something);
   number = "-121";
-  something = convert_to_int(number);
+  something = string_to_int(number);
   EXPECT_FLOAT_EQ(-121, something);
 }
 
@@ -873,14 +888,116 @@ TEST (LoadVariantPathsTests, test_load_variants){
   path output_per_read = tempdir/"per_read_calls.tsv";
   path correct_per_read = RRNA_TEST_FILES/"test_output_dir/per_read_calls.tsv";
   lvp.write_per_read_calls(output_per_read.string());
-  EXPECT_TRUE(compareFiles(correct_per_read.string(), output_per_read.string()));
+  EXPECT_TRUE(compare_files(correct_per_read, output_per_read));
 
   path output_per_path = tempdir/"per_path_counts.tsv";
   lvp.write_per_path_counts(output_per_path.string());
   path correct_per_path = RRNA_TEST_FILES/"test_output_dir/per_path_counts.tsv";
-  EXPECT_TRUE(compareFiles(correct_per_path.string(), output_per_path.string()));
+  EXPECT_TRUE(compare_files(correct_per_path, output_per_path));
 }
 
+
+TEST (TopKmersTests, test_generate_master_kmer_table_assignments){
+  path tempdir = temp_directory_path() / "temp";
+  create_directory(tempdir);
+  string outpath = tempdir.string();
+  string alphabet = "ACTGlmnop";
+  path assignment_file = TEST_FILES / "assignment_files/d6160b0b-a35e-43b5-947f-adaa1abade28.sm.assignments.tsv";
+  vector<string> data = {assignment_file.string()};
+  string output_file = generate_master_kmer_table<AssignmentFile, eventkmer>(data, outpath, 1000, alphabet, 2, false);
+  path expected_output_file =  outpath / "builtAssignment.tsv";
+  EXPECT_EQ(output_file, expected_output_file.string());
+  EXPECT_EQ(lines_in_file(TOP_KMERS_ASSIGNMENT), lines_in_file(expected_output_file));
+}
+
+TEST (TopKmersTests, test_generate_master_kmer_table_alignments){
+  testing::FLAGS_gtest_death_test_style="threadsafe";
+  path tempdir = temp_directory_path() / "temp";
+  create_directory(tempdir);
+  string outpath = tempdir.string();
+  string alphabet = "ACTGP";
+  path alignment_file = TEST_FILES / "alignment_files/c53bec1d-8cd7-43d0-8e40-e5e363fa9fca.sm.backward.tsv";
+  vector<string> data = {alignment_file.string()};
+  ASSERT_THROW({ (generate_master_kmer_table<AlignmentFile, FullSaEvent>)(data, outpath, 1000, alphabet, 2, false); } , AssertionFailureException);
+  alphabet = "ACTGE";
+  string output_file = generate_master_kmer_table<AlignmentFile, FullSaEvent>(data, outpath, 1000, alphabet, 2, false);
+  path expected_output_file =  outpath / "builtAssignment.tsv";
+  EXPECT_EQ(output_file, expected_output_file.string());
+  EXPECT_EQ(lines_in_file(TOP_KMERS_ALIGNMENT), lines_in_file(expected_output_file));
+}
+
+TEST (TopKmersTests, test_generate_master_kmer_table_wrapper){
+  testing::FLAGS_gtest_death_test_style="threadsafe";
+  path tempdir = temp_directory_path() / "temp";
+  create_directory(tempdir);
+  string outpath = tempdir.string();
+  string alphabet = "ACTGlmnop";
+  path assignment_file = TEST_FILES / "assignment_files/d6160b0b-a35e-43b5-947f-adaa1abade28.sm.assignments.tsv";
+  vector<string> data = {assignment_file.string()};
+  string output_file = generate_master_kmer_table_wrapper(data, outpath, 1000, alphabet, 2, false);
+  path expected_output_file =  outpath / "builtAssignment.tsv";
+  EXPECT_EQ(output_file, expected_output_file.string());
+  EXPECT_EQ(lines_in_file(TOP_KMERS_ASSIGNMENT), lines_in_file(expected_output_file));
+
+  alphabet = "ACTGP";
+  path alignment_file = TEST_FILES / "alignment_files/c53bec1d-8cd7-43d0-8e40-e5e363fa9fca.sm.backward.tsv";
+  data = {alignment_file.string()};
+  ASSERT_THROW({ generate_master_kmer_table_wrapper(data, outpath, 1000, alphabet, 2, false); } ,AssertionFailureException);
+  alphabet = "ACTGE";
+  output_file = generate_master_kmer_table_wrapper(data, outpath, 1000, alphabet, 2, false);
+  expected_output_file =  outpath / "builtAssignment.tsv";
+  EXPECT_EQ(output_file, expected_output_file.string());
+  EXPECT_EQ(lines_in_file(TOP_KMERS_ALIGNMENT), lines_in_file(expected_output_file));
+}
+
+
+TEST (EmbedUtilsTests, test_lines_in_file){
+  path bed_file = TEST_FILES / "bed_files/test.bed";
+  EXPECT_EQ(lines_in_file(bed_file), 2);
+}
+
+TEST (EmbedUtilsTests, test_filter_emtpy_files){
+  path bed_file = TEST_FILES / "bed_files/test.bed";
+  path empty_bed = TEST_FILES / "bed_files/empty_test.bed";
+  path non_empty_csv = TEST_FILES / "bed_files/other_test.csv";
+
+  vector<string> bed_paths1 = {bed_file.string()};
+  vector<string> bed_paths2 = {bed_file.string(), non_empty_csv.string()};
+  vector<string> bed_paths3 = {bed_file.string(), empty_bed.string()};
+  vector<path> filtered_bed_paths1 = filter_emtpy_files(bed_paths1, ".bed");
+  vector<path> filtered_bed_paths2 = filter_emtpy_files(bed_paths2, ".bed");
+  vector<path> filtered_bed_paths3 = filter_emtpy_files(bed_paths3, ".bed");
+
+  EXPECT_EQ(filtered_bed_paths1.size(), 1);
+  EXPECT_EQ(filtered_bed_paths2.size(), 1);
+  EXPECT_EQ(filtered_bed_paths3.size(), 1);
+}
+
+TEST (EmbedUtilsTests, test_number_of_columns){
+  path bed_file = TEST_FILES / "bed_files/test.bed";
+  path empty_bed = TEST_FILES / "bed_files/empty_test.bed";
+  path non_empty_csv = TEST_FILES / "bed_files/other_test.csv";
+  string test_bed_string = bed_file.string();
+
+  uint64_t n_col1 = number_of_columns(bed_file.string(), '\t');
+  uint64_t n_col3 = number_of_columns(non_empty_csv.string(), ',');
+  uint64_t n_col4 = number_of_columns(bed_file.string(), ',');
+  uint64_t n_col5 = number_of_columns(test_bed_string, '\t');
+
+  ASSERT_THROW(number_of_columns(empty_bed.string(), '\t'), AssertionFailureException);
+  EXPECT_EQ(n_col1, 10);
+  EXPECT_EQ(n_col3, 2);
+  EXPECT_EQ(n_col4, 0);
+  EXPECT_EQ(n_col5, 10);
+
+}
+
+TEST (EmbedUtilsTests, test_compare_files){
+  path bed_file = TEST_FILES / "bed_files/test.bed";
+  path fake_file = TEST_FILES / "bed_files/asdf";
+  ASSERT_THROW(compare_files(fake_file, bed_file), AssertionFailureException);
+  EXPECT_TRUE(compare_files(bed_file, bed_file));
+}
 
 int main(int argc, char **argv) {
   H5Eset_auto(0, nullptr, nullptr);
@@ -909,8 +1026,12 @@ int main(int argc, char **argv) {
   RRNA_TEST_FILES = HOME / RRNA_TEST_FILES;
   RRNA_TEST_VARIANTS = HOME / RRNA_TEST_VARIANTS;
   DNA_TEST_VARIANTS = HOME / DNA_TEST_VARIANTS;
+  TOP_KMERS_ASSIGNMENT = HOME / TOP_KMERS_ASSIGNMENT;
+  TOP_KMERS_ALIGNMENT = HOME / TOP_KMERS_ALIGNMENT;
   ::testing::InitGoogleMock(&argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
 
+
+#pragma clang diagnostic pop

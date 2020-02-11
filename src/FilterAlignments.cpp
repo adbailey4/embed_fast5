@@ -13,44 +13,46 @@ using namespace std;
 using namespace boost::filesystem;
 using namespace embed_utils;
 
-void filter_alignment_files(string input_reads_dir, const string& positions_file, string output_dir, string& bases){
+void filter_alignment_files(string &input_reads_dir, const string& positions_file, string &output_dir, string& bases){
 
-    path p(input_reads_dir);
-    path output_path = make_dir(output_dir);
+  path p(input_reads_dir);
+  path output_path(output_dir);
+  output_path = make_dir(output_path);
 
-    directory_iterator end_itr;
+  directory_iterator end_itr;
 //    Get all tsvs to process
-    vector<path> all_tsvs;
-    int64_t k;
-    int counter = 0;
-    for (directory_iterator itr(p); itr != end_itr; ++itr) {
+  vector<path> all_tsvs;
+  int64_t k;
+  int counter = 0;
+  for (directory_iterator itr(p); itr != end_itr; ++itr) {
 //        filter for files that are regular, end with tsv and are not empty
-        if (is_regular_file(itr->path()) and itr->path().extension().string() == ".tsv" and getFilesize(itr->path().string()) > 0) {
-            all_tsvs.push_back(itr->path());
-            if (counter == 0){
-                AlignmentFile af(itr->path().string());
-                k = af.k;
-                counter += 1;
-            }
-        }
+    if (is_regular_file(itr->path()) and itr->path().extension().string() == ".tsv" and
+        get_file_size(itr->path().string()) > 0) {
+      all_tsvs.push_back(itr->path());
+      if (counter == 0){
+        AlignmentFile af(itr->path().string());
+        k = af.k;
+        counter += 1;
+      }
     }
+  }
 
-    PositionsFile pf = PositionsFile(positions_file, k);
+  PositionsFile pf = PositionsFile(positions_file, k);
 
-    int64_t number_of_files = all_tsvs.size();
-    path* array_of_files = &all_tsvs[0];
+  int64_t number_of_files = all_tsvs.size();
+  path* array_of_files = &all_tsvs[0];
 // looping through the files
-    #pragma omp parallel for shared(array_of_files, pf, number_of_files)
-    for(int64_t i=0; i < number_of_files; i++) {
+  #pragma omp parallel for shared(array_of_files, pf, number_of_files)
+  for(int64_t i=0; i < number_of_files; i++) {
 
-        path current_file = array_of_files[i];
-        cout << current_file << "\n";
-        AlignmentFile af(current_file.string());
-        path output_file = output_path / current_file.filename();
+    path current_file = array_of_files[i];
+    cout << current_file << "\n";
+    AlignmentFile af(current_file.string());
+    path output_file = output_path / current_file.filename();
 //        if (current_file.filename().string() == "0a4e473d-4713-4c7f-9e18-c465ea6d5b8c.sm.forward.tsv"){
-        af.filter_by_positions(&pf, output_file, bases);
+    af.filter_by_positions(&pf, output_file, bases);
 //        }
-    }
+  }
 
 }
 

@@ -11,7 +11,7 @@
 #include "EmbedUtils.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/heap/priority_queue.hpp>
-#include "omp.h"
+#include <mutex>
 
 using namespace std;
 using namespace boost::filesystem;
@@ -29,16 +29,13 @@ class MaxKmers{
       alphabet(sort_string(alphabet)), alphabet_size(alphabet.length()),
       kmer_length(kmer_length), n_kmers(pow(this->alphabet_size, this->kmer_length)), max_heap(heap_size)
   {
+    throw_assert(this->kmer_length > 0, "Kmer length must be greater than 0.")
     this->initialize_heap();
     this->initialize_locks();
   }
+  ~MaxKmers() = default;
+//    this->destroy_locks();
 
-  /**
-  Destroy locks at destruction of class
-  */
-  ~MaxKmers() {
-    this->destroy_locks();
-  }
 
   string alphabet;
   int alphabet_size;
@@ -46,7 +43,7 @@ class MaxKmers{
   int n_kmers;
   size_t max_heap;
   std::vector<boost::heap::priority_queue<T>> kmer_queues;
-  std::vector<omp_lock_t> locks;
+  std::vector<mutex> locks;
 
   /**
   Create all kmers given an alphabet and kmer length
@@ -70,14 +67,14 @@ class MaxKmers{
   @return index
   */
   size_t get_kmer_index(string& kmer){
-    assert(this->alphabet_size > 0);
     int64_t id = 0;
     int64_t step = 1;
-    int64_t kmer_len = kmer.length();
+    throw_assert(kmer.length() == this->kmer_length, "Kmer length is different than expected: " << kmer.length() << " != " << this->kmer_length)
     int64_t index;
 
-    for (int64_t i = kmer_len - 1; i >= 0; i--) {
+    for (int64_t i = this->kmer_length - 1; i >= 0; i--) {
       index = this->alphabet.find(kmer[i]);
+      throw_assert( index != string::npos, "Kmer (" + kmer + ") has character not in (" + this->alphabet + ") alphabet")
       id += step * index;
       step *= this->alphabet_size;
     }
@@ -92,7 +89,7 @@ class MaxKmers{
   @param index: kmer index
   @return kmer
   */
-  string get_index_kmer(size_t kmer_index) {
+  string get_index_kmer(size_t &kmer_index) {
     string kmer;
     size_t id_remainder = kmer_index;
 
@@ -118,21 +115,17 @@ class MaxKmers{
   Initialize vector of locks
   */
   void initialize_locks() {
-    for (int i=0; i<this->n_kmers; i++){
-      omp_lock_t new_lock;
-      omp_init_lock(&(new_lock));
-      locks.push_back(new_lock);
-    }
+    locks = std::vector<std::mutex>(this->n_kmers);;
   }
 
-  /**
-Destroy vector of locks
-*/
-  void destroy_locks() {
-    for (int i=0; i<this->n_kmers; i++){
-      omp_destroy_lock(&(locks[i]));
-    }
-  }
+//  /**
+//Destroy vector of locks
+//*/
+//  void destroy_locks() {
+//    for (int i=0; i<this->n_kmers; i++){
+//      omp_destroy_lock(&(locks[i]));
+//    }
+//  }
 
   /**
    * Write all kmers in the kmer_queues to output path
@@ -196,7 +189,7 @@ Destroy vector of locks
   */
   void add_to_heap(T& kmer_struct){
     size_t index = this->get_kmer_index(kmer_struct.path_kmer);
-    omp_set_lock(&(this->locks[index]));
+    this->locks[index].lock();
     if (this->kmer_queues[index].empty()) {
 //    add to queue if not at capacity
       this->kmer_queues[index].push(kmer_struct);
@@ -208,8 +201,7 @@ Destroy vector of locks
         this->kmer_queues[index].pop();
       }
     }
-    omp_unset_lock(&(this->locks[index]));
-
+    this->locks[index].unlock();
   }
 };
 

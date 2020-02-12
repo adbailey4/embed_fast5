@@ -97,13 +97,15 @@ path TOP_KMERS_ALIGNMENT = TOP_KMERS_ALIGNMENT1;
 
 
 TEST (Fast5AccessTest, isValidFile) {
-    EXPECT_TRUE(fast5::File::is_valid_file(ORIGINAL_FAST5.string()));
-    EXPECT_TRUE(fast5::File::is_valid_file(SIGNAL_FAST5.string()));
-    EXPECT_TRUE(fast5::File::is_valid_file(EMPTY_FAST5.string()));
+  Redirect a(true, true);
+  EXPECT_TRUE(fast5::File::is_valid_file(ORIGINAL_FAST5.string()));
+  EXPECT_TRUE(fast5::File::is_valid_file(SIGNAL_FAST5.string()));
+  EXPECT_TRUE(fast5::File::is_valid_file(EMPTY_FAST5.string()));
 }
 
 TEST (Fast5AccessTest, hasRequiredFields) {
 //    Original Fast5 outputs
+  Redirect a(true, true);
   fast5::File f;
   f.open(ORIGINAL_FAST5.string());
   EXPECT_TRUE(f.have_channel_id_params());
@@ -132,6 +134,7 @@ TEST (Fast5AccessTest, hasRequiredFields) {
 }
 
 TEST (Fast5AccessTest, test_copyFile){
+  Redirect a(true, true);
   EXPECT_TRUE(is_regular_file(EMPTY_FAST5));
   EXPECT_TRUE(fast5::File::is_valid_file(EMPTY_FAST5.string()));
   if (exists(NO_FAST5)){
@@ -148,6 +151,7 @@ TEST (Fast5AccessTest, test_copyFile){
 }
 
 TEST (Fast5AccessTest, test_addChannelParams) {
+  Redirect a(true, true);
 //    crete test file
   if (exists(NO_FAST5)){
       remove(NO_FAST5);
@@ -171,6 +175,7 @@ TEST (Fast5AccessTest, test_addChannelParams) {
 }
 
 TEST (Fast5WriteTests, test_addBasecalledGroup) {
+  Redirect a(true, true);
 //    crete test file
   if (exists(NO_FAST5)){
       remove(NO_FAST5);
@@ -205,6 +210,7 @@ TEST (Fast5WriteTests, test_addBasecalledGroup) {
 }
 
 TEST (Fast5WriteTests, test_event_table_to_basecalled_table) {
+  Redirect a(true, true);
 //    crete test file
   if (exists(NO_FAST5)){
       remove(NO_FAST5);
@@ -243,6 +249,7 @@ TEST (Fast5WriteTests, test_event_table_to_basecalled_table) {
 }
 
 TEST (Fast5WriteTests, test_generate_basecall_table) {
+  Redirect a(true, true);
 //    crete test file
   if (exists(NO_FAST5)){
       remove(NO_FAST5);
@@ -280,8 +287,8 @@ TEST (Fast5WriteTests, test_generate_basecall_table) {
 }
 
 TEST (Fast5EmbedTests, test_embed_using_readdb) {
+  Redirect a(true, true);
 //    crete test file
-
   if (exists(NO_FAST5)){
       remove(NO_FAST5);
   }
@@ -293,14 +300,14 @@ TEST (Fast5EmbedTests, test_embed_using_readdb) {
 
   ReadDB read_db;
   read_db.load(read_db_path);
-
   embed_single_read(read_db, read_id, NO_FAST5.string());
-
   remove(NO_FAST5);
+//  a.~Redirect();
 }
-
+//
 TEST (Fast5EmbedTests, test_r94_embed) {
 //    crete test file
+  Redirect a(true, true);
   path tempdir = temp_directory_path() / "temp";
   path fast5_dir = tempdir / "fast5";
 
@@ -326,6 +333,7 @@ TEST (Fast5EmbedTests, test_r94_embed) {
 }
 
 TEST (Fast5EmbedTests, test_multiprocess_embed_using_readdb){
+  Redirect a(true, true);
   path tempdir = temp_directory_path() / "temp";
   path fast5_dir = tempdir / "fast5";
 
@@ -363,12 +371,14 @@ TEST (Fast5EmbedTests, test_multiprocess_embed_using_readdb){
 }
 
 TEST (PositionsFileTests, test_load) {
-    PositionsFile pf(POSITIONS_FILE.string(), 5);
-    string contig = "gi_ecoli+";
-    EXPECT_TRUE(contains(pf.m_data[contig], 419));
+  Redirect a(true, true);
+  PositionsFile pf(POSITIONS_FILE.string(), 5);
+  string contig = "gi_ecoli+";
+  EXPECT_TRUE(contains(pf.m_data[contig], 419));
 }
 
 TEST (PositionsFileTests, test_iterate) {
+  Redirect a(true, true);
   PositionsFile pf(POSITIONS_FILE.string());
   for (auto &position: pf.iterate()) {
     EXPECT_EQ("gi_ecoli", position.contig);
@@ -383,33 +393,38 @@ TEST (PositionsFileTests, test_iterate) {
 }
 
 TEST (PositionsFileTests, test_load_positions_map) {
+  Redirect a(true, true);
   PositionsFile pf(POSITIONS_FILE.string());
   pf.load_positions_map();
   EXPECT_EQ(make_tuple("C", "E"), pf.positions_map["gi_ecoli+"][419]);
 }
 
 TEST (PositionsFileTests, test_is_in) {
-    PositionsFile pf(POSITIONS_FILE.string(), 5);
-    string contig = "gi_ecoli+";
-    EXPECT_TRUE(pf.is_in(contig, 419));
-    EXPECT_TRUE(pf.is_in(contig, 415));
-    EXPECT_FALSE(pf.is_in(contig, 414));
+  Redirect a(true, true);
+  PositionsFile pf(POSITIONS_FILE.string(), 5);
+  string contig = "gi_ecoli+";
+  EXPECT_TRUE(pf.is_in(contig, 419));
+  EXPECT_TRUE(pf.is_in(contig, 415));
+  EXPECT_FALSE(pf.is_in(contig, 414));
 }
 
 TEST (AlignmentFileTests, test_get_strand) {
-    AlignmentFile af(ALIGNMENT_FILE.string());
-    af.get_strand();
-    EXPECT_EQ("-", af.strand);
+  Redirect a(true, true);
+  AlignmentFile af(ALIGNMENT_FILE.string());
+  af.get_strand();
+  EXPECT_EQ("-", af.strand);
 }
 
 TEST (AlignmentFileTests, test_iterate) {
-    AlignmentFile af(ALIGNMENT_FILE.string());
-    for (auto &event: af.iterate()){
-      EXPECT_EQ("gi_ecoli", event.contig);
-    }
+  Redirect a(true, true);
+  AlignmentFile af(ALIGNMENT_FILE.string());
+  for (auto &event: af.iterate()){
+    EXPECT_EQ("gi_ecoli", event.contig);
+  }
 }
 
 TEST (AlignmentFileTests, test_filter_by_ref_bases) {
+  Redirect a(true, true);
   AlignmentFile af(ALIGNMENT_FILE.string());
   string bases = "G";
   for (auto &event: af.filter_by_ref_bases(bases)){
@@ -418,6 +433,7 @@ TEST (AlignmentFileTests, test_filter_by_ref_bases) {
 }
 
 TEST (AlignmentFileTests, test_get_variant_calls) {
+  Redirect a(true, true);
   AlignmentFile af(ALIGNMENT_FILE_MOD.string(), true);
   string bases = "f";
   std::map<string, string> ambig_bases = create_ambig_bases();
@@ -467,8 +483,8 @@ TEST (AlignmentFileTests, test_get_variant_calls) {
   }
 }
 
-
 TEST (AlignmentFileTests, test_filter) {
+  Redirect a(true, true);
   path tempdir = temp_directory_path()/ "temp";
   create_directory(tempdir);
   path test_output = tempdir / "test_output.assignment.tsv";
@@ -489,8 +505,8 @@ TEST (AlignmentFileTests, test_filter) {
   remove_all(tempdir);
 }
 
-
 TEST (MarginalizeVariantsTests, test_load_variants) {
+  Redirect a(true, true);
   vector<VariantCall> data;
   VariantCall vc1("test", "+", 10, "AT");
   vc1.normalized_probs = {0.1, 0.9};
@@ -519,6 +535,7 @@ TEST (MarginalizeVariantsTests, test_load_variants) {
 }
 
 TEST (AlignmentFileTests, test_write_to_file) {
+  Redirect a(true, true);
   vector<VariantCall> data;
   VariantCall vc1("test", "+", 10, "AT");
   vc1.normalized_probs = {0.1, 0.9};
@@ -539,10 +556,8 @@ TEST (AlignmentFileTests, test_write_to_file) {
   EXPECT_TRUE(compare_files(bed_file, bed_file2));
 }
 
-
-
 TEST (filter_alignments, test_filter_alignment_files) {
-
+  Redirect a(true, false);
   path input_dir = temp_directory_path() / "input" ;
   path output_dir = temp_directory_path() / "output" ;
   copyDir(ALIGNMENT_DIR, input_dir);
@@ -564,19 +579,20 @@ TEST (filter_alignments, test_filter_alignment_files) {
   remove_all(output_dir);
 }
 
-
 TEST (AssignmentFileTests, test_iterate_assignment) {
-    path input_dir = temp_directory_path() / "input" ;
-    path output_dir = temp_directory_path() / "output" ;
-    AssignmentFile af(ASSIGNMENT_FILE.string());
-    float answer = 83.7093;
-    for (auto &x: af.iterate()){
-      EXPECT_FLOAT_EQ(x.descaled_event_mean, answer);
-      break;
-    }
+  Redirect a(true, true);
+  path input_dir = temp_directory_path() / "input" ;
+  path output_dir = temp_directory_path() / "output" ;
+  AssignmentFile af(ASSIGNMENT_FILE.string());
+  float answer = 83.7093;
+  for (auto &x: af.iterate()){
+    EXPECT_FLOAT_EQ(x.descaled_event_mean, answer);
+    break;
+  }
 }
 
 TEST (AssignmentFileTests, test_get_k) {
+  Redirect a(true, true);
   path input_dir = temp_directory_path() / "input" ;
   path output_dir = temp_directory_path() / "output" ;
   AssignmentFile af(ASSIGNMENT_FILE.string());
@@ -585,10 +601,12 @@ TEST (AssignmentFileTests, test_get_k) {
 }
 
 TEST (MaxKmersTests, test_max_kmer_initialization) {
+  Redirect a(true, true);
   ASSERT_THROW(MaxKmers<eventkmer> mk(10, "ATGC", 0), std::exception);
 }
 
 TEST (MaxKmersTests, test_create_kmers) {
+  Redirect a(true, true);
   MaxKmers<eventkmer> mk(10, "ATGC", 5);
   string alphabet = "ATGC";
   vector<string> kmers = mk.create_kmers(alphabet, 5);
@@ -598,6 +616,7 @@ TEST (MaxKmersTests, test_create_kmers) {
 }
 
 TEST (MaxKmersTests, test_get_kmer_index) {
+  Redirect a(true, true);
   MaxKmers<eventkmer> mk(10, "ATGC", 5);
   string poly_a = "AAAAA";
   int poly_a_index = mk.get_kmer_index(poly_a);
@@ -608,6 +627,7 @@ TEST (MaxKmersTests, test_get_kmer_index) {
 }
 
 TEST (MaxKmersTests, test_get_index_kmer) {
+  Redirect a(true, true);
   MaxKmers<eventkmer> mk(10, "ATGC", 5);
   size_t index = 0;
   string poly_a = mk.get_index_kmer(index);
@@ -618,6 +638,7 @@ TEST (MaxKmersTests, test_get_index_kmer) {
 }
 
 TEST (MaxKmersTests, test_add_to_heap) {
+  Redirect a(true, true);
   MaxKmers<eventkmer> mk(10, "ATGC", 5);
   eventkmer my_kmer = eventkmer("AAAAA", 10, "t", 1.2);
   mk.add_to_heap(my_kmer);
@@ -654,6 +675,7 @@ TEST (MaxKmersTests, test_add_to_heap) {
 }
 
 TEST (MaxKmersTests, test_write_to_file) {
+  Redirect a(true, true);
   MaxKmers<eventkmer> mk(10, "ATGC", 5);
   for (int i = 10; i > 0; i--){
     eventkmer my_kmer = eventkmer("AAAAA", 10, "t", i);
@@ -677,14 +699,214 @@ TEST (MaxKmersTests, test_write_to_file) {
 
 }
 
-
-TEST (util_functions, test_sort_string){
-    string something = "something";
-    sort_string(something);
-    EXPECT_TRUE(something.compare("eghimnost")==0);
+TEST (VariantPathTests, test_load_positions_file){
+  Redirect a(true, true);
+  VariantPath vp;
+  vp.load_positions_file(TEST_POSITIONS_FILE.string());
+  vector<uint64_t> path_multiplier_answer = {1, 3, 12};
+  ASSERT_THAT(path_multiplier_answer, ElementsAreArray(vp.path_multiplier["gi_ecoli+"]));
+  EXPECT_EQ(3, vp.num_positions["gi_ecoli+"]);
+  EXPECT_EQ(48, vp.num_ids["gi_ecoli+"]);
+  EXPECT_EQ("LP", vp.all_variant_chars);
+  EXPECT_EQ(0, vp.position_to_path_index["gi_ecoli+"][419]);
+  EXPECT_EQ(1, vp.position_to_path_index["gi_ecoli+"][507]);
+  EXPECT_EQ(2, vp.position_to_path_index["gi_ecoli+"][1089]);
 }
 
-TEST (util_functions , test_all_lexicographic_recur){
+TEST (VariantPathTests, test_id_2_path_2_id){
+  Redirect a(true, true);
+
+  VariantPath vp(TEST_POSITIONS_FILE.string());
+  uint64_t n_ids = vp.num_ids["gi_ecoli+"];
+  for (uint64_t i = 0; i < n_ids; ++i){
+//    cout << i << " (";
+//    vector<uint64_t> path = vp.id_to_path("gi_ecoli+", i);
+//    for (auto &j: path){
+//      cout << j;
+//    }
+//    cout << ")\n";
+    EXPECT_EQ(i, vp.path_to_id("gi_ecoli+", vp.id_to_path("gi_ecoli+", i)));
+  }
+}
+
+TEST (VariantPathTests, test_variant_call_to_path_to_id){
+  Redirect a(true, true);
+//  create some variant calls
+  vector<VariantCall> some_calls(3);
+  VariantCall vc("gi_ecoli", "+", 419, "CE");
+  vc.normalized_probs = {0.2, 0.8};
+  some_calls[0] = vc;
+  VariantCall vc1("gi_ecoli", "+", 507, "CEO");
+  vc1.normalized_probs = {0.2, 0.7, 0.1};
+  some_calls[1] = vc1;
+  VariantCall vc2("gi_ecoli", "+", 1089, "CEO");
+  vc2.normalized_probs = {0.2, 0.2, 0.8};
+  some_calls[2] = vc2;
+//  tests
+  VariantPath vp(TEST_POSITIONS_FILE.string());
+  vector<uint64_t> id_answer = {2, 2, 3};
+  ASSERT_THAT(id_answer, ElementsAreArray(vp.variant_call_to_path("gi_ecoli+", some_calls)));
+  EXPECT_EQ(44, vp.variant_call_to_id("gi_ecoli+", some_calls));
+}
+
+TEST (VariantPathTests, test_path_to_bases){
+  Redirect a(true, true);
+  VariantPath vp(TEST_POSITIONS_FILE.string());
+  vector<uint64_t> id_answer = {1, 1, 1};
+  EXPECT_EQ("CCC", vp.path_to_bases("gi_ecoli+", id_answer));
+  id_answer = {0, 0, 0};
+  EXPECT_EQ("---", vp.path_to_bases("gi_ecoli+", id_answer));
+  id_answer = {1, 2, 2};
+  EXPECT_EQ("CEE", vp.path_to_bases("gi_ecoli+", id_answer));
+  id_answer = {0, 1, 3};
+  EXPECT_EQ("-CO", vp.path_to_bases("gi_ecoli+", id_answer));
+  id_answer = {0, 1, 3, 3};
+  ASSERT_THROW(vp.path_to_bases("gi_ecoli+", id_answer), AssertionFailureException);
+}
+
+TEST (LoadVariantPathsTests, test_load_variants){
+  Redirect a(true, true);
+  path positions_file = RRNA_TEST_FILES/"/16S_final_branch_points.positions";
+  LoadVariantPaths lvp(positions_file.string(), RRNA_SIGNAL_FILES.string(), true, 10);
+  path tempdir = temp_directory_path() / "temp";
+  create_directory(tempdir);
+  path output_per_read = tempdir/"per_read_calls.tsv";
+  path correct_per_read = RRNA_TEST_FILES/"test_output_dir/per_read_calls.tsv";
+  lvp.write_per_read_calls(output_per_read.string());
+  EXPECT_TRUE(compare_files(correct_per_read, output_per_read));
+
+  path output_per_path = tempdir/"per_path_counts.tsv";
+  lvp.write_per_path_counts(output_per_path.string());
+  path correct_per_path = RRNA_TEST_FILES/"test_output_dir/per_path_counts.tsv";
+  EXPECT_TRUE(compare_files(correct_per_path, output_per_path));
+}
+
+TEST (TopKmersTests, test_generate_master_kmer_table_assignments){
+  Redirect a(true, true);
+  path tempdir = temp_directory_path() / "temp";
+  create_directory(tempdir);
+  string outpath = tempdir.string();
+  string alphabet = "ACTGlmnop";
+  path assignment_file = TEST_FILES / "assignment_files/d6160b0b-a35e-43b5-947f-adaa1abade28.sm.assignments.tsv";
+  vector<string> data = {assignment_file.string()};
+  path expected_output_file =  outpath / "builtAssignment.tsv";
+  string out_file = expected_output_file.string();
+  string output_file = generate_master_kmer_table<AssignmentFile, eventkmer>(data, out_file, 1000, alphabet, 2, false);
+  EXPECT_EQ(lines_in_file(TOP_KMERS_ASSIGNMENT), lines_in_file(expected_output_file));
+}
+
+TEST (TopKmersTests, test_generate_master_kmer_table_alignments){
+  Redirect a(true, true);
+  testing::FLAGS_gtest_death_test_style="threadsafe";
+  path tempdir = temp_directory_path() / "temp";
+  create_directory(tempdir);
+  string outpath = tempdir.string();
+  string alphabet = "ACTGP";
+  path alignment_file = TEST_FILES / "alignment_files/c53bec1d-8cd7-43d0-8e40-e5e363fa9fca.sm.backward.tsv";
+  vector<string> data = {alignment_file.string()};
+  ASSERT_THROW({ (generate_master_kmer_table<AlignmentFile, FullSaEvent>)(data, outpath, 1000, alphabet, 2, false); } , AssertionFailureException);
+  alphabet = "ACTGE";
+  path expected_output_file =  outpath / "builtAssignment.tsv";
+  string out_file = expected_output_file.string();
+  string output_file = generate_master_kmer_table<AlignmentFile, FullSaEvent>(data, out_file, 1000, alphabet, 2, false);
+  EXPECT_EQ(lines_in_file(TOP_KMERS_ALIGNMENT), lines_in_file(expected_output_file));
+}
+
+TEST (TopKmersTests, test_generate_master_kmer_table_wrapper){
+  Redirect a(true, true);
+  testing::FLAGS_gtest_death_test_style="threadsafe";
+  path tempdir = temp_directory_path() / "temp";
+  create_directory(tempdir);
+  string outpath = tempdir.string();
+  string alphabet = "ACTGlmnop";
+  path assignment_file = TEST_FILES / "assignment_files/d6160b0b-a35e-43b5-947f-adaa1abade28.sm.assignments.tsv";
+  vector<string> data = {assignment_file.string()};
+  path expected_output_file =  outpath / "builtAssignment.tsv";
+  string out_file = expected_output_file.string();
+  string output_file = generate_master_kmer_table_wrapper(data, out_file, 1000, alphabet, 2, false);
+  EXPECT_EQ(lines_in_file(TOP_KMERS_ASSIGNMENT), lines_in_file(expected_output_file));
+
+  alphabet = "ACTGP";
+  path alignment_file = TEST_FILES / "alignment_files/c53bec1d-8cd7-43d0-8e40-e5e363fa9fca.sm.backward.tsv";
+  data = {alignment_file.string()};
+  ASSERT_THROW({ generate_master_kmer_table_wrapper(data, out_file, 1000, alphabet, 2, false); } ,AssertionFailureException);
+  alphabet = "ACTGE";
+  output_file = generate_master_kmer_table_wrapper(data, out_file, 1000, alphabet, 2, false);
+  EXPECT_EQ(lines_in_file(TOP_KMERS_ALIGNMENT), lines_in_file(expected_output_file));
+}
+
+TEST (EmbedUtilsTests, test_lines_in_file){
+  Redirect a(true, true);
+  path bed_file = TEST_FILES / "bed_files/test.bed";
+  EXPECT_EQ(lines_in_file(bed_file), 2);
+}
+
+TEST (EmbedUtilsTests, test_filter_emtpy_files){
+  Redirect a(true, true);
+  path bed_file = TEST_FILES / "bed_files/test.bed";
+  path empty_bed = TEST_FILES / "bed_files/empty_test.bed";
+  path non_empty_csv = TEST_FILES / "bed_files/other_test.csv";
+
+  vector<string> bed_paths1 = {bed_file.string()};
+  vector<string> bed_paths2 = {bed_file.string(), non_empty_csv.string()};
+  vector<string> bed_paths3 = {bed_file.string(), empty_bed.string()};
+  vector<path> filtered_bed_paths1 = filter_emtpy_files(bed_paths1, ".bed");
+  vector<path> filtered_bed_paths2 = filter_emtpy_files(bed_paths2, ".bed");
+  vector<path> filtered_bed_paths3 = filter_emtpy_files(bed_paths3, ".bed");
+
+  EXPECT_EQ(filtered_bed_paths1.size(), 1);
+  EXPECT_EQ(filtered_bed_paths2.size(), 1);
+  EXPECT_EQ(filtered_bed_paths3.size(), 1);
+}
+
+TEST (EmbedUtilsTests, test_number_of_columns){
+  Redirect a(true, true);
+  path bed_file = TEST_FILES / "bed_files/test.bed";
+  path empty_bed = TEST_FILES / "bed_files/empty_test.bed";
+  path non_empty_csv = TEST_FILES / "bed_files/other_test.csv";
+  string test_bed_string = bed_file.string();
+
+  uint64_t n_col1 = number_of_columns(bed_file.string(), '\t');
+  uint64_t n_col3 = number_of_columns(non_empty_csv.string(), ',');
+  uint64_t n_col4 = number_of_columns(bed_file.string(), ',');
+  uint64_t n_col5 = number_of_columns(test_bed_string, '\t');
+
+  ASSERT_THROW(number_of_columns(empty_bed.string(), '\t'), AssertionFailureException);
+  EXPECT_EQ(n_col1, 10);
+  EXPECT_EQ(n_col3, 2);
+  EXPECT_EQ(n_col4, 0);
+  EXPECT_EQ(n_col5, 10);
+
+}
+
+TEST (EmbedUtilsTests, test_compare_files){
+  Redirect a(true, true);
+  path bed_file = TEST_FILES / "bed_files/test.bed";
+  path fake_file = TEST_FILES / "bed_files/asdf";
+  ASSERT_THROW(compare_files(fake_file, bed_file), AssertionFailureException);
+  EXPECT_TRUE(compare_files(bed_file, bed_file));
+}
+
+TEST (EmbedUtilsTests, test_Redirect){
+  Redirect a(true, true);
+  string test1 = "Test";
+  cout << test1;
+  cerr << test1;
+  string output = a.get_cout();
+  string error = a.get_cerr();
+  EXPECT_EQ(output, test1);
+  EXPECT_EQ(error, test1);
+}
+
+TEST (EmbedUtilsTests, test_sort_string){
+  Redirect a(true, true);
+  string something = "something";
+  sort_string(something);
+  EXPECT_TRUE(something.compare("eghimnost")==0);
+}
+
+TEST (EmbedUtilsTests , test_all_lexicographic_recur){
+  Redirect a(true, true);
   string alphabet = "AC";
   int length = 2;
   string data = "  ";
@@ -693,7 +915,8 @@ TEST (util_functions , test_all_lexicographic_recur){
 
 }
 
-TEST (util_functions, test_split){
+TEST (EmbedUtilsTests, test_split){
+  Redirect a(true, true);
   string csv = "asdf,asdf,sdf,df";
   string tsv = "asdf\tasdf\tsdf\tdf";
   vector<string> split_answer{"asdf","asdf","sdf","df"};
@@ -706,7 +929,8 @@ TEST (util_functions, test_split){
   ASSERT_THAT(split_answer, ElementsAreArray(something4));
 }
 
-TEST (util_functions, test_all_string_permutations){
+TEST (EmbedUtilsTests, test_all_string_permutations){
+  Redirect a(true, true);
   vector<string> correct_kmers = {"CC", "CS", "SC", "SS"};
   string cs = "CS";
   int length = 2;
@@ -725,29 +949,31 @@ TEST (util_functions, test_all_string_permutations){
 
 }
 
-TEST (util_functions, test_remove_duplicate_characters){
+TEST (EmbedUtilsTests, test_remove_duplicate_characters){
+  Redirect a(true, true);
   string test("ATGCCCCCC");
   string output = remove_duplicate_characters(test);
   EXPECT_EQ(output, "ATGC");
 }
 
-TEST (util_functions, test_is_character_in_string){
-    string query = "atg";
-    string target = "qwera";
-    string target2 = "qwert";
-    string target3 = "qwge";
-    string target4 = "qw";
-    string empty = "";
-    EXPECT_TRUE(are_characters_in_string(query, target));
-    EXPECT_TRUE(are_characters_in_string(query, target2));
-    EXPECT_TRUE(are_characters_in_string(query, target3));
-    EXPECT_FALSE(are_characters_in_string(query, target4));
-    EXPECT_FALSE(are_characters_in_string(empty, target4));
-    EXPECT_FALSE(are_characters_in_string(empty, empty));
-
+TEST (EmbedUtilsTests, test_is_character_in_string){
+  Redirect a(true, true);
+  string query = "atg";
+  string target = "qwera";
+  string target2 = "qwert";
+  string target3 = "qwge";
+  string target4 = "qw";
+  string empty = "";
+  EXPECT_TRUE(are_characters_in_string(query, target));
+  EXPECT_TRUE(are_characters_in_string(query, target2));
+  EXPECT_TRUE(are_characters_in_string(query, target3));
+  EXPECT_FALSE(are_characters_in_string(query, target4));
+  EXPECT_FALSE(are_characters_in_string(empty, target4));
+  EXPECT_FALSE(are_characters_in_string(empty, empty));
 }
 
-TEST (util_functions, test_convert_to_float) {
+TEST (EmbedUtilsTests, test_convert_to_float) {
+  Redirect a(true, true);
   string number = "121.212";
   float something = string_to_float(number);
   EXPECT_FLOAT_EQ(121.212, something);
@@ -756,7 +982,8 @@ TEST (util_functions, test_convert_to_float) {
   EXPECT_FLOAT_EQ(-121.212, something);
 }
 
-TEST (util_functions, test_convert_to_int) {
+TEST (EmbedUtilsTests, test_convert_to_int) {
+  Redirect a(true, true);
   string number = "121";
   int64_t something = string_to_int(number);
   EXPECT_FLOAT_EQ(121, something);
@@ -765,7 +992,8 @@ TEST (util_functions, test_convert_to_int) {
   EXPECT_FLOAT_EQ(-121, something);
 }
 
-TEST (util_functions, test_list_files_in_dir) {
+TEST (EmbedUtilsTests, test_list_files_in_dir) {
+  Redirect a(true, true);
   int counter = 0;
   string ext = ".tsv";
   for (auto &i: list_files_in_dir(ASSIGNMENT_DIR, ext)){
@@ -796,7 +1024,8 @@ TEST (util_functions, test_list_files_in_dir) {
   EXPECT_EQ(5, counter);
 }
 
-TEST (util_functions, test_create_ambig_bases) {
+TEST (EmbedUtilsTests, test_create_ambig_bases) {
+  Redirect a(true, true);
   std::map<string, string> ambig_bases = create_ambig_bases();
   EXPECT_EQ("AF", ambig_bases["f"]);
 }
@@ -805,7 +1034,8 @@ void test_test(int the){
   the += 1;
 }
 
-TEST (util_functions, test_get_time) {
+TEST (EmbedUtilsTests, test_get_time) {
+  Redirect a(true, true);
   auto funct = bind(test_test, 10);
   string the_time = get_time_string(funct);
   tuple<uint64_t, uint64_t, uint64_t, uint64_t> the_time2 = get_time(funct);
@@ -813,190 +1043,6 @@ TEST (util_functions, test_get_time) {
   EXPECT_EQ(0, get<1>(the_time2));
   EXPECT_EQ(0, get<2>(the_time2));
   EXPECT_EQ("hours: 0 minutes: 0", the_time.substr(0, 19));
-}
-
-//TEST (folder_handler, test_constructor){
-//  FolderHandler fh(ALIGNMENT_DIR, 1, "");
-//  vector<string> something = fh.get_batch();
-//}
-
-TEST (VariantPathTests, test_load_positions_file){
-  VariantPath vp;
-  vp.load_positions_file(TEST_POSITIONS_FILE.string());
-  vector<uint64_t> path_multiplier_answer = {1, 3, 12};
-  ASSERT_THAT(path_multiplier_answer, ElementsAreArray(vp.path_multiplier["gi_ecoli+"]));
-  EXPECT_EQ(3, vp.num_positions["gi_ecoli+"]);
-  EXPECT_EQ(48, vp.num_ids["gi_ecoli+"]);
-  EXPECT_EQ("LP", vp.all_variant_chars);
-  EXPECT_EQ(0, vp.position_to_path_index["gi_ecoli+"][419]);
-  EXPECT_EQ(1, vp.position_to_path_index["gi_ecoli+"][507]);
-  EXPECT_EQ(2, vp.position_to_path_index["gi_ecoli+"][1089]);
-}
-
-TEST (VariantPathTests, test_id_2_path_2_id){
-  VariantPath vp(TEST_POSITIONS_FILE.string());
-  uint64_t n_ids = vp.num_ids["gi_ecoli+"];
-  for (uint64_t i = 0; i < n_ids; ++i){
-//    cout << i << " (";
-//    vector<uint64_t> path = vp.id_to_path("gi_ecoli+", i);
-//    for (auto &j: path){
-//      cout << j;
-//    }
-//    cout << ")\n";
-    EXPECT_EQ(i, vp.path_to_id("gi_ecoli+", vp.id_to_path("gi_ecoli+", i)));
-  }
-}
-
-TEST (VariantPathTests, test_variant_call_to_path_to_id){
-//  create some variant calls
-  vector<VariantCall> some_calls(3);
-  VariantCall vc("gi_ecoli", "+", 419, "CE");
-  vc.normalized_probs = {0.2, 0.8};
-  some_calls[0] = vc;
-  VariantCall vc1("gi_ecoli", "+", 507, "CEO");
-  vc1.normalized_probs = {0.2, 0.7, 0.1};
-  some_calls[1] = vc1;
-  VariantCall vc2("gi_ecoli", "+", 1089, "CEO");
-  vc2.normalized_probs = {0.2, 0.2, 0.8};
-  some_calls[2] = vc2;
-//  tests
-  VariantPath vp(TEST_POSITIONS_FILE.string());
-  vector<uint64_t> id_answer = {2, 2, 3};
-  ASSERT_THAT(id_answer, ElementsAreArray(vp.variant_call_to_path("gi_ecoli+", some_calls)));
-  EXPECT_EQ(44, vp.variant_call_to_id("gi_ecoli+", some_calls));
-}
-
-TEST (VariantPathTests, test_path_to_bases){
-  VariantPath vp(TEST_POSITIONS_FILE.string());
-  vector<uint64_t> id_answer = {1, 1, 1};
-  EXPECT_EQ("CCC", vp.path_to_bases("gi_ecoli+", id_answer));
-  id_answer = {0, 0, 0};
-  EXPECT_EQ("---", vp.path_to_bases("gi_ecoli+", id_answer));
-  id_answer = {1, 2, 2};
-  EXPECT_EQ("CEE", vp.path_to_bases("gi_ecoli+", id_answer));
-  id_answer = {0, 1, 3};
-  EXPECT_EQ("-CO", vp.path_to_bases("gi_ecoli+", id_answer));
-  id_answer = {0, 1, 3, 3};
-  ASSERT_THROW(vp.path_to_bases("gi_ecoli+", id_answer), AssertionFailureException);
-}
-
-TEST (LoadVariantPathsTests, test_load_variants){
-  path positions_file = RRNA_TEST_FILES/"/16S_final_branch_points.positions";
-  LoadVariantPaths lvp(positions_file.string(), RRNA_SIGNAL_FILES.string(), true, 10);
-  path tempdir = temp_directory_path() / "temp";
-  create_directory(tempdir);
-  path output_per_read = tempdir/"per_read_calls.tsv";
-  path correct_per_read = RRNA_TEST_FILES/"test_output_dir/per_read_calls.tsv";
-  lvp.write_per_read_calls(output_per_read.string());
-  EXPECT_TRUE(compare_files(correct_per_read, output_per_read));
-
-  path output_per_path = tempdir/"per_path_counts.tsv";
-  lvp.write_per_path_counts(output_per_path.string());
-  path correct_per_path = RRNA_TEST_FILES/"test_output_dir/per_path_counts.tsv";
-  EXPECT_TRUE(compare_files(correct_per_path, output_per_path));
-}
-
-
-TEST (TopKmersTests, test_generate_master_kmer_table_assignments){
-  path tempdir = temp_directory_path() / "temp";
-  create_directory(tempdir);
-  string outpath = tempdir.string();
-  string alphabet = "ACTGlmnop";
-  path assignment_file = TEST_FILES / "assignment_files/d6160b0b-a35e-43b5-947f-adaa1abade28.sm.assignments.tsv";
-  vector<string> data = {assignment_file.string()};
-  string output_file = generate_master_kmer_table<AssignmentFile, eventkmer>(data, outpath, 1000, alphabet, 2, false);
-  path expected_output_file =  outpath / "builtAssignment.tsv";
-  EXPECT_EQ(output_file, expected_output_file.string());
-  EXPECT_EQ(lines_in_file(TOP_KMERS_ASSIGNMENT), lines_in_file(expected_output_file));
-}
-
-TEST (TopKmersTests, test_generate_master_kmer_table_alignments){
-  testing::FLAGS_gtest_death_test_style="threadsafe";
-  path tempdir = temp_directory_path() / "temp";
-  create_directory(tempdir);
-  string outpath = tempdir.string();
-  string alphabet = "ACTGP";
-  path alignment_file = TEST_FILES / "alignment_files/c53bec1d-8cd7-43d0-8e40-e5e363fa9fca.sm.backward.tsv";
-  vector<string> data = {alignment_file.string()};
-  ASSERT_THROW({ (generate_master_kmer_table<AlignmentFile, FullSaEvent>)(data, outpath, 1000, alphabet, 2, false); } , AssertionFailureException);
-  alphabet = "ACTGE";
-  string output_file = generate_master_kmer_table<AlignmentFile, FullSaEvent>(data, outpath, 1000, alphabet, 2, false);
-  path expected_output_file =  outpath / "builtAssignment.tsv";
-  EXPECT_EQ(output_file, expected_output_file.string());
-  EXPECT_EQ(lines_in_file(TOP_KMERS_ALIGNMENT), lines_in_file(expected_output_file));
-}
-
-TEST (TopKmersTests, test_generate_master_kmer_table_wrapper){
-  testing::FLAGS_gtest_death_test_style="threadsafe";
-  path tempdir = temp_directory_path() / "temp";
-  create_directory(tempdir);
-  string outpath = tempdir.string();
-  string alphabet = "ACTGlmnop";
-  path assignment_file = TEST_FILES / "assignment_files/d6160b0b-a35e-43b5-947f-adaa1abade28.sm.assignments.tsv";
-  vector<string> data = {assignment_file.string()};
-  string output_file = generate_master_kmer_table_wrapper(data, outpath, 1000, alphabet, 2, false);
-  path expected_output_file =  outpath / "builtAssignment.tsv";
-  EXPECT_EQ(output_file, expected_output_file.string());
-  EXPECT_EQ(lines_in_file(TOP_KMERS_ASSIGNMENT), lines_in_file(expected_output_file));
-
-  alphabet = "ACTGP";
-  path alignment_file = TEST_FILES / "alignment_files/c53bec1d-8cd7-43d0-8e40-e5e363fa9fca.sm.backward.tsv";
-  data = {alignment_file.string()};
-  ASSERT_THROW({ generate_master_kmer_table_wrapper(data, outpath, 1000, alphabet, 2, false); } ,AssertionFailureException);
-  alphabet = "ACTGE";
-  output_file = generate_master_kmer_table_wrapper(data, outpath, 1000, alphabet, 2, false);
-  expected_output_file =  outpath / "builtAssignment.tsv";
-  EXPECT_EQ(output_file, expected_output_file.string());
-  EXPECT_EQ(lines_in_file(TOP_KMERS_ALIGNMENT), lines_in_file(expected_output_file));
-}
-
-
-TEST (EmbedUtilsTests, test_lines_in_file){
-  path bed_file = TEST_FILES / "bed_files/test.bed";
-  EXPECT_EQ(lines_in_file(bed_file), 2);
-}
-
-TEST (EmbedUtilsTests, test_filter_emtpy_files){
-  path bed_file = TEST_FILES / "bed_files/test.bed";
-  path empty_bed = TEST_FILES / "bed_files/empty_test.bed";
-  path non_empty_csv = TEST_FILES / "bed_files/other_test.csv";
-
-  vector<string> bed_paths1 = {bed_file.string()};
-  vector<string> bed_paths2 = {bed_file.string(), non_empty_csv.string()};
-  vector<string> bed_paths3 = {bed_file.string(), empty_bed.string()};
-  vector<path> filtered_bed_paths1 = filter_emtpy_files(bed_paths1, ".bed");
-  vector<path> filtered_bed_paths2 = filter_emtpy_files(bed_paths2, ".bed");
-  vector<path> filtered_bed_paths3 = filter_emtpy_files(bed_paths3, ".bed");
-
-  EXPECT_EQ(filtered_bed_paths1.size(), 1);
-  EXPECT_EQ(filtered_bed_paths2.size(), 1);
-  EXPECT_EQ(filtered_bed_paths3.size(), 1);
-}
-
-TEST (EmbedUtilsTests, test_number_of_columns){
-  path bed_file = TEST_FILES / "bed_files/test.bed";
-  path empty_bed = TEST_FILES / "bed_files/empty_test.bed";
-  path non_empty_csv = TEST_FILES / "bed_files/other_test.csv";
-  string test_bed_string = bed_file.string();
-
-  uint64_t n_col1 = number_of_columns(bed_file.string(), '\t');
-  uint64_t n_col3 = number_of_columns(non_empty_csv.string(), ',');
-  uint64_t n_col4 = number_of_columns(bed_file.string(), ',');
-  uint64_t n_col5 = number_of_columns(test_bed_string, '\t');
-
-  ASSERT_THROW(number_of_columns(empty_bed.string(), '\t'), AssertionFailureException);
-  EXPECT_EQ(n_col1, 10);
-  EXPECT_EQ(n_col3, 2);
-  EXPECT_EQ(n_col4, 0);
-  EXPECT_EQ(n_col5, 10);
-
-}
-
-TEST (EmbedUtilsTests, test_compare_files){
-  path bed_file = TEST_FILES / "bed_files/test.bed";
-  path fake_file = TEST_FILES / "bed_files/asdf";
-  ASSERT_THROW(compare_files(fake_file, bed_file), AssertionFailureException);
-  EXPECT_TRUE(compare_files(bed_file, bed_file));
 }
 
 int main(int argc, char **argv) {
@@ -1032,6 +1078,3 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-
-
-#pragma clang diagnostic pop

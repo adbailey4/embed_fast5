@@ -15,8 +15,8 @@
 using namespace std;
 static std::exception_ptr globalExceptionPtr = nullptr;
 
-string generate_master_kmer_table_wrapper(vector<string> event_table_files, string& output_dir, uint64_t heap_size,
-    string& alphabet, uint64_t n_threads, bool verbose);
+string generate_master_kmer_table_wrapper(vector<string> event_table_files, string& output_path, uint64_t heap_size,
+                                          string& alphabet, uint64_t n_threads, bool verbose);
 
 
 /**
@@ -58,16 +58,15 @@ void bin_max_kmer_worker(vector<path>& signalalign_output_files, T2& max_kmers, 
  * @tparam T1: Event table file parsing class
  * @tparam T2: Event table data type
  * @param assignment_dir: path to files directory
- * @param output_dir: path to output directory where new builtAssignment.tsv will be written
+ * @param out_path: path to output file
  * @param heap_size: number of max kmers to keep for each kmer
  * @param alphabet: alphabet used to generate kmers
  * @param n_threads: set number of threads to use: default 2
  */
 template<class T1, class T2>
-string generate_master_kmer_table(vector<string>& sa_output_paths, string& output_dir, int heap_size, string& alphabet, unsigned int n_threads, bool verbose){
+string generate_master_kmer_table(vector<string>& sa_output_paths, string& out_path, int heap_size, string& alphabet, unsigned int n_threads, bool verbose){
 
-  path output_path(output_dir);
-  output_path = make_dir(output_path);
+  path output_path(out_path);
 //  filter out empty files and check if there are any left
   vector<path> all_tsvs = filter_emtpy_files(sa_output_paths, ".tsv");
   throw_assert(!all_tsvs.empty(), "There are no valid .tsv files")
@@ -100,10 +99,10 @@ string generate_master_kmer_table(vector<string>& sa_output_paths, string& outpu
     cerr << "\n" << flush;
   }
   path output_file = output_path / "builtAssignment.tsv";
-  path log_file = output_path / "built_log.tsv";
+  path log_file = output_path.parent_path() / "built_log.tsv";
 
-  mk.write_to_file(output_file, log_file);
-  return output_file.string();
+  mk.write_to_file(output_path, log_file);
+  return log_file.string();
 }
 
 auto top_kmers_main(int argc, char** argv) -> int;

@@ -44,7 +44,6 @@ namespace embed_utils{
   int64_t lines_in_file(path &file_path);
   uint64_t number_of_columns(const path &file_path, char sep='\t');
   path make_dir(path &output_path);
-
   /**
   * Remove all empty file paths from vector
   *
@@ -63,9 +62,50 @@ namespace embed_utils{
     }
     return all_files;
   }
+  /**
+  * Capture cout and cerr
+  * source: https://stackoverflow.com/questions/5419356/redirect-stdout-stderr-to-a-string
+  */
+  class Redirect {
+
+   public:
+    bool out;
+    bool err;
+
+    Redirect(bool out=true, bool err=false): out(out), err(err) {
+      if (out){
+        coutold = std::cout.rdbuf( coutbuffer.rdbuf() ); // redirect cout to buffer stream
+      }
+      if (err){
+        cerrold = std::cerr.rdbuf( cerrbuffer.rdbuf() ); // redirect cerr to buffer stream
+      }
+
+    }
+
+    std::string get_cout() {
+      return coutbuffer.str(); // get string
+    }
+    std::string get_cerr() {
+      return cerrbuffer.str(); // get string
+    }
+
+
+    ~Redirect() {
+      if (out){
+        std::cout.rdbuf(coutold); // reverse redirect
+      }
+      if (err){
+        std::cerr.rdbuf(cerrold); // reverse redirect
+      }
+    }
+
+   private:
+    std::stringstream coutbuffer;
+    std::stringstream cerrbuffer;
+    std::streambuf * coutold;
+    std::streambuf * cerrold;
+};
 }
-
-
 
 /// Exception type for assertion failures
 class AssertionFailureException : public std::exception
@@ -176,10 +216,7 @@ class AssertionFailureException : public std::exception
   = default;
 };
 
-
 /// Assert that EXPRESSION evaluates to true, otherwise raise AssertionFailureException with associated MESSAGE (which may use C++ stream-style message formatting)
 #define throw_assert(EXPRESSION, MESSAGE) if(!(EXPRESSION)) { throw AssertionFailureException(#EXPRESSION, __FILE__, __LINE__, (AssertionFailureException::StreamFormatter() << MESSAGE)); }
-
-
 
 #endif //EMBED_FAST5_UTILS_H

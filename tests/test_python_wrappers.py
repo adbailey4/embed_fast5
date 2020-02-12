@@ -56,14 +56,19 @@ class TestPythonWrappers(unittest.TestCase):
                 output_path = os.path.join(temp_dir, "out_file.tsv")
                 out_file = bindings.generate_master_kmer_table(list_dir(self.assignment_dir, ext="tsv"), output_path,
                                                                heap_size,
-                                                               alphabet, min_prob = 0, n_threads=n_threads)
+                                                               alphabet, min_prob=0, n_threads=n_threads)
                 self.assertEqual(192835, os.stat(out_file).st_size)
 
                 out_file2 = bindings.generate_master_kmer_table(list_dir(self.alignment_dir, ext="tsv")[0:1], output_path,
                                                                 heap_size,
                                                                 "ATGCEF", n_threads=n_threads)
                 self.assertEqual(80496, os.stat(out_file2).st_size)
-                # self.assertRaises(RuntimeError, bindings.generate_master_kmer_table,
+                out_file2 = bindings.generate_master_kmer_table(list_dir(self.alignment_dir, ext="tsv")[0:1], output_path,
+                                                                heap_size,
+                                                                "ATGCEF", min_prob=0.5, n_threads=n_threads)
+                self.assertEqual(79870, os.stat(out_file2).st_size)
+
+            # self.assertRaises(RuntimeError, bindings.generate_master_kmer_table,
                 #                       list_dir(self.alignment_dir, ext="tsv"),
                 #                       output_path, heap_size, "ATGCEF", n_threads)
 

@@ -191,19 +191,23 @@ class MaxKmers{
   */
   void add_to_heap(T& kmer_struct){
     size_t index = this->get_kmer_index(kmer_struct.path_kmer);
-    this->locks[index].lock();
-    if (this->kmer_queues[index].empty() && kmer_struct.posterior_probability >= min_prob) {
+    if (kmer_struct.posterior_probability >= min_prob){
+      this->locks[index].lock();
+      if (this->kmer_queues[index].empty()) {
 //    add to queue if not at capacity
-      this->kmer_queues[index].push(kmer_struct);
+        this->kmer_queues[index].push(kmer_struct);
 //    if at capacity check to see if prob is greater than min
-    } else if (this->kmer_queues[index].top().posterior_probability < kmer_struct.posterior_probability || this->kmer_queues[index].size() < this->max_heap)
-    {
-      this->kmer_queues[index].push(kmer_struct);
-      while (this->kmer_queues[index].size() > this->max_heap){
-        this->kmer_queues[index].pop();
+      } else if (this->kmer_queues[index].top().posterior_probability < kmer_struct.posterior_probability ||
+      this->kmer_queues[index].size() < this->max_heap) {
+
+        this->kmer_queues[index].push(kmer_struct);
+
+        while (this->kmer_queues[index].size() > this->max_heap){
+          this->kmer_queues[index].pop();
+        }
       }
+      this->locks[index].unlock();
     }
-    this->locks[index].unlock();
   }
 };
 

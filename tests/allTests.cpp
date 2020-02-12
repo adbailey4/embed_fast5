@@ -67,6 +67,7 @@ using ::testing::ElementsAreArray;
 #define DNA_TEST_VARIANTS1 "tests/test_files/alignment_files/c53bec1d-8cd7-43d0-8e40-e5e363fa9fca.sm.backward.tsv"
 #define TOP_KMERS_ASSIGNMENT1 "tests/test_files/test_top_kmers/builtAssignment2.tsv"
 #define TOP_KMERS_ALIGNMENT1 "tests/test_files/test_top_kmers/builtAssignment1.tsv"
+#define TOP_KMERS_ALIGNMENT2 "tests/test_files/test_top_kmers/builtAssignment3.tsv"
 
 path HOME = "This is not a path";
 path ORIGINAL_FAST5 = ORIGINAL_FAST51;
@@ -94,7 +95,7 @@ path RRNA_TEST_VARIANTS = RRNA_TEST_VARIANTS1;
 path DNA_TEST_VARIANTS = DNA_TEST_VARIANTS1;
 path TOP_KMERS_ASSIGNMENT = TOP_KMERS_ASSIGNMENT1;
 path TOP_KMERS_ALIGNMENT = TOP_KMERS_ALIGNMENT1;
-
+path FILTERED_TOP_KMERS_ALIGNMENT = TOP_KMERS_ALIGNMENT2;
 
 TEST (Fast5AccessTest, isValidFile) {
   Redirect a(true, true);
@@ -827,6 +828,19 @@ TEST (TopKmersTests, test_generate_master_kmer_table_alignments){
                                                                               2,
                                                                               false);
   EXPECT_EQ(lines_in_file(TOP_KMERS_ALIGNMENT), lines_in_file(expected_output_file));
+
+  alphabet = "ACTGE";
+  expected_output_file =  outpath / "builtAssignment.tsv";
+
+  out_file = expected_output_file.string();
+  output_file = generate_master_kmer_table<AlignmentFile, FullSaEvent>(data,
+                                                                              out_file,
+                                                                              1000,
+                                                                              alphabet,
+                                                                              0.5,
+                                                                              2,
+                                                                              false);
+  EXPECT_EQ(lines_in_file(FILTERED_TOP_KMERS_ALIGNMENT), lines_in_file(expected_output_file));
 }
 
 TEST (TopKmersTests, test_generate_master_kmer_table_wrapper){
@@ -1091,6 +1105,7 @@ int main(int argc, char **argv) {
   DNA_TEST_VARIANTS = HOME / DNA_TEST_VARIANTS;
   TOP_KMERS_ASSIGNMENT = HOME / TOP_KMERS_ASSIGNMENT;
   TOP_KMERS_ALIGNMENT = HOME / TOP_KMERS_ALIGNMENT;
+  FILTERED_TOP_KMERS_ALIGNMENT = HOME / FILTERED_TOP_KMERS_ALIGNMENT;
   ::testing::InitGoogleMock(&argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

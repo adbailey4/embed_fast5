@@ -24,8 +24,13 @@ using namespace embed_utils;
  * @param n_threads: set number of threads to use: default 2
  * @param verbose: print out files as they are being processed
  */
-string generate_master_kmer_table_wrapper(vector<string> event_table_files, string& output_path, uint64_t heap_size,
-    string& alphabet, uint64_t n_threads, bool verbose) {
+string generate_master_kmer_table_wrapper(vector<string> event_table_files,
+                                          string &output_path,
+                                          uint64_t heap_size,
+                                          string &alphabet,
+                                          double min_prob,
+                                          uint64_t n_threads,
+                                          bool verbose) {
   uint64_t n_col = number_of_columns(event_table_files[0]);
   throw_assert(n_col == 16 or n_col == 4,
                "Incorrect number of columns in tsv: " + event_table_files[0])
@@ -33,18 +38,18 @@ string generate_master_kmer_table_wrapper(vector<string> event_table_files, stri
   if (n_col == 4) {
     output_file = generate_master_kmer_table<AssignmentFile, eventkmer>(event_table_files,
                                                                         output_path,
-                                                                               heap_size,
-                                                                               alphabet,
-                                                                               n_threads,
-                                                                               verbose);
+                                                                        heap_size,
+                                                                        alphabet, min_prob,
+                                                                        n_threads,
+                                                                        verbose);
 
   } else if (n_col == 16) {
     output_file = generate_master_kmer_table<AlignmentFile, FullSaEvent>(event_table_files,
                                                                          output_path,
-                                                                                heap_size,
-                                                                                alphabet,
-                                                                                n_threads,
-                                                                                verbose);
+                                                                         heap_size,
+                                                                         alphabet, min_prob,
+                                                                         n_threads,
+                                                                         verbose);
 
   }
   return output_file;
@@ -84,9 +89,10 @@ static unsigned int threads;
 static unsigned int heap_size;
 static string alphabet;
 static int num_threads = 1;
+static double min_prob = 0.0;
 }
 
-static const char* shortopts = "a:d:s:t:o:vh";
+static const char* shortopts = "a:d:s:t:o:m:vh";
 
 enum { OPT_HELP = 1, OPT_VERSION };
 
@@ -96,6 +102,7 @@ static const struct option longopts[] = {
     { "output_dir",       required_argument, nullptr, 'o' },
     { "heap_size",        required_argument, nullptr, 's' },
     { "alphabet",         required_argument, nullptr, 'a' },
+    { "min_prob",         required_argument, nullptr, 'm' },
     { "threads",          optional_argument, nullptr, 't' },
     { "help",             no_argument,       nullptr, OPT_HELP },
     { "version",          no_argument,       nullptr, OPT_VERSION },
@@ -112,6 +119,7 @@ void parse_top_kmers_main_options(int argc, char** argv)
       case 'o': arg >> opt::output_dir; break;
       case 't': arg >> opt::threads; break;
       case 'a': arg >> opt::alphabet; break;
+      case 'm': arg >> opt::min_prob; break;
       case 's': arg >> opt::heap_size; break;
       case 'v': opt::verbose++; break;
       case OPT_HELP:
@@ -178,7 +186,13 @@ auto top_kmers_main(int argc, char** argv) -> int
   }
   path out_dir_path(opt::output_dir);
   string output_path = (out_dir_path / "buildAlignment.tsv").string();
-  generate_master_kmer_table_wrapper(all_files, output_path, opt::heap_size, opt::alphabet, opt::threads, opt::verbose);
+  generate_master_kmer_table_wrapper(all_files,
+                                     output_path,
+                                     opt::heap_size,
+                                     opt::alphabet,
+                                     opt::min_prob,
+                                     opt::threads,
+                                     opt::verbose);
 
   return EXIT_SUCCESS;
 }

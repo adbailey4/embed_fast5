@@ -53,6 +53,7 @@ PYBIND11_MODULE(bindings, module) {
     pybind11::arg("output_dir"),
     pybind11::arg("heap_size"),
     pybind11::arg("alphabet"),
+    pybind11::arg("min_prob") = 0.0,
     pybind11::arg("n_threads") = 2,
     pybind11::arg("verbose") = false);
 

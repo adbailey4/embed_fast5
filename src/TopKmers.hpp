@@ -15,8 +15,13 @@
 using namespace std;
 static std::exception_ptr globalExceptionPtr = nullptr;
 
-string generate_master_kmer_table_wrapper(vector<string> event_table_files, string& output_path, uint64_t heap_size,
-                                          string& alphabet, uint64_t n_threads, bool verbose);
+string generate_master_kmer_table_wrapper(vector<string> event_table_files,
+                                          string &output_path,
+                                          uint64_t heap_size,
+                                          string &alphabet,
+                                          double min_prob,
+                                          uint64_t n_threads,
+                                          bool verbose);
 
 
 /**
@@ -64,7 +69,13 @@ void bin_max_kmer_worker(vector<path>& signalalign_output_files, T2& max_kmers, 
  * @param n_threads: set number of threads to use: default 2
  */
 template<class T1, class T2>
-string generate_master_kmer_table(vector<string>& sa_output_paths, string& out_path, int heap_size, string& alphabet, unsigned int n_threads, bool verbose){
+string generate_master_kmer_table(vector<string> &sa_output_paths,
+                                  string &out_path,
+                                  int heap_size,
+                                  string &alphabet,
+                                  double min_prob = 0.0,
+                                  unsigned int n_threads = 1,
+                                  bool verbose = false) {
 
   path output_path(out_path);
 //  filter out empty files and check if there are any left
@@ -75,7 +86,7 @@ string generate_master_kmer_table(vector<string>& sa_output_paths, string& out_p
   T1 af(all_tsvs[0].string());
   int64_t kmer_length = af.get_k();
 //  initialize heap, job index, threads, and count number of files
-  MaxKmers<T2> mk(heap_size, alphabet, kmer_length);
+  MaxKmers<T2> mk(heap_size, alphabet, kmer_length, min_prob);
   atomic<uint64_t> job_index(0);
   vector<thread> threads;
   globalExceptionPtr = nullptr;

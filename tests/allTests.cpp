@@ -602,12 +602,12 @@ TEST (AssignmentFileTests, test_get_k) {
 
 TEST (MaxKmersTests, test_max_kmer_initialization) {
   Redirect a(true, true);
-  ASSERT_THROW(MaxKmers<eventkmer> mk(10, "ATGC", 0), std::exception);
+  ASSERT_THROW(MaxKmers<eventkmer> mk(10, "ATGC", 0, 0), std::exception);
 }
 
 TEST (MaxKmersTests, test_create_kmers) {
   Redirect a(true, true);
-  MaxKmers<eventkmer> mk(10, "ATGC", 5);
+  MaxKmers<eventkmer> mk(10, "ATGC", 5, 0);
   string alphabet = "ATGC";
   vector<string> kmers = mk.create_kmers(alphabet, 5);
   EXPECT_EQ(kmers.size(), 1024);
@@ -617,7 +617,7 @@ TEST (MaxKmersTests, test_create_kmers) {
 
 TEST (MaxKmersTests, test_get_kmer_index) {
   Redirect a(true, true);
-  MaxKmers<eventkmer> mk(10, "ATGC", 5);
+  MaxKmers<eventkmer> mk(10, "ATGC", 5, 0);
   string poly_a = "AAAAA";
   int poly_a_index = mk.get_kmer_index(poly_a);
   EXPECT_EQ(poly_a_index, 0);
@@ -628,7 +628,7 @@ TEST (MaxKmersTests, test_get_kmer_index) {
 
 TEST (MaxKmersTests, test_get_index_kmer) {
   Redirect a(true, true);
-  MaxKmers<eventkmer> mk(10, "ATGC", 5);
+  MaxKmers<eventkmer> mk(10, "ATGC", 5, 0);
   size_t index = 0;
   string poly_a = mk.get_index_kmer(index);
   EXPECT_EQ(poly_a, "AAAAA");
@@ -639,7 +639,7 @@ TEST (MaxKmersTests, test_get_index_kmer) {
 
 TEST (MaxKmersTests, test_add_to_heap) {
   Redirect a(true, true);
-  MaxKmers<eventkmer> mk(10, "ATGC", 5);
+  MaxKmers<eventkmer> mk(10, "ATGC", 5, 0);
   eventkmer my_kmer = eventkmer("AAAAA", 10, "t", 1.2);
   mk.add_to_heap(my_kmer);
   eventkmer my_kmer2 = eventkmer("AAAAA", 10, "t", 1.4);
@@ -653,7 +653,7 @@ TEST (MaxKmersTests, test_add_to_heap) {
   EXPECT_EQ(match.descaled_event_mean, my_kmer2.descaled_event_mean);
   EXPECT_FLOAT_EQ(match.posterior_probability, my_kmer2.posterior_probability);
 
-  MaxKmers<FullSaEvent> mk2(10, "ATGC", 5);
+  MaxKmers<FullSaEvent> mk2(10, "ATGC", 5, 0);
   FullSaEvent my_kmer3("a", 1, "string reference_kmer", "string read_file", "t",
       10, 20, 20, 20, "string aligned_kmer",
       20, 20, 1.2, 10,
@@ -676,7 +676,7 @@ TEST (MaxKmersTests, test_add_to_heap) {
 
 TEST (MaxKmersTests, test_write_to_file) {
   Redirect a(true, true);
-  MaxKmers<eventkmer> mk(10, "ATGC", 5);
+  MaxKmers<eventkmer> mk(10, "ATGC", 5, 0);
   for (int i = 10; i > 0; i--){
     eventkmer my_kmer = eventkmer("AAAAA", 10, "t", i);
     mk.add_to_heap(my_kmer);
@@ -695,8 +695,6 @@ TEST (MaxKmersTests, test_write_to_file) {
   EXPECT_TRUE(is_regular_file(log_file));
   remove(NO_FAST5);
   remove(log_file);
-
-
 }
 
 TEST (VariantPathTests, test_load_positions_file){
@@ -791,7 +789,13 @@ TEST (TopKmersTests, test_generate_master_kmer_table_assignments){
   vector<string> data = {assignment_file.string()};
   path expected_output_file =  outpath / "builtAssignment.tsv";
   string out_file = expected_output_file.string();
-  string output_file = generate_master_kmer_table<AssignmentFile, eventkmer>(data, out_file, 1000, alphabet, 2, false);
+  string output_file = generate_master_kmer_table<AssignmentFile, eventkmer>(data,
+                                                                             out_file,
+                                                                             1000,
+                                                                             alphabet,
+                                                                             0,
+                                                                             2,
+                                                                             false);
   EXPECT_EQ(lines_in_file(TOP_KMERS_ASSIGNMENT), lines_in_file(expected_output_file));
 }
 
@@ -804,11 +808,24 @@ TEST (TopKmersTests, test_generate_master_kmer_table_alignments){
   string alphabet = "ACTGP";
   path alignment_file = TEST_FILES / "alignment_files/c53bec1d-8cd7-43d0-8e40-e5e363fa9fca.sm.backward.tsv";
   vector<string> data = {alignment_file.string()};
-  ASSERT_THROW({ (generate_master_kmer_table<AlignmentFile, FullSaEvent>)(data, outpath, 1000, alphabet, 2, false); } , AssertionFailureException);
+  ASSERT_THROW({
+                 (generate_master_kmer_table<AlignmentFile, FullSaEvent>)(data,
+                                                                          outpath,
+                                                                          1000,
+                                                                          alphabet,
+                                                                          0,
+                                                                          2,
+                                                                          false); } , AssertionFailureException);
   alphabet = "ACTGE";
   path expected_output_file =  outpath / "builtAssignment.tsv";
   string out_file = expected_output_file.string();
-  string output_file = generate_master_kmer_table<AlignmentFile, FullSaEvent>(data, out_file, 1000, alphabet, 2, false);
+  string output_file = generate_master_kmer_table<AlignmentFile, FullSaEvent>(data,
+                                                                              out_file,
+                                                                              1000,
+                                                                              alphabet,
+                                                                              0,
+                                                                              2,
+                                                                              false);
   EXPECT_EQ(lines_in_file(TOP_KMERS_ALIGNMENT), lines_in_file(expected_output_file));
 }
 
@@ -823,15 +840,15 @@ TEST (TopKmersTests, test_generate_master_kmer_table_wrapper){
   vector<string> data = {assignment_file.string()};
   path expected_output_file =  outpath / "builtAssignment.tsv";
   string out_file = expected_output_file.string();
-  string output_file = generate_master_kmer_table_wrapper(data, out_file, 1000, alphabet, 2, false);
+  string output_file = generate_master_kmer_table_wrapper(data, out_file, 1000, alphabet, 0, 2, false);
   EXPECT_EQ(lines_in_file(TOP_KMERS_ASSIGNMENT), lines_in_file(expected_output_file));
 
   alphabet = "ACTGP";
   path alignment_file = TEST_FILES / "alignment_files/c53bec1d-8cd7-43d0-8e40-e5e363fa9fca.sm.backward.tsv";
   data = {alignment_file.string()};
-  ASSERT_THROW({ generate_master_kmer_table_wrapper(data, out_file, 1000, alphabet, 2, false); } ,AssertionFailureException);
+  ASSERT_THROW({ generate_master_kmer_table_wrapper(data, out_file, 1000, alphabet, 0, 2, false); } , AssertionFailureException);
   alphabet = "ACTGE";
-  output_file = generate_master_kmer_table_wrapper(data, out_file, 1000, alphabet, 2, false);
+  output_file = generate_master_kmer_table_wrapper(data, out_file, 1000, alphabet, 0, 2, false);
   EXPECT_EQ(lines_in_file(TOP_KMERS_ALIGNMENT), lines_in_file(expected_output_file));
 }
 

@@ -25,9 +25,10 @@ class MaxKmers{
   /**
   Initialize locks and heaps and other important data structures
   */
-  MaxKmers(size_t heap_size, string alphabet, int kmer_length) :
+  MaxKmers(size_t heap_size, string alphabet, int kmer_length, double min_prob= 0.0) :
       alphabet(sort_string(alphabet)), alphabet_size(alphabet.length()),
-      kmer_length(kmer_length), n_kmers(pow(this->alphabet_size, this->kmer_length)), max_heap(heap_size)
+      kmer_length(kmer_length), n_kmers(pow(this->alphabet_size, this->kmer_length)), max_heap(heap_size),
+      min_prob(min_prob)
   {
     throw_assert(this->kmer_length > 0, "Kmer length must be greater than 0.")
     this->initialize_heap();
@@ -42,6 +43,7 @@ class MaxKmers{
   int kmer_length;
   int n_kmers;
   size_t max_heap;
+  double min_prob;
   std::vector<boost::heap::priority_queue<T>> kmer_queues;
   std::vector<mutex> locks;
 
@@ -190,7 +192,7 @@ class MaxKmers{
   void add_to_heap(T& kmer_struct){
     size_t index = this->get_kmer_index(kmer_struct.path_kmer);
     this->locks[index].lock();
-    if (this->kmer_queues[index].empty()) {
+    if (this->kmer_queues[index].empty() && kmer_struct.posterior_probability >= min_prob) {
 //    add to queue if not at capacity
       this->kmer_queues[index].push(kmer_struct);
 //    if at capacity check to see if prob is greater than min

@@ -82,18 +82,22 @@ void LoadVariantPaths::write_per_read_calls(const string &output_path){
   std::ofstream out_file;
   out_file.open(output_path);
   bool comma = false;
+  string base;
   // loop through all contigs
   out_file << "contig_strand" << '\t' << "read_id" << '\t' << "path_id" << '\t' << "path" << '\t' << "nucleotide_path";
-  for (auto &variant: read_id_to_variant_calls[0]) {
-    out_file << '\t';
-    for (auto &base: variant.bases){
-      if (comma){
-        out_file << ",";
+  for (pair<const basic_string<char>, vector<vector<basic_string<char>>>> index_to_variant_map: vp.index_to_variant){
+    for (auto& variant: index_to_variant_map.second){
+      out_file << '\t';
+      for(std::vector<int>::size_type i = 1; i != variant.size(); i++) {
+        base = variant[i];
+        if (comma){
+          out_file << ",";
+        }
+        out_file << base;
+        comma = true;
       }
-      out_file << base;
-      comma = true;
+      comma = false;
     }
-    comma = false;
   }
   out_file << '\n';
 

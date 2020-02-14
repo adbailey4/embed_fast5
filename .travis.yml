@@ -71,7 +71,7 @@ install:
   #  Install boost
   - cd $HOME/build/adbailey4
   - wget -O boost_1_69_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download
-  - tar xzf boost_1_69_0.tar.gz >/dev/null
+  - tar -xzf boost_1_69_0.tar.gz >/dev/null
   - cd boost_1_69_0/
   - ./bootstrap.sh --show-libraries
   - ./bootstrap.sh --with-libraries=system,date_time,filesystem,iostreams,coroutine,context >/dev/null #--prefix=/usr/
@@ -83,7 +83,7 @@ install:
   - wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2
   - tar -vxjf htslib-1.9.tar.bz2
   - ls
-  - cd htslib-1.9 && ./configure --prefix /usr/local && make && sudo make install
+  - cd htslib-1.9 && ./configure --prefix /usr/local --enable-plugins CPPFLAGS="-fPIC" CFLAGS="-fPIC" && make && sudo make install
   #  Install HDF5
   - cd $HOME/build/adbailey4
   - wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.gz

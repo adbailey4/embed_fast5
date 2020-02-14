@@ -1,6 +1,6 @@
 ############################################################################################################
 cmake_minimum_required(VERSION 3.7)
-set(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
+set(CMAKE_CXX_FLAGS "-O3 -g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_C_FLAGS_DEBUG  "-O0 -g -Wall --pedantic -fopenmp -funroll-loops -DDEBUG")
 project(embed_fast5)
@@ -9,7 +9,7 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
+set(CMAKE_CXX_FLAGS "-O3 -g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-3")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -gdwarf-3")
@@ -55,11 +55,9 @@ message(gtest_SOURCE_DIR: ${gtest_SOURCE_DIR})
 #set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_MULTITHREADED      ON)
 #set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost 1.69.0 COMPONENTS system date_time filesystem iostreams coroutine context REQUIRED)
-#find_package(hdf5 1.8 REQUIRED HINTS
-#        ${CMAKE_INSTALL_PREFIX}/include
-#        )
+find_package(Boost 1.69.0 COMPONENTS system date_time filesystem context iostreams coroutine REQUIRED)
 message(Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS})
+message(Boost_LIBRARIES: ${Boost_LIBRARIES})
 include_directories(${Boost_INCLUDE_DIRS})
 ############################################################################################################
 # ZLIB LIBRARY
@@ -157,6 +155,13 @@ include_directories(${HTSLIB_INCLUDE_DIRS})
 #        /usr/lib
 #        ${LIBDIR})
 #message(OPENSSL_LIB: ${OPENSSL_LIB})
+#############################################################################################################
+### Curl LIBRARY
+##############################################################################################################
+#
+#find_library(LIBCURL_LIBRARY NAMES curl)
+#message(LIBCURL_LIB: ${LIBCURL_LIBRARY})
+
 ############################################################################################################
 # NANOPOLISH LIBRARY
 ############################################################################################################
@@ -216,7 +221,7 @@ set(nanopolish_source
         ${NANOPOLISH_HOME}/src/thirdparty/stdaln.c)
 
 set(NANOPOLISH ${NANOPOLISH_HOME}/src/main/nanopolish.cpp)
-set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} ${ZLIB_LIBRARIES} ${LIBDL_LIBRARY} ${LIBM_LIBRARY} ${LIBPTHREAD_LIBRARY} ${LIBBZ2_LIBRARY} ${LIBCURL_LIBRARY} ${LIBLZMA_LIBRARY}) #${OPENSSL_LIB}
+set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} ${LIBCURL_LIBRARY} ${ZLIB_LIBRARIES} ${LIBLZMA_LIBRARY} ${LIBBZ2_LIBRARY} ${ZLIB_LIBRARIES} ${LIBM_LIBRARY} ${LIBDL_LIBRARY} ${LIBPTHREAD_LIBRARY})
 # nanopolish main
 #add_executable(nanopolish ${NANOPOLISH} ${nanopolish_source})
 #target_link_libraries(nanopolish ${NP_LIBRARY})

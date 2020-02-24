@@ -37,18 +37,18 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
-    - os: linux
-      compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.6
-          packages:
-            - clang-3.6
-            - cmake
-      env:
-        - MATRIX_EVAL="CC=clang-3.6 && CXX=clang-3.6"
+#    - os: linux
+#      compiler: clang
+#      addons:
+#        apt:
+#          sources:
+#            - ubuntu-toolchain-r-test
+#            - llvm-toolchain-precise-3.6
+#          packages:
+#            - clang-3.6
+#            - cmake
+#      env:
+#        - MATRIX_EVAL="CC=clang-3.6 && CXX=clang-3.6"
 
 before_install:
   #  - eval "${MATRIX_EVAL}"
@@ -92,6 +92,7 @@ install:
 #  - echo "LD_LIBRARY_PATH=/home/travis/build/adbailey4/hdf5-1.10.4/hdf5/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
 #  - source ~/.bashrc
   - cd $HOME/build/adbailey4/embed_fast5
+  - pip install cython
   - python setup.py install
 
 script:

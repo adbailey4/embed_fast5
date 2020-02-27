@@ -18,41 +18,32 @@ using namespace embed_utils;
  * Generate the master table by parsing event table files and outputting the top n kmers to a files
  *
  * @param event_table_files: vector of strings of files
- * @param output_path: path to output file
+ * @param output_file: path to output file
+ * @param log_file: path to log file
  * @param heap_size: number of max kmers to keep for each kmer
  * @param alphabet: alphabet used to generate kmers
  * @param n_threads: set number of threads to use: default 2
  * @param verbose: print out files as they are being processed
  */
-string generate_master_kmer_table_wrapper(vector<string> event_table_files,
-                                          string &output_path,
-                                          uint64_t heap_size,
-                                          string &alphabet,
-                                          double min_prob,
-                                          uint64_t n_threads,
-                                          bool verbose) {
+void generate_master_kmer_table_wrapper(vector<string> event_table_files,
+                                        string &output_file,
+                                        string &log_file,
+                                        uint64_t heap_size,
+                                        string &alphabet,
+                                        double min_prob,
+                                        uint64_t n_threads,
+                                        bool verbose) {
   uint64_t n_col = number_of_columns(event_table_files[0]);
   throw_assert(n_col == 16 or n_col == 4,
                "Incorrect number of columns in tsv: " + event_table_files[0])
-  string output_file;
   if (n_col == 4) {
-    output_file = generate_master_kmer_table<AssignmentFile, eventkmer>(event_table_files,
-                                                                        output_path,
-                                                                        heap_size,
-                                                                        alphabet, min_prob,
-                                                                        n_threads,
-                                                                        verbose);
+    generate_master_kmer_table<AssignmentFile, eventkmer>(event_table_files, output_file, log_file,
+        alphabet,heap_size,min_prob,n_threads,verbose);
 
   } else if (n_col == 16) {
-    output_file = generate_master_kmer_table<AlignmentFile, FullSaEvent>(event_table_files,
-                                                                         output_path,
-                                                                         heap_size,
-                                                                         alphabet, min_prob,
-                                                                         n_threads,
-                                                                         verbose);
-
+    generate_master_kmer_table<AlignmentFile, FullSaEvent>(event_table_files, output_file, log_file,
+        alphabet, heap_size, min_prob, n_threads, verbose);
   }
-  return output_file;
 }
 
 // Getopt
@@ -185,9 +176,12 @@ auto top_kmers_main(int argc, char** argv) -> int
     all_files.push_back(file.string());
   }
   path out_dir_path(opt::output_dir);
-  string output_path = (out_dir_path / "buildAlignment.tsv").string();
+  string output_file = (out_dir_path / "buildAlignment.tsv").string();
+  string log_file = (out_dir_path / "bA_log.tsv").string();
+
   generate_master_kmer_table_wrapper(all_files,
-                                     output_path,
+                                     output_file,
+                                     log_file,
                                      opt::heap_size,
                                      opt::alphabet,
                                      opt::min_prob,

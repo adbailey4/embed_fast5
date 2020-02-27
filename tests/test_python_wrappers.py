@@ -18,7 +18,6 @@ from embed import bindings
 from py3helpers.utils import list_dir, captured_output, count_lines_in_file
 
 
-
 class TestPythonWrappers(unittest.TestCase):
 
     @classmethod
@@ -56,28 +55,29 @@ class TestPythonWrappers(unittest.TestCase):
             n_threads = 2
             with tempfile.TemporaryDirectory() as temp_dir:
                 output_path = os.path.join(temp_dir, "out_file.tsv")
-                out_file = bindings.generate_master_kmer_table(list_dir(self.assignment_dir, ext="tsv"), output_path,
-                                                               heap_size,
-                                                               alphabet, min_prob=0, n_threads=n_threads)
-                self.assertEqual(15626, count_lines_in_file(out_file))
+                log_file_path = os.path.join(temp_dir, "log_file.tsv")
+
+                bindings.generate_master_kmer_table(list_dir(self.assignment_dir, ext="tsv"), output_path,
+                                                    log_file_path,
+                                                    heap_size,
+                                                    alphabet, min_prob=0, n_threads=n_threads)
+                self.assertEqual(15626, count_lines_in_file(log_file_path))
                 self.assertEqual(17350, count_lines_in_file(output_path))
-                out_file2 = \
-                    bindings.generate_master_kmer_table(
-                        [os.path.join(self.alignment_dir, "7d31de25-8c15-46d8-a08c-3d5043258c89.sm.forward.tsv")],
-                        output_path, heap_size, "ATGCEF", n_threads=n_threads)
-                self.assertEqual(7777, count_lines_in_file(out_file2))
+                bindings.generate_master_kmer_table(
+                    [os.path.join(self.alignment_dir, "7d31de25-8c15-46d8-a08c-3d5043258c89.sm.forward.tsv")],
+                    output_path, log_file_path, heap_size, "ATGCEF", n_threads=n_threads)
+                self.assertEqual(7777, count_lines_in_file(log_file_path))
                 self.assertEqual(1565, count_lines_in_file(output_path))
 
-                out_file2 = \
-                    bindings.generate_master_kmer_table(
-                        [os.path.join(self.alignment_dir, "7d31de25-8c15-46d8-a08c-3d5043258c89.sm.forward.tsv")],
-                        output_path, heap_size, "ATGCEF", min_prob=0.5, n_threads=n_threads)
-                self.assertEqual(7777, count_lines_in_file(out_file2))
+                bindings.generate_master_kmer_table(
+                    [os.path.join(self.alignment_dir, "7d31de25-8c15-46d8-a08c-3d5043258c89.sm.forward.tsv")],
+                    output_path, log_file_path, heap_size, "ATGCEF", min_prob=0.5, n_threads=n_threads)
+                self.assertEqual(7777, count_lines_in_file(log_file_path))
                 self.assertEqual(417, count_lines_in_file(output_path))
 
             # self.assertRaises(RuntimeError, bindings.generate_master_kmer_table,
-                #                       list_dir(self.alignment_dir, ext="tsv"),
-                #                       output_path, heap_size, "ATGCEF", n_threads)
+            #                       list_dir(self.alignment_dir, ext="tsv"),
+            #                       output_path, heap_size, "ATGCEF", n_threads)
 
 
 if __name__ == '__main__':

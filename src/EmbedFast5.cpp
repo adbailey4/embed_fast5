@@ -121,6 +121,17 @@ void embed_single_read(const ReadDB& read_db, std::string read_id, std::string f
                       auto event_specific_data = event_table_to_event_detection_vector(sr.events[0],
                           sr.sample_rate, sr.sample_start_time);
                       fast5_file.add_eventdetection_events(gr, rn, event_specific_data);
+                      fast5::Raw_Samples_Params rs_params = fast5_file.get_raw_samples_params();
+                      fast5::EventDetection_Events_Params ed_params;
+                      ed_params.read_id = rs_params.read_id;
+                      ed_params.read_number = rs_params.read_number;
+                      ed_params.start_mux = rs_params.start_mux;
+                      ed_params.start_time = rs_params.start_time;
+                      ed_params.duration = rs_params.duration;
+                      ed_params.scaling_used = 1;
+                      ed_params.median_before = 0;
+                      ed_params.abasic_found = 1;
+                      fast5_file.add_eventdetection_events_params(gr, rn, ed_params);
                     }
                     if (!fast5_file.exists(path_1) and !fast5_file.exists(path_2)) {
                       cout << "passing: " << fast5_path << "\n";

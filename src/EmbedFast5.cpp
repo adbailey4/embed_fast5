@@ -31,6 +31,21 @@ std::vector< fast5::Basecall_Event > event_table_to_basecalled_table(std::vector
 
 }
 
+std::vector< fast5::EventDetection_Event > event_table_to_event_detection_vector(std::vector< SquiggleEvent >& et, double& sample_rate, int64_t& sample_start_time){
+
+  std::vector< fast5::EventDetection_Event > event_detection_et(et.size());
+
+  for (int i=0; i < et.size() ; i++){
+    event_detection_et[i].start = (long long) (et[i].start_time * sample_rate + sample_start_time);
+    event_detection_et[i].length = (long long) (et[i].duration * sample_rate);
+    event_detection_et[i].mean = (double) et[i].mean;
+    event_detection_et[i].stdv = (double) et[i].stdv;
+  }
+  return event_detection_et;
+
+}
+
+
 std::vector< fast5::Basecall_Event > generate_basecall_table(SquiggleRead& read){
 
     std::vector<EventAlignment> alignment = read.get_eventalignment_for_1d_basecalls(read.read_sequence, "nucleotide",
@@ -95,6 +110,10 @@ void embed_single_read(const ReadDB& read_db, std::string read_id, std::string f
                     if (!fast5_file.exists(path_1)) {
                         cout << "running: " << fast5_path << "\n";
                         fast5_file.add_basecall_events(0, "1D_000", data);
+                        string gr ="000";
+                        auto event_specific_data = event_table_to_event_detection_vector(sr.events[0], sr.sample_rate, sr.sample_start_time);
+                        fast5_file.add_eventdetection_events(gr, "Read_" + to_string(sr.read_id),
+                            event_specific_data);
                     } else {
                         cout << "passing: " << fast5_path << "\n";
 

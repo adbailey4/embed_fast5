@@ -91,7 +91,7 @@ std::vector< fast5::Basecall_Event > generate_basecall_table(SquiggleRead& read)
 }
 
 
-void embed_single_read(const ReadDB& read_db, std::string read_id, std::string fast5_path){
+void embed_single_read(const ReadDB &read_db, std::string read_id, std::string fast5_path) {
     try
     {
         std::string fastq_sequence;
@@ -115,14 +115,14 @@ void embed_single_read(const ReadDB& read_db, std::string read_id, std::string f
                 } else {
                     sr.get_events(fast5_path);
                 }
+                fast5::Raw_Samples_Params rs_params = fast5_file.get_raw_samples_params();
                 string gr ="000";
-                string rn = "Read_" + to_string(sr.read_id);
+                string rn = "Read_" + to_string(rs_params.read_number);
                 string path_2 = fast5::File::eventdetection_events_path(gr, rn);
                 if (!fast5_file.exists(path_2)) {
                     auto event_specific_data = event_table_to_event_detection_vector(sr.events[0],
                         sr.sample_rate, sr.sample_start_time);
                     fast5_file.add_eventdetection_events(gr, rn, event_specific_data);
-                    fast5::Raw_Samples_Params rs_params = fast5_file.get_raw_samples_params();
                     fast5::EventDetection_Events_Params ed_params;
                     ed_params.read_id = rs_params.read_id;
                     ed_params.read_number = rs_params.read_number;
@@ -148,7 +148,7 @@ void embed_single_read(const ReadDB& read_db, std::string read_id, std::string f
 
 }
 
-void multiprocess_embed_using_readdb(const std::string& input_reads_filename, const ReadDB& read_db){
+void multiprocess_embed_using_readdb(const std::string &input_reads_filename, const ReadDB &read_db) {
 
         // generate input filenames
         std::string m_indexed_reads_filename = input_reads_filename + ".index";
@@ -177,7 +177,7 @@ void multiprocess_embed_using_readdb(const std::string& input_reads_filename, co
                 if (fields.size() == 2) {
                     name = fields[0];
                     path = fields[1];
-                    embed_single_read(read_db, name, path);
+                  embed_single_read(read_db, name, path);
                 }
             }
     }
@@ -185,7 +185,7 @@ void multiprocess_embed_using_readdb(const std::string& input_reads_filename, co
 }
 
 // basically a replica of ReadDB::load but I want access to the private data
-void embed_using_readdb(const std::string& input_reads_filename, const ReadDB& read_db)
+void embed_using_readdb(const std::string &input_reads_filename, const ReadDB &read_db)
 {
 
     // generate input filenames
@@ -204,7 +204,7 @@ void embed_using_readdb(const std::string& input_reads_filename, const ReadDB& r
             if(fields.size() == 2) {
                 name = fields[0];
                 path = fields[1];
-                embed_single_read(read_db, name, path);
+              embed_single_read(read_db, name, path);
             }
         }
     }
@@ -323,10 +323,10 @@ int embed_fast5_main(int argc, char** argv)
     if(opt::threads > 1) {
         omp_set_num_threads(opt::threads); // Use 4 threads for all consecutive parallel regions
 
-        multiprocess_embed_using_readdb(opt::reads_file, read_db);
+      multiprocess_embed_using_readdb(opt::reads_file, read_db);
 
     } else {
-        embed_using_readdb(opt::reads_file, read_db);
+      embed_using_readdb(opt::reads_file, read_db);
 
     }
 

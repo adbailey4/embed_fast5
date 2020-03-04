@@ -246,7 +246,6 @@ TEST (Fast5WriteTests, test_event_table_to_basecalled_table) {
 //    remove test file
   emtpy_f.close();
   original_f.close();
-//    remove(NO_FAST5);
 }
 
 TEST (Fast5WriteTests, test_generate_basecall_table) {
@@ -303,9 +302,8 @@ TEST (Fast5EmbedTests, test_embed_using_readdb) {
   read_db.load(read_db_path);
   embed_single_read(read_db, read_id, NO_FAST5.string());
   remove(NO_FAST5);
-//  a.~Redirect();
 }
-//
+
 TEST (Fast5EmbedTests, test_r94_embed) {
 //    crete test file
   Redirect a(true, true);

@@ -1,101 +1,63 @@
-notifications: # set notification options
+notifications:
   slack:
-    rooms:
-      - ucsc-cgl:Edwfgt7MJEVZV9Lib3igueTF
-    on_success: change
-    on_failure: always
+    secure: awlEmWS3kyRMJyHzcyRu2UQnmU4qX23jxxHY1TjhtQe8JzrBSlClyL9FBRHAPb5ktkd+a6rEay6LHxGUQxBZyuRZL8nB5ShKPp847ZO436kQE1mpL7GRyPKz9L9YGyYUKDxgEQuBEHe+fDLwliaHru8mod0vvRabIqQ4VXEfIxxbqCRkQHeAGqU2lnjnVnvBd1dJr59UZ+s2ZpFCfOylvmYWSiOTmU4xNWk7s62DRYgU8t6/+pJr7ylJImGsy7T5fC0mm2Mt8hwCck7ZzNN8OYc92Gs2uual1Sr/KQAmyj6fTG29H7W/mgt18TVEi3j4UfwuNA7WcPM/yz6vI78tQl1mDOCpRHBQdaJ+Y30n+rUppT5zn5fDb9Y8YcqztAy/kB1YVdLnEDPDmzLX5t6GJMGpWhHbtx/Ta+ObqadsI+9oCTGVpwtzCGOJBOPWwESAmpAr0S0T26cdwK8CMxn6H2FJFD4lourYcCkF2hiWbMB5cCcqltSHLCb6W5JK7qh6dex1gw60ZzhmiC1opqzzkE30ds4XdZBw6zpqNW7fXAa7A7PyOvIzMphN9JRAKhLH655fBuqest4qESMN8L5XnaThuloowwcYP4R/cbW+M9p1AdxAq66qz/wsYZvrGRbPHikQQFn8epDpnIuQgLJnVVVcP9kvXcGOhVO0ycM4GSc=
   email: false
-
 language: generic
-
 matrix:
   include:
-#    - os: linux
-#      compiler: gcc
-#      addons:
-#        apt:
-#          sources:
-#            - ubuntu-toolchain-r-test
-#          packages:
-#            - cmake-data
-#            - gcc-5
-#            - g++-5
-#            - cmake
-#      env:
-#        - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
-    - os: linux
-      compiler: gcc
-      python:
-        3.6
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - cmake-data
-            - gcc-6
-            - g++-6
-            - cmake
-      env:
-        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
-
-#    - os: linux
-#      compiler: clang
-#      addons:
-#        apt:
-#          sources:
-#            - ubuntu-toolchain-r-test
-#            - llvm-toolchain-precise-3.6
-#          packages:
-#            - clang-3.6
-#            - cmake
-#      env:
-#        - MATRIX_EVAL="CC=clang-3.6 && CXX=clang-3.6"
-
+  - os: linux
+    compiler: gcc
+    python: 3.6
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - cmake-data
+        - gcc-6
+        - g++-6
+        - cmake
+    env:
+    - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 before_install:
-  #  - eval "${MATRIX_EVAL}"
-  - sudo apt-get update -qq
-  - sudo apt-get install build-essential autotools-dev autoconf curl libbz2-dev zlib1g-dev liblzma-dev libeigen3-dev -y
-  - sudo apt-get update
-
+- sudo apt-get update -qq
+- sudo apt-get install build-essential autotools-dev autoconf curl libbz2-dev zlib1g-dev
+  liblzma-dev libeigen3-dev -y
+- sudo apt-get update
 install:
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - conda config --set always_yes yes --set changeps1 no
-  - pwd
-  - python --version
-  - cmake --version
-  - gcc --version
-  - g++ --version
-  - cc --version
-  - c++ --version
-  #  Install boost
-  - cd $HOME/build/adbailey4
-  - wget -O boost_1_69_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download
-  - tar -xzf boost_1_69_0.tar.gz >/dev/null
-  - cd boost_1_69_0/
-  - ./bootstrap.sh --show-libraries
-  - ./bootstrap.sh --with-libraries=system,date_time,filesystem,iostreams,coroutine,context >/dev/null #--prefix=/usr/
-  - sudo ./b2 && sudo ./b2 install
-  #  Install htslib
-  - export CFLAGS="$CFLAGS -fPIC"
-  - export CXXFLAGS="$CXXFLAGS -fPIC"
-  - cd $HOME/build/adbailey4/
-  - wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2
-  - tar -vxjf htslib-1.9.tar.bz2
-  - ls
-  - cd htslib-1.9 && ./configure --prefix /usr/local --enable-plugins CPPFLAGS="-fPIC" CFLAGS="-fPIC" && make && sudo make install
-  #  Install HDF5
-  - cd $HOME/build/adbailey4
-  - wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.gz
-  - tar -xzf hdf5-1.10.4.tar.gz || exit 255
-  - cd hdf5-1.10.4 && ./configure --prefix /usr/local --enable-threadsafe --disable-hl && make && sudo make install
-#  - echo "LD_LIBRARY_PATH=/home/travis/build/adbailey4/hdf5-1.10.4/hdf5/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
-#  - source ~/.bashrc
-  - cd $HOME/build/adbailey4/embed_fast5
-#  - pip install cython
-  - python setup.py install
-
+- wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+- bash miniconda.sh -b -p $HOME/miniconda
+- export PATH="$HOME/miniconda/bin:$PATH"
+- conda config --set always_yes yes --set changeps1 no
+- pwd
+- python --version
+- cmake --version
+- gcc --version
+- g++ --version
+- cc --version
+- c++ --version
+- cd $HOME/build/adbailey4
+- wget -O boost_1_69_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download
+- tar -xzf boost_1_69_0.tar.gz >/dev/null
+- cd boost_1_69_0/
+- "./bootstrap.sh --show-libraries"
+- "./bootstrap.sh --with-libraries=system,date_time,filesystem,iostreams,coroutine,context
+  >/dev/null"
+- sudo ./b2 && sudo ./b2 install
+- export CFLAGS="$CFLAGS -fPIC"
+- export CXXFLAGS="$CXXFLAGS -fPIC"
+- cd $HOME/build/adbailey4/
+- wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2
+- tar -vxjf htslib-1.9.tar.bz2
+- ls
+- cd htslib-1.9 && ./configure --prefix /usr/local --enable-plugins CPPFLAGS="-fPIC"
+  CFLAGS="-fPIC" && make && sudo make install
+- cd $HOME/build/adbailey4
+- wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.gz
+- tar -xzf hdf5-1.10.4.tar.gz || exit 255
+- cd hdf5-1.10.4 && ./configure --prefix /usr/local --enable-threadsafe --disable-hl
+  && make && sudo make install
+- cd $HOME/build/adbailey4/embed_fast5
+- python setup.py install
 script:
-  - python setup.py test
+- python setup.py test

@@ -58,6 +58,7 @@ install:
 - cd hdf5-1.10.4 && ./configure --prefix /usr/local --enable-threadsafe --disable-hl
   && make && sudo make install
 - cd $HOME/build/adbailey4/embed_fast5
+- pip install cython
 - python setup.py install
 script:
 - python setup.py test

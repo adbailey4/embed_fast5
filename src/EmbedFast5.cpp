@@ -102,47 +102,44 @@ void embed_single_read(const ReadDB& read_db, std::string read_id, std::string f
             //            make sure the read sequence is long enough to process
             if (read_sequence.length() > 10) {
                 SquiggleRead sr(read_id, read_db);
+                fast5::File fast5_file;
+                fast5_file.open(fast5_path, true);
+
                 if (!sr.events[0].empty()) {
                     auto data = generate_basecall_table(sr);
-                    fast5::File fast5_file;
-                    fast5_file.open(fast5_path, true);
                     std::string path_1 = fast5::File::basecall_events_path("1D_000", 0);
                     if (!fast5_file.exists(path_1)) {
                         cout << "running: " << fast5_path << "\n";
                         fast5_file.add_basecall_events(0, "1D_000", data);
-
-                    } else {
-                        cout << "passing: " << fast5_path << "\n";
                     }
-                    string gr ="000";
-                    string rn = "Read_" + to_string(sr.read_id);
-                    string path_2 = fast5::File::eventdetection_events_path(gr, rn);
-                    if (!fast5_file.exists(path_2)) {
-                      auto event_specific_data = event_table_to_event_detection_vector(sr.events[0],
-                          sr.sample_rate, sr.sample_start_time);
-                      fast5_file.add_eventdetection_events(gr, rn, event_specific_data);
-                      fast5::Raw_Samples_Params rs_params = fast5_file.get_raw_samples_params();
-                      fast5::EventDetection_Events_Params ed_params;
-                      ed_params.read_id = rs_params.read_id;
-                      ed_params.read_number = rs_params.read_number;
-                      ed_params.start_mux = rs_params.start_mux;
-                      ed_params.start_time = rs_params.start_time;
-                      ed_params.duration = rs_params.duration;
-                      ed_params.scaling_used = 1;
-                      ed_params.median_before = 0;
-                      ed_params.abasic_found = 1;
-                      fast5_file.add_eventdetection_events_params(gr, rn, ed_params);
-                    }
-                    if (!fast5_file.exists(path_1) and !fast5_file.exists(path_2)) {
-                      cout << "passing: " << fast5_path << "\n";
-                    }
-                    fast5_file.close();
                 } else {
-                    cout << "FAILED SR" << fast5_path << "\n";
+                    sr.get_events(fast5_path);
                 }
-            } else{
-                cout << "Too Short: " << fast5_path << "\n";
+                string gr ="000";
+                string rn = "Read_" + to_string(sr.read_id);
+                string path_2 = fast5::File::eventdetection_events_path(gr, rn);
+                if (!fast5_file.exists(path_2)) {
+                    auto event_specific_data = event_table_to_event_detection_vector(sr.events[0],
+                        sr.sample_rate, sr.sample_start_time);
+                    fast5_file.add_eventdetection_events(gr, rn, event_specific_data);
+                    fast5::Raw_Samples_Params rs_params = fast5_file.get_raw_samples_params();
+                    fast5::EventDetection_Events_Params ed_params;
+                    ed_params.read_id = rs_params.read_id;
+                    ed_params.read_number = rs_params.read_number;
+                    ed_params.start_mux = rs_params.start_mux;
+                    ed_params.start_time = rs_params.start_time;
+                    ed_params.duration = rs_params.duration;
+                    ed_params.scaling_used = 1;
+                    ed_params.median_before = 0;
+                    ed_params.abasic_found = 1;
+                    fast5_file.add_eventdetection_events_params(gr, rn, ed_params);
+                }
+                fast5_file.close();
+            } else {
+              cout << "Too Short: " << fast5_path << "\n";
             }
+        } else {
+          cout << "File Not Found: " << fast5_path << "\n";
         }
     }
     catch (int e){

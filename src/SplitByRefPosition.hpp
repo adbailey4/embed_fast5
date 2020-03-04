@@ -1,0 +1,10 @@
+//
+// Created by Andrew Bailey on 2019-07-24.
+//
+
+#ifndef EMBED_FAST5_SRC_SCRIPTS_SPLITBYREFPOSITION_HPP_
+#define EMBED_FAST5_SRC_SCRIPTS_SPLITBYREFPOSITION_HPP_
+
+int split_by_ref_main(int argc, char** argv);
+
+#endif //EMBED_FAST5_SRC_SCRIPTS_SPLITBYREFPOSITION_HPP_

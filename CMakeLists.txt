@@ -253,7 +253,7 @@ set(SOURCE
         src/ReferenceHandler.cpp src/ReferenceHandler.hpp
         src/FolderHandler.cpp src/FolderHandler.hpp
         src/VariantPath.cpp src/VariantPath.hpp
-        src/LoadVariantPaths.cpp src/LoadVariantPaths.hpp)
+        src/LoadVariantPaths.cpp src/LoadVariantPaths.hpp src/ConcurrentQueue.hpp)
 ############################################################################################################
 # main
 add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE})

@@ -12,6 +12,7 @@
 #include "EmbedFast5.hpp"
 #include "VariantPath.hpp"
 #include "LoadVariantPaths.hpp"
+#include "ConcurrentQueue.hpp"
 
 // fast5
 #include "fast5.hpp"
@@ -34,6 +35,7 @@
 // Standard Libray
 #include <iostream>
 #include <numeric>
+#include <future>
 
 
 using namespace boost::filesystem;
@@ -68,6 +70,7 @@ using ::testing::ElementsAreArray;
 #define TOP_KMERS_ASSIGNMENT1 "tests/test_files/test_top_kmers/builtAssignment2.tsv"
 #define TOP_KMERS_ALIGNMENT1 "tests/test_files/test_top_kmers/builtAssignment1.tsv"
 #define TOP_KMERS_ALIGNMENT2 "tests/test_files/test_top_kmers/builtAssignment3.tsv"
+#define AMBIG_MOD_FILE1 "tests/test_files/test_ambig_model/mod_variants.model"
 
 path HOME = "This is not a path";
 path ORIGINAL_FAST5 = ORIGINAL_FAST51;
@@ -96,6 +99,7 @@ path DNA_TEST_VARIANTS = DNA_TEST_VARIANTS1;
 path TOP_KMERS_ASSIGNMENT = TOP_KMERS_ASSIGNMENT1;
 path TOP_KMERS_ALIGNMENT = TOP_KMERS_ALIGNMENT1;
 path FILTERED_TOP_KMERS_ALIGNMENT = TOP_KMERS_ALIGNMENT2;
+path AMBIG_MOD_FILE = AMBIG_MOD_FILE1;
 
 TEST (Fast5AccessTest, isValidFile) {
   Redirect a(true, true);
@@ -1049,6 +1053,16 @@ TEST (EmbedUtilsTests, test_create_ambig_bases) {
   EXPECT_EQ("AF", ambig_bases["f"]);
 }
 
+TEST (EmbedUtilsTests, test_create_ambig_bases2) {
+  Redirect a(true, true);
+  std::map<string, string> ambig_bases = create_ambig_bases2(AMBIG_MOD_FILE.string());
+  EXPECT_EQ("Aa", ambig_bases["B"]);
+  ambig_bases = create_ambig_bases2("");
+  EXPECT_EQ("AF", ambig_bases["f"]);
+  ASSERT_THROW(create_ambig_bases2("asdf"), AssertionFailureException);
+}
+
+
 void test_test(int the){
   the += 1;
 }
@@ -1063,6 +1077,32 @@ TEST (EmbedUtilsTests, test_get_time) {
   EXPECT_EQ(0, get<2>(the_time2));
   EXPECT_EQ("hours: 0 minutes: 0", the_time.substr(0, 19));
 }
+
+template<typename T>
+void add_to_queue(ConcurrentQueue<T>& cq){
+  cq.push("Test");
+}
+
+template<typename T>
+void remove_from_queue(ConcurrentQueue<T>& cq, std::promise<T> && p){
+  T value;
+  cq.wait_and_pop(value);
+  p.set_value(value);
+}
+
+
+TEST (ConcurrentQueueTests, test_ConcurrentQueue) {
+  ConcurrentQueue<string> cq{};
+  std::promise<string> p;
+  auto f = p.get_future();
+  std::thread t2(remove_from_queue<string>, ref(cq), std::move(p));
+  std::thread t1(add_to_queue<string>, ref(cq));
+  t1.join();
+  t2.join();
+  string i = f.get();
+  EXPECT_EQ("Test", i);
+}
+
 
 int main(int argc, char **argv) {
   H5Eset_auto(0, nullptr, nullptr);
@@ -1094,6 +1134,7 @@ int main(int argc, char **argv) {
   TOP_KMERS_ASSIGNMENT = HOME / TOP_KMERS_ASSIGNMENT;
   TOP_KMERS_ALIGNMENT = HOME / TOP_KMERS_ALIGNMENT;
   FILTERED_TOP_KMERS_ALIGNMENT = HOME / FILTERED_TOP_KMERS_ALIGNMENT;
+  AMBIG_MOD_FILE = HOME / AMBIG_MOD_FILE;
   ::testing::InitGoogleMock(&argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

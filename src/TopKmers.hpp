@@ -26,14 +26,15 @@ void generate_master_kmer_table_wrapper(vector<string> event_table_files,
 
 
 /**
- * Generate the master assignment table by parsing either assignment or alignment files and
- * outputting the top n kmers to a files
+ * Worker for generate_master_kmer_table. Add kmers to heap from alignment file
  *
- * @param assignment_dir: path to assignment files directory
- * @param output_dir: path to output directory where new builtAssignment.tsv will be written
- * @param heap_size: number of max kmers to keep for each kmer
- * @param alphabet: alphabet used to generate kmers
- * @param n_threads: set number of threads to use: default 2
+ * @tparam T1: Event table file parsing class
+ * @tparam T2: Event table data type
+ * @param signalalign_output_files: reference to vector of signalalign files
+ * @param max_kmers: templated reference to thread safe queue
+ * @param job_index: atomic index for selecting output files to process
+ * @param n_files: max number of files to process
+ * @param verbose: option for printing files processed
  */
 template<class T1, class T2>
 void bin_max_kmer_worker(vector<path>& signalalign_output_files, T2& max_kmers, atomic<uint64_t>& job_index, int64_t n_files, bool& verbose) {

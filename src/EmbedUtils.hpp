@@ -39,6 +39,7 @@ namespace embed_utils{
   void dir_iterator_coroutine(dir_coro::push_type& yield, path& directory, string& ext);
   dir_coro::pull_type list_files_in_dir(path& directory, string& ext);
   std::map<string, string> create_ambig_bases();
+  std::map<string, string> create_ambig_bases2(string config_file);
   tuple<uint64_t, uint64_t, uint64_t, uint64_t> get_time(std::function<void()> bound_function);
   string get_time_string(std::function<void()> bound_function);
   int64_t lines_in_file(path &file_path);

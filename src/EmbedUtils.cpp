@@ -364,6 +364,33 @@ std::map<string, string> create_ambig_bases() {
 
   return ambig_hash;
 }
+
+/**
+ Create a map of all ambiguous bases so that we can determine what each ambiguous character represents
+
+@return map from base to ambiguous bases.
+*/
+std::map<string, string> create_ambig_bases2(string config_file) {
+  std::map<string, string> ambig_hash;
+  if (!config_file.empty()){
+    char encoding[10];
+    char ambig_bases[10];
+    char line[100];
+    FILE *infile = fopen(config_file.c_str(), "r");
+    throw_assert(infile, "Couldn't open " + string(config_file) + " for reading\n")
+    int i = 0;
+    while(i < 300 && fgets(line, sizeof(line), infile) != nullptr){
+      sscanf(line, "%s\t%s", encoding, ambig_bases);
+      ambig_hash.insert(std::pair<string, string>(encoding, ambig_bases));
+      i++;
+    }
+  } else {
+    ambig_hash = create_ambig_bases();
+  }
+  return ambig_hash;
+}
+
+
 /**
   Time and execute a function which returns void.
 

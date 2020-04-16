@@ -91,13 +91,24 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
         # Copy *_test file to tests directory
-        for executable in TEST_EXECUTABLES + MAIN_EXECUTABLES:
-            copy_test_file(os.path.join(self.build_temp, executable))
+        embed_cpp_tests = os.path.join(self.build_temp, 'test_embed')
+        embed_main = os.path.join(self.build_temp, 'embed_main')
+        copy_test_file(embed_cpp_tests)
+        copy_test_file(embed_main)
         print()  # Add empty line for nicer output
 
 
-TEST_EXECUTABLES = ["test_embed"]
-MAIN_EXECUTABLES = ["embed_main"]
+class PostInstallCommand(install):
+    """Post-installation for installation mode."""
+    def run(self):
+        install.run(self)
+        build_temp = self.build_lib.replace("lib", "temp")
+        source = os.path.join(os.path.dirname(os.path.abspath(__file__)), build_temp, "embed_main")
+        target = os.path.join(self.install_scripts, "embed_main")
+        if os.path.isfile(target):
+            os.remove(target)
+
+        self.copy_file(source, target)
 
 
 def main():
@@ -113,7 +124,7 @@ def main():
         packages=find_packages('src'),
         package_dir={'': 'src'},
         ext_modules=[CMakeExtension('embed.bindings')],
-        cmdclass=dict(build_ext=CMakeBuild),
+        cmdclass=dict(build_ext=CMakeBuild, install=PostInstallCommand),
         scripts=["src/scripts/split_multi_fast5.py", "src/scripts/embed_fast5s.py"],
         author_email='andbaile@ucsc.com',
         install_requires=['py3helpers[seq_tools]>=0.4.0',

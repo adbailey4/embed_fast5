@@ -34,7 +34,7 @@ static std::exception_ptr globalExceptionPtr = nullptr;
 void get_variants_worker(
     vector<path>& signalalign_output_files,
     MarginalizeVariants& mv,
-    ConcurrentQueue<vector<VariantCall>>& variant_queue,
+    ConcurrentQueue<tuple<string, vector<VariantCall>>>& variant_queue,
     atomic<uint64_t>& job_index,
     int64_t& n_files,
     bool& verbose,
@@ -42,6 +42,7 @@ void get_variants_worker(
     string &ambig_bases,
     std::map<string, string>& ambig_bases_map) {
   try {
+    tuple<string, vector<VariantCall>> read_id_and_variants;
     while (job_index < n_files and !globalExceptionPtr) {
       // Fetch add
       uint64_t thread_job_index = job_index.fetch_add(1);
@@ -49,7 +50,8 @@ void get_variants_worker(
       AlignmentFile af(current_file.string(), rna);
       vector<VariantCall> vc_calls = af.get_variant_calls(ambig_bases, &ambig_bases_map);
       mv.load_variants(&vc_calls);
-      variant_queue.push(vc_calls);
+      read_id_and_variants = make_tuple(af.read_id, vc_calls);
+      variant_queue.push(read_id_and_variants);
       if (verbose) {
 //      cout << current_file << "\n";
         // Print status update to stdout
@@ -87,15 +89,28 @@ uint64_t get_max_n_variants_in_model_file(std::map<string, string>& ambig_bases_
  * @param max_n_variants: the max number of variants and thus the max number of columns for each row
  * @param output_file: path to output file
  */
-void write_tsv_file_worker(ConcurrentQueue<vector<VariantCall>>& variant_queue, uint64_t& max_n_variants, path& output_file){
+void write_tsv_file_worker(
+    ConcurrentQueue<tuple<string, vector<VariantCall>>>& variant_queue,
+    uint64_t& max_n_variants,
+    path& output_file){
   std::ofstream my_file(output_file.string());
   if (my_file.is_open())
   {
+    my_file << "read_id,contig,reference_index,strand,variants";
+    for (uint64_t i=0; i < max_n_variants; i++){
+      my_file << ",prob" << to_string(i+1);
+    }
+    my_file << endl;
+
+    tuple<string, vector<VariantCall>> nvc;
     vector<VariantCall> vc;
+    string read_id;
     uint64_t delta = 0;
-    while (variant_queue.wait_and_pop(vc)){
+    while (variant_queue.wait_and_pop(nvc)){
+      read_id = get<0>(nvc);
+      vc = get<1>(nvc);
       for (const auto& variant: vc){
-        my_file << variant.contig << "," << variant.reference_index << "," << variant.strand << "," << variant.bases;
+        my_file << read_id << "," << variant.contig << "," << variant.reference_index << "," << variant.strand << "," << variant.bases;
         for (auto prob: variant.normalized_probs){
           my_file << "," << prob;
         }
@@ -142,14 +157,14 @@ void dump_signalalign_variant_calls(vector<string> &sa_output_paths,
   }
 // create ambig model
   throw_assert(exists(ambig_model), ambig_model+" does not exist")
-  std::map<string, string> ambig_bases_map = create_ambig_bases2(ambig_model);
+  map<string, string> ambig_bases_map = create_ambig_bases2(ambig_model);
   uint64_t max_n_variants = get_max_n_variants_in_model_file(ambig_bases_map);
 // check tsv files
   vector<path> all_tsvs = filter_emtpy_files(sa_output_paths, ".tsv");
   throw_assert(!all_tsvs.empty(), "There are no valid .tsv files")
-  int64_t number_of_files = all_tsvs.size();
+  auto number_of_files = (int64_t) all_tsvs.size();
 // create thread safe queue
-  ConcurrentQueue<vector<VariantCall>> variant_queue;
+  ConcurrentQueue<tuple<string, vector<VariantCall>>> variant_queue;
 //  create marginalize variants
   MarginalizeVariants mv(n_locks);
 //  get kmer length

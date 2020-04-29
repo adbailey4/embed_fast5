@@ -15,6 +15,7 @@
 #include "nanopolish_squiggle_read.h"
 #include "nanopolish_index.h"
 #include "nanopolish_extract.h"
+#include "nanopolish_eventalign.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -29,6 +30,7 @@ static std::map< std::string, std::function<int(int, char**)> > programs = {
     {"embed",       embed_fast5_main},
     {"index",       index_main},
     {"extract",     extract_main},
+    {"eventalign",  eventalign_main},
     {"filter_by_positions",      filter_alignments_main},
     {"top_kmers",   top_kmers_main},
     {"sa2bed",   sa2bed_main}

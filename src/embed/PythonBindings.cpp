@@ -57,7 +57,8 @@ PYBIND11_MODULE(bindings, module) {
     pybind11::arg("alphabet"),
     pybind11::arg("min_prob") = 0.0,
     pybind11::arg("n_threads") = 2,
-    pybind11::arg("verbose") = false);
+    pybind11::arg("verbose") = false,
+    pybind11::arg("write_full") = true);
 
 #ifdef VERSION_INFO
   m.attr("__version__") = VERSION_INFO;

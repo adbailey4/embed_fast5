@@ -22,7 +22,8 @@ void generate_master_kmer_table_wrapper(vector<string> event_table_files,
                                         string &alphabet,
                                         double min_prob,
                                         uint64_t n_threads,
-                                        bool verbose);
+                                        bool verbose,
+                                        bool write_full);
 
 
 /**
@@ -74,13 +75,14 @@ void bin_max_kmer_worker(vector<path>& signalalign_output_files, T2& max_kmers, 
  */
 template<class T1, class T2>
 void generate_master_kmer_table(vector<string> &sa_output_paths,
-                                  string &output_file,
-                                  string &log_file,
-                                  string &alphabet,
-                                  int heap_size,
-                                  double min_prob = 0.0,
-                                  unsigned int n_threads = 1,
-                                  bool verbose = false) {
+                                string &output_file,
+                                string &log_file,
+                                string &alphabet,
+                                int heap_size,
+                                double min_prob = 0.0,
+                                unsigned int n_threads = 1,
+                                bool verbose = false,
+                                bool write_full = false) {
 
 //  filter out empty files and check if there are any left
   vector<path> all_tsvs = filter_emtpy_files(sa_output_paths, ".tsv");
@@ -116,7 +118,7 @@ void generate_master_kmer_table(vector<string> &sa_output_paths,
   path output_path(output_file);
   path log_path(log_file);
 
-  mk.write_to_file(output_path, log_path);
+  mk.write_to_file(output_path, log_path, write_full);
 }
 
 auto top_kmers_main(int argc, char** argv) -> int;

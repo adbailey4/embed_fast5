@@ -133,12 +133,12 @@ class MaxKmers{
    * Write all kmers in the kmer_queues to output path
    * @param output_path
    */
-  void write_to_file(boost::filesystem::path& output_path){
+  void write_to_file(boost::filesystem::path &output_path, bool write_full) {
     std::ofstream out_file;
     out_file.open(output_path.string());
     for (auto &pq: this->kmer_queues){
       for (auto &event: pq){
-        out_file << event.path_kmer << '\t' << event.strand << '\t' << event.descaled_event_mean << '\t' << event.posterior_probability << '\n';
+        out_file << event.format_line(write_full);
       }
     }
     out_file.close();
@@ -146,10 +146,11 @@ class MaxKmers{
 
   /**
    * Write all kmers in the kmer_queues to output path and write info about the kmers to log_path
-   * @param output_path
-   * @param log_path
+   * @param output_path: path to output file
+   * @param log_path: path to output log file
+   * @param write_full: boolean option to write full output
    */
-  void write_to_file(boost::filesystem::path& output_path, boost::filesystem::path& log_path){
+  void write_to_file(boost::filesystem::path &output_path, boost::filesystem::path &log_path, bool write_full) {
     std::ofstream out_file;
     out_file.open(output_path.string());
 
@@ -161,7 +162,7 @@ class MaxKmers{
     for (auto &pq: this->kmer_queues){
 // loop through all queues
       for (auto &event: pq){
-        out_file << event.path_kmer << '\t' << event.strand << '\t' << event.descaled_event_mean << '\t' << event.posterior_probability << '\n';
+        out_file << event.format_line(write_full);
 //      keep track of number of events
       }
       //    log info about queue

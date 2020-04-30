@@ -247,7 +247,6 @@ set(SOURCE
         src/MaxKmers.cpp src/MaxKmers.hpp
         src/MarginalizeVariants.cpp src/MarginalizeVariants.hpp
         src/VariantCall.cpp src/VariantCall.hpp
-        src/FullSaEvent.cpp src/FullSaEvent.hpp
         src/SplitByRefPosition.cpp src/SplitByRefPosition.hpp
         src/PerPositonKmers.cpp src/PerPositonKmers.hpp
         src/ReferenceHandler.cpp src/ReferenceHandler.hpp

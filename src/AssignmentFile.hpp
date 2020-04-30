@@ -1,3 +1,4 @@
+#include <climits>
 //
 // Created by Andrew Bailey on 2019-07-15.
 //
@@ -7,6 +8,7 @@
 
 #include <boost/coroutine2/all.hpp>
 #include <string>
+#include <sstream>
 
 
 using namespace std;
@@ -22,8 +24,13 @@ struct eventkmer
       path_kmer(move(kmer)), descaled_event_mean(mean), strand(move(strand)), posterior_probability(prob)
   {
   }
-  ~eventkmer()
-  = default;
+  ~eventkmer() = default;
+  string format_line(__unused bool trim=false) const{
+    ostringstream person_info;
+    person_info << path_kmer << '\t' << strand << '\t' << descaled_event_mean << '\t' << posterior_probability << '\n';
+    return person_info.str();
+  };
+
 };
 
 

@@ -1,4 +1,3 @@
-#include <climits>
 //
 // Created by Andrew Bailey on 2019-07-15.
 //
@@ -9,6 +8,7 @@
 #include <boost/coroutine2/all.hpp>
 #include <string>
 #include <sstream>
+#include <iso646.h>
 
 
 using namespace std;

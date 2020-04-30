@@ -8,7 +8,8 @@
 #include <boost/coroutine2/all.hpp>
 #include <string>
 #include <sstream>
-#include <iso646.h>
+
+#define __unused	__attribute__((unused))
 
 
 using namespace std;

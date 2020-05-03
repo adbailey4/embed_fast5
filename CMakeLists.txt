@@ -233,7 +233,19 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/fast5/include)
 include_directories(${CMAKE_SOURCE_DIR}/fast5/include/fast5)
 # my sources
-set(TEST_CPP tests/allTests.cpp)
+set(TEST_CPP tests/src/allTests.cpp
+        tests/src/BinaryFileTests.hpp
+        tests/src/ConcurrentQueueTests.hpp
+        tests/src/Fast5Tests.hpp
+        tests/src/EmbedUtilsTests.hpp
+        tests/src/TopKmersTests.hpp
+        tests/src/TestFiles.hpp
+        tests/src/FileTests.hpp
+        tests/src/MaxKmersTests.hpp
+        tests/src/VariantPathTests.hpp
+        tests/src/MarginalizeVariantsTests.hpp
+        tests/src/FilterAlignmentsTests.hpp)
+
 set(MAIN_CPP src/main.cpp)
 set(SOURCE
         src/EmbedFast5.cpp src/EmbedFast5.hpp
@@ -252,7 +264,10 @@ set(SOURCE
         src/ReferenceHandler.cpp src/ReferenceHandler.hpp
         src/FolderHandler.cpp src/FolderHandler.hpp
         src/VariantPath.cpp src/VariantPath.hpp
-        src/LoadVariantPaths.cpp src/LoadVariantPaths.hpp src/ConcurrentQueue.hpp)
+        src/LoadVariantPaths.cpp src/LoadVariantPaths.hpp
+        src/ConcurrentQueue.hpp
+        src/BinaryIO.cpp src/BinaryIO.hpp
+        src/BinaryEventWriter.cpp src/BinaryEventWriter.hpp)
 ############################################################################################################
 # main
 add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE})

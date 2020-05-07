@@ -244,7 +244,8 @@ set(TEST_CPP tests/src/allTests.cpp
         tests/src/MaxKmersTests.hpp
         tests/src/VariantPathTests.hpp
         tests/src/MarginalizeVariantsTests.hpp
-        tests/src/FilterAlignmentsTests.hpp)
+        tests/src/FilterAlignmentsTests.hpp
+        tests/src/PerPositionKmersTests.hpp)
 
 set(MAIN_CPP src/main.cpp)
 set(SOURCE
@@ -266,8 +267,9 @@ set(SOURCE
         src/VariantPath.cpp src/VariantPath.hpp
         src/LoadVariantPaths.cpp src/LoadVariantPaths.hpp
         src/ConcurrentQueue.hpp
-        src/BinaryIO.cpp src/BinaryIO.hpp
-        src/BinaryEventWriter.cpp src/BinaryEventWriter.hpp)
+        src/BinaryIO.hpp
+        src/BinaryEventWriter.cpp src/BinaryEventWriter.hpp
+        src/BinaryEventReader.cpp src/BinaryEventReader.hpp)
 ############################################################################################################
 # main
 add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE})

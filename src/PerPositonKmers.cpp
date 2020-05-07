@@ -18,34 +18,50 @@ PerPositonKmers::~PerPositonKmers() {
 /**
 Initialize locks and heaps and other important data structures
 */
-PerPositonKmers::PerPositonKmers(uint64_t num_locks, path output_dir, const ReferenceHandler& reference) :
-    num_locks(num_locks), output_dir(std::move(output_dir))
+PerPositonKmers::PerPositonKmers(uint64_t num_locks, path output_file, ReferenceHandler &reference) :
+    output_file(std::move(output_file)), num_locks(num_locks), initialized_locks(true)
 {
-  this->initialize_map(reference);
-
+  this->initialize_locks();
+  this->initialize_reference(reference);
 }
 
-PerPositonKmers::PerPositonKmers(uint64_t num_locks, path output_dir) :
-    num_locks(num_locks), output_dir(std::move(output_dir))
-{
+/**
+Initialize vector of locks
+*/
+void PerPositonKmers::initialize_locks() {
+  locks = std::vector<std::mutex>(this->num_locks);
 }
 
-void PerPositonKmers::initialize_map(ReferenceHandler reference) {
-  vector<string> contigs = reference.get_chromosome_names();
-  for (auto &i: contigs){
-    uint64_t contig_length = reference.get_chromosome_sequence_length(i);
-
+/**
+Initialize vector of locks
+*/
+void PerPositonKmers::initialize_locks(uint64_t number_of_locks) {
+  this->num_locks = number_of_locks;
+  locks = std::vector<std::mutex>(this->num_locks);
+}
+void PerPositonKmers::process_alignment(AlignmentFile &af) {
+  char read_strand = af.strand.c_str()[0];
+  string contig_strand = af.contig + af.strand;
+  for (auto &event: af.iterate()){
+    //    lock position
+    std::unique_lock<std::mutex> lk(this->locks[event.reference_index % this->num_locks]);
+    data[contig_strand].get_position(event.reference_index).add_event(event.path_kmer,
+        Event(event.descaled_event_mean, event.posterior_probability));
+//    unlock position
+    lk.unlock();
+  }
+}
+void PerPositonKmers::initialize_reference(ReferenceHandler &reference) {
+  vector<string> chr_names = reference.get_chromosome_names();
+  vector<string> strands{"+", "-"};
+  uint64_t length;
+  string contig_strand;
+  for (auto &contig: chr_names){
+    for (auto &strand: strands){
+      contig_strand = contig+strand;
+      length = reference.get_chromosome_sequence_length(contig);
+      data[contig_strand] = ContigStrand(contig_strand, length, 0);
+    }
   }
 }
 
-
-path PerPositonKmers::create_file_path(const string& contig, uint64_t position, const string& kmer){
-  path file_name = contig+"_"+to_string(position)+"_"+kmer+".tsv";
-  path file_path = this->output_dir / file_name;
-  return file_path;
-}
-
-
-//    if (this->initialized_locks){
-//      omp_set_lock(&(this->locks[i.reference_index % this->num_locks]));
-//    }

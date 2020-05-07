@@ -37,6 +37,9 @@ using namespace boost::filesystem;
 #define TOP_KMERS_ALIGNMENT1 "tests/test_files/test_top_kmers/builtAssignment1.tsv"
 #define TOP_KMERS_ALIGNMENT2 "tests/test_files/test_top_kmers/builtAssignment3.tsv"
 #define AMBIG_MOD_FILE1 "tests/test_files/test_ambig_model/mod_variants.model"
+#define PUC_REFERENCE1 "tests/test_files/pUC_reference/pUC19_SspI.fa"
+#define PUC_5MER_ALIGNMENTS1 "tests/test_files/pUC_5mer_tempFiles_alignment"
+#define PUC_6MER_ALIGNMENTS1 "tests/test_files/pUC_6mer_tempFiles_alignment"
 
 namespace test_files {
 path HOME = "This is not a path";
@@ -67,6 +70,9 @@ path TOP_KMERS_ASSIGNMENT = TOP_KMERS_ASSIGNMENT1;
 path TOP_KMERS_ALIGNMENT = TOP_KMERS_ALIGNMENT1;
 path FILTERED_TOP_KMERS_ALIGNMENT = TOP_KMERS_ALIGNMENT2;
 path AMBIG_MOD_FILE = AMBIG_MOD_FILE1;
+path PUC_REFERENCE = PUC_REFERENCE1;
+path PUC_5MER_ALIGNMENTS = PUC_5MER_ALIGNMENTS1;
+path PUC_6MER_ALIGNMENTS = PUC_6MER_ALIGNMENTS1;
 }
 
 #endif //EMBED_FAST5_TESTS_SRC_TESTFILES_HPP_

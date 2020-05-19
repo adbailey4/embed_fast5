@@ -181,18 +181,21 @@ TEST (EmbedUtilsTests, test_list_files_in_dir) {
   int counter = 0;
   string ext = ".tsv";
   for (auto &i: list_files_in_dir(ASSIGNMENT_DIR, ext)){
+    (void)i;
     counter += 1;
   }
   EXPECT_EQ(1, counter);
   counter = 0;
   ext = "";
   for (auto &i: list_files_in_dir(ASSIGNMENT_DIR, ext)){
+    (void)i;
     counter += 1;
   }
   EXPECT_EQ(1, counter);
   counter = 0;
   ext = "fake";
   for (auto &i: list_files_in_dir(ASSIGNMENT_DIR, ext)){
+    (void)i;
     counter += 1;
   }
   EXPECT_EQ(0, counter);

@@ -3,7 +3,7 @@
 //
 
 // embed tests
-#include "BinaryFileTests.hpp"
+#include "BinaryIOTests.hpp"
 #include "ConcurrentQueueTests.hpp"
 #include "EmbedUtilsTests.hpp"
 #include "Fast5Tests.hpp"
@@ -13,6 +13,7 @@
 #include "MaxKmersTests.hpp"
 #include "TopKmersTests.hpp"
 #include "VariantPathTests.hpp"
+#include "PerPositionKmersTests.hpp"
 // boost
 #include <boost/filesystem.hpp>
 // gtest
@@ -54,7 +55,14 @@ int main(int argc, char **argv) {
   TOP_KMERS_ALIGNMENT = HOME / TOP_KMERS_ALIGNMENT;
   FILTERED_TOP_KMERS_ALIGNMENT = HOME / FILTERED_TOP_KMERS_ALIGNMENT;
   AMBIG_MOD_FILE = HOME / AMBIG_MOD_FILE;
+  PUC_REFERENCE = HOME / PUC_REFERENCE;
+  PUC_5MER_ALIGNMENTS = HOME / PUC_5MER_ALIGNMENTS;
+  PUC_6MER_ALIGNMENTS = HOME / PUC_6MER_ALIGNMENTS;
   ::testing::InitGoogleMock(&argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
+//  ::testing::GTEST_FLAG(filter) = "PerPositionKmersTests*:BinaryIOTests*";
+//  ::testing::GTEST_FLAG(filter) = "BinaryEventTests*";
+  ::testing::GTEST_FLAG(filter) = "AlignmentFileTests*";
+
   return RUN_ALL_TESTS();
 }

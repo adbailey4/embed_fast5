@@ -38,7 +38,7 @@ void generate_master_kmer_table_wrapper(vector<string> event_table_files,
  * @param verbose: option for printing files processed
  */
 template<class T1, class T2>
-void bin_max_kmer_worker(vector<path>& signalalign_output_files, T2& max_kmers, atomic<uint64_t>& job_index, int64_t n_files, bool& verbose) {
+void bin_max_kmer_worker(vector<path>& signalalign_output_files, T2& max_kmers, atomic<uint64_t>& job_index, uint64_t n_files, bool& verbose) {
   try {
     while (job_index < n_files and !globalExceptionPtr) {
       // Fetch add

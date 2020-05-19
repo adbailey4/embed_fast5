@@ -24,7 +24,7 @@ using std::vector;
 using std::runtime_error;
 
 
-void write_string_to_binary(ostream& file, string& s){
+inline void write_string_to_binary(ostream& file, string& s){
   ///
   /// Without worrying about size conversions, write any string to a file using ostream.write
   ///
@@ -32,7 +32,7 @@ void write_string_to_binary(ostream& file, string& s){
   file.write(reinterpret_cast<const char*>(s.data()), s.size());
 }
 
-void read_string_from_binary(istream& file, string& s, uint64_t length){
+inline void read_string_from_binary(istream& file, string& s, uint64_t length){
   ///
   /// Without worrying about size conversions, read any value to a file using ostream.write
   ///
@@ -76,7 +76,7 @@ template<class T> void read_value_from_binary(istream& s, T& v){
   s.read(reinterpret_cast<char*>(&v), sizeof(T));
 }
 
-void pread_bytes(int file_descriptor, char* buffer_pointer, size_t bytes_to_read, off_t& byte_index){
+inline void pread_bytes(int file_descriptor, char* buffer_pointer, size_t bytes_to_read, off_t& byte_index){
   ///
   /// Reimplementation of binary read_bytes(), but with Linux pread, which is threadsafe
   ///
@@ -92,7 +92,7 @@ void pread_bytes(int file_descriptor, char* buffer_pointer, size_t bytes_to_read
   }
 }
 
-void pread_string_from_binary(int file_descriptor, string& s, uint64_t length, off_t& byte_index){
+inline void pread_string_from_binary(int file_descriptor, string& s, uint64_t length, off_t& byte_index){
   ///
   /// Reimplementation of binary read_string_from_binary(), but with Linux pread, which is threadsafe
   ///

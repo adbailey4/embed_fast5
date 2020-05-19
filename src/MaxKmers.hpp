@@ -25,7 +25,7 @@ class MaxKmers{
   /**
   Initialize locks and heaps and other important data structures
   */
-  MaxKmers(size_t heap_size, string alphabet, int kmer_length, double min_prob= 0.0) :
+  MaxKmers(size_t heap_size, string alphabet, uint64_t kmer_length, double min_prob= 0.0) :
       alphabet(sort_string(alphabet)), alphabet_size(alphabet.length()),
       kmer_length(kmer_length), n_kmers(pow(this->alphabet_size, this->kmer_length)), max_heap(heap_size),
       min_prob(min_prob)
@@ -40,7 +40,7 @@ class MaxKmers{
 
   string alphabet;
   int alphabet_size;
-  int kmer_length;
+  uint64_t kmer_length;
   int n_kmers;
   size_t max_heap;
   double min_prob;
@@ -72,7 +72,7 @@ class MaxKmers{
     int64_t id = 0;
     int64_t step = 1;
     throw_assert(kmer.length() == this->kmer_length, "Kmer length is different than expected: " << kmer.length() << " != " << this->kmer_length)
-    int64_t index;
+    uint64_t index;
 
     for (int64_t i = this->kmer_length - 1; i >= 0; i--) {
       index = this->alphabet.find(kmer[i]);
@@ -109,6 +109,7 @@ class MaxKmers{
   void initialize_heap() {
     for (int i=0; i < this->n_kmers; i++){
       boost::heap::priority_queue<T> kmer_queue;
+//      kmer_queue.reserve(max_heap);
       this->kmer_queues.push_back(kmer_queue);
     }
   }

@@ -4,7 +4,6 @@
 
 // embed source
 #include "BinaryIO.hpp"
-#include "EmbedUtils.hpp"
 #include "TestFiles.hpp"
 #include "PerPositionKmers.hpp"
 
@@ -22,7 +21,8 @@ using namespace embed_utils;
 using namespace test_files;
 
 
-TEST (BinaryFileTests, test_read_write_string_to_binary) {
+TEST (BinaryIOTests, test_read_write_string_to_binary) {
+  Redirect a(true, true);
   path tempdir = temp_directory_path();
   path test_file = tempdir / "test.event";
   if (exists(test_file)){
@@ -50,7 +50,8 @@ TEST (BinaryFileTests, test_read_write_string_to_binary) {
   ::close(sequence_file_descriptor);
 }
 
-TEST (BinaryFileTests, test_read_write_vector_to_binary) {
+TEST (BinaryIOTests, test_read_write_vector_to_binary) {
+  Redirect a(true, true);
   path tempdir = temp_directory_path();
   path test_file = tempdir / "test.event";
   if (exists(test_file)){
@@ -78,7 +79,8 @@ TEST (BinaryFileTests, test_read_write_vector_to_binary) {
   ::close(sequence_file_descriptor);
 }
 
-TEST (BinaryFileTests, test_read_write_value_to_binary) {
+TEST (BinaryIOTests, test_read_write_value_to_binary) {
+  Redirect a(true, true);
   path tempdir = temp_directory_path();
   path test_file = tempdir / "test.event";
   if (exists(test_file)){
@@ -104,7 +106,8 @@ TEST (BinaryFileTests, test_read_write_value_to_binary) {
   ::close(sequence_file_descriptor);
 }
 
-TEST (BinaryFileTests, test_read_write_vector_of_Events_to_binary) {
+TEST (BinaryIOTests, test_read_write_vector_of_Events_to_binary) {
+  Redirect a(true, true);
   path tempdir = temp_directory_path();
   path test_file = tempdir / "test.event";
   if (exists(test_file)){
@@ -149,7 +152,8 @@ TEST (BinaryFileTests, test_read_write_vector_of_Events_to_binary) {
 //}
 
 
-TEST (BinaryFileTests, test_read_write_queue_of_Events_to_binary) {
+TEST (BinaryIOTests, test_read_write_queue_of_Events_to_binary) {
+  Redirect a(true, true);
   path tempdir = temp_directory_path();
   path test_file = tempdir / "test.event";
   if (exists(test_file)){

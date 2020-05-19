@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.7)
 set(CMAKE_CXX_FLAGS "-O3 -g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_C_FLAGS_DEBUG  "-O0 -g -Wall --pedantic -fopenmp -funroll-loops -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
+
 project(embed_fast5)
 ############################################################################################################
 set(CMAKE_VERBOSE_MAKEFILE OFF)
@@ -234,7 +236,7 @@ include_directories(${CMAKE_SOURCE_DIR}/fast5/include)
 include_directories(${CMAKE_SOURCE_DIR}/fast5/include/fast5)
 # my sources
 set(TEST_CPP tests/src/allTests.cpp
-        tests/src/BinaryFileTests.hpp
+        tests/src/BinaryIOTests.hpp
         tests/src/ConcurrentQueueTests.hpp
         tests/src/Fast5Tests.hpp
         tests/src/EmbedUtilsTests.hpp
@@ -261,7 +263,7 @@ set(SOURCE
         src/MarginalizeVariants.cpp src/MarginalizeVariants.hpp
         src/VariantCall.cpp src/VariantCall.hpp
         src/SplitByRefPosition.cpp src/SplitByRefPosition.hpp
-        src/PerPositonKmers.cpp src/PerPositonKmers.hpp
+        src/PerPositionKmers.hpp
         src/ReferenceHandler.cpp src/ReferenceHandler.hpp
         src/FolderHandler.cpp src/FolderHandler.hpp
         src/VariantPath.cpp src/VariantPath.hpp

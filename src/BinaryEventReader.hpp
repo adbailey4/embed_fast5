@@ -71,12 +71,10 @@ class BinaryEventReader {
   /// Methods ///
   void read_indexes(){
     off_t byte_index = off_t(this->indexes_start_position);
-    string contig_strand;
     while (byte_index > 0 and uint64_t(byte_index) < (this->file_length - 1*sizeof(uint64_t))){
       ContigStrandIndex index_element;
       this->read_contig_strand_index_entry(index_element, byte_index);
-      contig_strand = index_element.contig + index_element.strand + index_element.nanopore_strand;
-      this->indexes.emplace(contig_strand, move(index_element));
+      this->indexes.emplace(index_element.contig + index_element.strand + index_element.nanopore_strand, move(index_element));
       // Update the mapping of read names to their places in the vector of indexes
 //    auto element = make_pair(index_element.name, this->indexes.size() - 1);
 //    auto success = this->index_map.insert(move(element)).second;
@@ -116,7 +114,6 @@ class BinaryEventReader {
     pread_string_from_binary(this->sequence_file_descriptor, index_element.strand, 1, byte_index);
     pread_string_from_binary(this->sequence_file_descriptor, index_element.nanopore_strand, 1, byte_index);
     pread_value_from_binary(this->sequence_file_descriptor, index_element.num_positions, byte_index);
-    pread_value_from_binary(this->sequence_file_descriptor, index_element.pos_offset, byte_index);
     pread_value_from_binary(this->sequence_file_descriptor, index_element.num_written_positions, byte_index);
     index_element.position_indexes.reserve(index_element.num_written_positions);
     for (uint64_t i=0; i < index_element.num_written_positions; i++){

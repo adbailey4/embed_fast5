@@ -165,8 +165,8 @@ struct Position
   @param kmer: kmer string
   @param event: Event data structure
   */
-  void soft_add_kmer_event(string& kmer, Event& event){
-    soft_add_kmer_event(kmer, event.descaled_event_mean, event.posterior_probability);
+  void soft_add_kmer_event(string kmer, Event& event){
+    soft_add_kmer_event(move(kmer), event.descaled_event_mean, event.posterior_probability);
   }
   /**
   Add event to kmer or create and add kmer data structure
@@ -174,14 +174,14 @@ struct Position
   @param kmer: kmer string
   @param event: Event data structure
   */
-  void soft_add_kmer_event(string& kmer, float &descaled_event_mean, float &posterior_probability){
+  void soft_add_kmer_event(string kmer, const float &descaled_event_mean, const float &posterior_probability){
     auto search = kmers.find(kmer);
     if (search != kmers.end()) {
       kmers[kmer].add_event(descaled_event_mean, posterior_probability);
     } else {
       Kmer kmer1(kmer);
       kmer1.add_event(descaled_event_mean, posterior_probability);
-      kmers.insert({kmer, move(kmer1)});
+      kmers.insert({move(kmer), move(kmer1)});
     }
     has_data = true;
   }
@@ -203,7 +203,6 @@ Data structure for keeping track of Position data structures for a specific cont
 @param contig: string name of contig
 @param strand: "+" or "-" depending on strand of contig
 @param num_positions: number of positions in contig
-@param pos_offset: if position is based off of position offset
 @param nanopore_strand: template or complement nanopore read ("t" or "c")
 */
 struct ContigStrand
@@ -212,14 +211,13 @@ struct ContigStrand
   string strand;
   vector<Position> positions;
   uint64_t num_positions;
-  uint64_t pos_offset;
   string nanopore_strand;
 
   ContigStrand() {}
 
-  ContigStrand(string contig, string strand, uint64_t num_positions, uint64_t pos_offset, string nanopore_strand="t") :
+  ContigStrand(string contig, string strand, uint64_t num_positions, string nanopore_strand = "t") :
       contig(move(contig)), strand(move(strand)), num_positions(move(num_positions)),
-      pos_offset(move(pos_offset)), nanopore_strand(move(nanopore_strand))
+      nanopore_strand(move(nanopore_strand))
   {
     this->initialize_positions();
   }
@@ -228,14 +226,17 @@ struct ContigStrand
   Initialize the number of positions in vector
   */
   void initialize_positions(){
-    positions.resize(num_positions);
+    positions.reserve(num_positions);
+    for (uint64_t i=0; i < num_positions; i++) {
+      positions.emplace_back(i);
+    }
   }
   /**
   Return corresponding Position
   @param position: if position is based off of position offset
   */
   Position& get_position(uint64_t &position){
-    return positions[position+pos_offset];
+    return positions.at(position);
   }
 
   string get_contig(){
@@ -254,11 +255,10 @@ struct ContigStrand
   @param kmer: Kmer data structure
   */
   void add_kmer(uint64_t& position, Kmer& kmer){
-    throw_assert(position+pos_offset < num_positions,
-        "Position is out of range of initialized values: query (pos+offset): "
-        + to_string(position+pos_offset) + " pos_offset: " + to_string(pos_offset) +
-        " num_positions: "+ to_string(num_positions));
-    positions[position+pos_offset].add_kmer(kmer);
+    throw_assert(position < num_positions,
+        "Position is out of range of initialized values: query (pos): "
+        + to_string(position) + " num_positions: "+ to_string(num_positions));
+    positions[position].add_kmer(kmer);
   }
   /**
   Add event to kmer at a position
@@ -268,19 +268,17 @@ struct ContigStrand
   @param posterior_probability: posterior_probability
   */
   void add_event(uint64_t& position, string& kmer, float &descaled_event_mean, float &posterior_probability){
-    throw_assert(position+pos_offset < num_positions,
-                 "Position is out of range of initialized values: query (pos+offset): "
-                     + to_string(position+pos_offset) + " pos_offset: " + to_string(pos_offset) +
-                     " num_positions: "+ to_string(num_positions));
-    positions[position+pos_offset].soft_add_kmer_event(kmer, descaled_event_mean, posterior_probability);
+    throw_assert(position < num_positions,
+                 "Position is out of range of initialized values: query (pos): "
+                     + to_string(position) + " num_positions: "+ to_string(num_positions));
+    positions[position].soft_add_kmer_event(kmer, descaled_event_mean, posterior_probability);
   }
 
   void add_event(uint64_t& position, string& kmer, Event& event){
-    throw_assert(position+pos_offset < num_positions,
-                 "Position is out of range of initialized values: query (pos+offset): "
-                     + to_string(position+pos_offset) + " pos_offset: " + to_string(pos_offset) +
-                     " num_positions: "+ to_string(num_positions));
-    positions[position+pos_offset].soft_add_kmer_event(kmer, event);
+    throw_assert(position < num_positions,
+                 "Position is out of range of initialized values: query (pos): "
+                     + to_string(position) + " num_positions: "+ to_string(num_positions));
+    positions[position].soft_add_kmer_event(kmer, event);
   }
 };
 
@@ -320,7 +318,6 @@ class PerPositionKmers {
     vector<string> chr_names = reference.get_chromosome_names();
     vector<string> strands{"+", "-"};
     uint64_t length;
-    uint64_t pos_offset = 0;
     string contig_strand;
     for (auto &contig: chr_names){
       for (auto &strand: strands){
@@ -328,12 +325,12 @@ class PerPositionKmers {
           for (auto &nanopore_strand: {"t", "c"}) {
             contig_strand = contig + strand + nanopore_strand;
             length = reference.get_chromosome_sequence_length(contig);
-            data.emplace(std::make_pair(contig_strand, ContigStrand(contig, strand, length, pos_offset, nanopore_strand)));
+            data.emplace(std::make_pair(contig_strand, ContigStrand(contig, strand, length, nanopore_strand)));
           }
         } else {
           contig_strand = contig + strand + "t";
           length = reference.get_chromosome_sequence_length(contig);
-          data.emplace(std::make_pair(contig_strand, ContigStrand(contig, strand, length, pos_offset)));
+          data.emplace(std::make_pair(contig_strand, ContigStrand(contig, strand, length, "t")));
         }
       }
     }
@@ -344,9 +341,10 @@ class PerPositionKmers {
     for (auto &event: af.iterate()){
       //    lock position
       std::unique_lock<std::mutex> lk(this->locks[event.reference_index % this->num_locks]);
-      data[contig_strand+event.strand].get_position(event.reference_index).soft_add_kmer_event(event.path_kmer,
-          (float&) event.descaled_event_mean,
-          (float&) event.posterior_probability);
+//      cout << "kmer: " + event.path_kmer << " contig_strand: " + contig_strand+event.strand << '\n';
+      data.at(contig_strand+event.strand).get_position(event.reference_index).soft_add_kmer_event(event.path_kmer,
+          (float) event.descaled_event_mean,
+          (float) event.posterior_probability);
 //    unlock position
       lk.unlock();
     }

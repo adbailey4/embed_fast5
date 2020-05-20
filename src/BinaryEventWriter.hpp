@@ -45,7 +45,6 @@ class ContigStrandIndex {
   string strand;
   string nanopore_strand;
   uint64_t num_positions;
-  uint64_t pos_offset;
   unordered_map<uint64_t, PositionIndex> position_indexes;
   uint64_t num_written_positions;
 };
@@ -82,12 +81,11 @@ class BinaryEventWriter {
     index.strand = contig.strand;
     index.nanopore_strand = contig.nanopore_strand;
     index.num_positions = contig.num_positions;
-    index.pos_offset = contig.pos_offset;
     index.num_written_positions = 0;
 
     for (auto &position: contig.positions){
       if (position.has_data){
-        index.position_indexes.emplace(std::make_pair(position.position, this->write_position(position)));
+        index.position_indexes.insert(std::make_pair(position.position, this->write_position(position)));
         index.num_written_positions += 1;
       }
     }
@@ -102,7 +100,7 @@ class BinaryEventWriter {
     index.position = position.position;
 
     for (auto &kmer: position.kmers){
-      index.kmer_indexes.emplace(std::make_pair(kmer.first, this->write_kmer(kmer.second)));
+      index.kmer_indexes.insert(std::make_pair(kmer.first, this->write_kmer(kmer.second)));
     }
     return index;
   }
@@ -172,7 +170,6 @@ class BinaryEventWriter {
     write_string_to_binary(this->sequence_file, index.strand);
     write_string_to_binary(this->sequence_file, index.nanopore_strand);
     write_value_to_binary(this->sequence_file, index.num_positions);
-    write_value_to_binary(this->sequence_file, index.pos_offset);
     write_value_to_binary(this->sequence_file, index.num_written_positions);
     for (auto &pos_index: index.position_indexes){
       write_position_index(pos_index.second);

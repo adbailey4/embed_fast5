@@ -70,14 +70,16 @@ TEST (PerPositionKmersTests, test_ContigStrand) {
   string contig = "asd";
   string strand = "+";
   uint64_t num_positions = 10;
-  uint64_t pos_offset = 2;
-  ContigStrand cs(contig, strand, num_positions, pos_offset);
+  ContigStrand cs(contig, strand, num_positions, "t");
   EXPECT_EQ(num_positions, cs.positions.capacity());
   EXPECT_EQ("asd", cs.get_contig());
   EXPECT_EQ("+", cs.get_strand());
+  for (uint64_t i=0; i < num_positions; i++){
+    EXPECT_EQ(i, cs.positions[i].position);
+  }
   uint64_t pos = 1;
   cs.add_kmer(pos, k);
-  EXPECT_FLOAT_EQ(2.2, cs.positions[pos+pos_offset].kmers[kmer].events.front().posterior_probability);
+  EXPECT_FLOAT_EQ(2.2, cs.positions[pos].kmers[kmer].events.front().posterior_probability);
   EXPECT_FLOAT_EQ(2.2, cs.get_position(pos).kmers[kmer].events.front().posterior_probability);
   float c = 2;
   float b = 3.3;
@@ -104,7 +106,7 @@ TEST (PerPositionKmersTests, test_process_alignment) {
   path test_file = tempdir / "test.event";
   uint64_t num_locks = 1000;
   ReferenceHandler reference(PUC_REFERENCE.string());
-  PerPositionKmers ppk(num_locks, test_file, reference);
+  PerPositionKmers ppk(num_locks, test_file, reference, true);
   path alignment_file = PUC_5MER_ALIGNMENTS/"03274a9a-0eab-422e-ace7-b35fd3a0f48c.sm.forward.tsv";
   AlignmentFile af(alignment_file.string());
   ppk.process_alignment(af);
@@ -116,7 +118,7 @@ TEST (PerPositionKmersTests, test_process_alignment) {
   EXPECT_EQ(1, ppk.data[contig_strand].get_position(position).get_kmer(kmer).num_events());
 }
 
-TEST (BinaryEventTests, test_process_alignment) {
+TEST (BinaryEventTests, test_read_and_write) {
   path tempdir = temp_directory_path();
   path test_file = tempdir / "test.event";
   if (exists(test_file)){
@@ -127,11 +129,10 @@ TEST (BinaryEventTests, test_process_alignment) {
   string contig = "asd";
   string strand = "+";
   uint64_t num_positions = 10;
-  uint64_t pos_offset = 2;
   Kmer k(kmer, 2);
   k.add_event(1, 1);
   k.add_event(2, .5);
-  ContigStrand cs(contig, strand, num_positions, pos_offset);
+  ContigStrand cs(contig, strand, num_positions, "t");
   uint64_t pos = 1;
   cs.add_kmer(pos, k);
 //  write data structure
@@ -148,14 +149,10 @@ TEST (BinaryEventTests, test_process_alignment) {
   EXPECT_EQ(contig, ber.indexes[contig_strand].contig);
   EXPECT_EQ(num_positions, ber.indexes[contig_strand].num_positions);
   EXPECT_EQ(1, ber.indexes[contig_strand].num_written_positions);
-  EXPECT_EQ(pos_offset, ber.indexes[contig_strand].pos_offset);
   EXPECT_EQ(1, ber.indexes[contig_strand].position_indexes.size());
   EXPECT_EQ(1, ber.indexes[contig_strand].position_indexes[pos].kmer_indexes.size());
   EXPECT_EQ(kmer, ber.indexes[contig_strand].position_indexes[pos].kmer_indexes[kmer].name);
   EXPECT_EQ(5, ber.indexes[contig_strand].position_indexes[pos].kmer_indexes[kmer].name_length);
-  EXPECT_EQ(1, ber.indexes[contig_strand].position_indexes[0].kmer_indexes.size());
-  EXPECT_EQ(kmer, ber.indexes[contig_strand].position_indexes[0].kmer_indexes[kmer].name);
-  EXPECT_EQ(5, ber.indexes[contig_strand].position_indexes[0].kmer_indexes[kmer].name_length);
 
 //  Kmer kmer_struct;
 //  ber.get_kmer(kmer_struct, kmer, contig, strand, pos);

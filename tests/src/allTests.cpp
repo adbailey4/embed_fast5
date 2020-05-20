@@ -60,9 +60,8 @@ int main(int argc, char **argv) {
   PUC_6MER_ALIGNMENTS = HOME / PUC_6MER_ALIGNMENTS;
   ::testing::InitGoogleMock(&argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
-//  ::testing::GTEST_FLAG(filter) = "PerPositionKmersTests*:BinaryIOTests*";
-//  ::testing::GTEST_FLAG(filter) = "BinaryEventTests*";
-  ::testing::GTEST_FLAG(filter) = "AlignmentFileTests*";
+//  ::testing::GTEST_FLAG(filter) = "TopKmersTests*";
+//  ::testing::GTEST_FLAG(filter) = "BinaryEventTests*:PerPositionKmersTests*";
 
   return RUN_ALL_TESTS();
 }

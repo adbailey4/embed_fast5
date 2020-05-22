@@ -137,7 +137,7 @@ static const char *SPLIT_BY_REF_USAGE_MESSAGE =
     "  -o, --output=PATH                    path and name of output bed file\n"
     "  -t, --threads=NUMBER                 number of threads\n"
     "  -l, --locks=NUMBER                   number of locks for multithreading\n"
-    "  -r, --reference=NUMBER               reference sequence (fa format)\n"
+    "  -r, --reference=PATH                 reference sequence (fa format)\n"
     "  --rna                                boolean option if reads are rna\n"
     "  --two_d                              boolean option if reads are 2d\n"
     "\nReport bugs to " PACKAGE_BUGREPORT2 "\n\n";
@@ -182,8 +182,9 @@ void parse_split_by_ref_main_options(int argc, char** argv)
       case 'o': arg >> opt::output; break;
       case 't': arg >> opt::threads; break;
       case 'l': arg >> opt::num_locks; break;
-      case 'b': true >> opt::rna; break;
-      case 'd': true >> opt::two_d; break;
+      case 'r': arg >> opt::reference; break;
+      case 'b': opt::rna = true; break;
+      case 'd': opt::two_d = true; break;
       case 'v': opt::verbose++; break;
       case OPT_HELP:
         std::cout << SPLIT_BY_REF_USAGE_MESSAGE;

@@ -47,12 +47,10 @@ class PerPositionKmers {
   }
   //  read in alignment file data
   void process_alignment(AlignmentFile &af) {
-    string contig_strand = af.contig + af.strand;
     for (auto &event: af.iterate()){
       //    lock position
       std::unique_lock<std::mutex> lk(this->locks[event.reference_index % this->num_locks]);
-//      cout << "kmer: " + event.path_kmer << " contig_strand: " + contig_strand+event.strand << '\n';
-      data.add_kmer_event(af.contig, af.strand, event.strand, event.reference_index, event.path_kmer, event.descaled_event_mean, event.posterior_probability);
+      data.add_kmer_event(event.contig, af.strand, event.strand, event.reference_index, event.path_kmer, event.descaled_event_mean, event.posterior_probability);
 //    unlock position
       lk.unlock();
     }

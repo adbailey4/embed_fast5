@@ -9,6 +9,8 @@
 #include "PerPositionKmers.hpp"
 #include "TestFiles.hpp"
 #include "BinaryEventReader.hpp"
+#include "SplitByRefPosition.hpp"
+
 //boost
 #include <boost/filesystem.hpp>
 // gtest
@@ -122,6 +124,7 @@ TEST (PerPositionKmersTests, test_process_alignment) {
 }
 
 TEST (BinaryEventTests, test_read_and_write) {
+  Redirect a(true, true);
   path tempdir = temp_directory_path();
   path test_file = tempdir / "test.event";
   if (exists(test_file)){
@@ -164,7 +167,7 @@ TEST (BinaryEventTests, test_read_and_write) {
 }
 
 TEST (PerPositionKmersTests, test_write_to_file) {
-//  Redirect a(true, true);
+  Redirect a(true, true);
   path tempdir = temp_directory_path() / "temp";
   path test_file = tempdir / "test.event";
   if (exists(test_file)){
@@ -203,6 +206,51 @@ TEST (PerPositionKmersTests, test_write_to_file) {
   position = 2681;
   ber.get_kmer(kmer_struct, kmer, "pUC19", "+", position, "c");
   EXPECT_EQ(1, kmer_struct.num_events());
+}
+
+TEST (PerPositionKmersTests, test_split_signal_align_by_ref_position) {
+//  Redirect a(true, true);
+  path tempdir = temp_directory_path() / "temp";
+  path test_file = tempdir / "test.event";
+  if (exists(test_file)){
+    remove(test_file);
+  }
+  string sa_input_dir = PUC_5MER_ALIGNMENTS.string();
+  string output_file_path = test_file.string();
+  string reference = PUC_REFERENCE.string();
+  uint64_t num_locks = 1000;
+  uint64_t n_threads = 4;
+  bool verbose = false;
+  bool rna = false;
+  bool two_d = true;
+  split_signal_align_by_ref_position(sa_input_dir, output_file_path, reference,
+      num_locks, n_threads, verbose, rna, two_d);
+
+  BinaryEventReader ber(test_file.string());
+
+  string contig_strand = "pUC19+c";
+  uint64_t position = 1770;
+  string kmer = "ATTGA";
+  EXPECT_EQ(4, ber.indexes.size());
+  EXPECT_EQ(5, ber.indexes[contig_strand].contig_string_length);
+  EXPECT_EQ("+", ber.indexes[contig_strand].strand);
+  EXPECT_EQ("c", ber.indexes[contig_strand].nanopore_strand);
+  EXPECT_EQ("pUC19", ber.indexes[contig_strand].contig);
+  EXPECT_EQ(2686, ber.indexes[contig_strand].num_positions);
+  EXPECT_EQ(2682, ber.indexes[contig_strand].num_written_positions);
+  EXPECT_EQ(2682, ber.indexes[contig_strand].position_indexes.size());
+  EXPECT_EQ(1, ber.indexes[contig_strand].position_indexes[position].kmer_indexes.size());
+  EXPECT_EQ(kmer, ber.indexes[contig_strand].position_indexes[position].kmer_indexes[kmer].name);
+  EXPECT_EQ(5, ber.indexes[contig_strand].position_indexes[position].kmer_indexes[kmer].name_length);
+  vector<string> kmers = ber.get_position_index("pUC19", "+", "c", position).get_kmers();
+  ASSERT_THAT(kmers, ElementsAreArray(ber.indexes[contig_strand].position_indexes[position].get_kmers()));
+  Kmer kmer_struct;
+  ber.get_kmer(kmer_struct, kmer, "pUC19", "+", position, "c");
+  EXPECT_EQ(kmer, kmer_struct.kmer);
+  EXPECT_EQ(22, kmer_struct.num_events());
+  position = 2681;
+  ber.get_kmer(kmer_struct, kmer, "pUC19", "+", position, "c");
+  EXPECT_EQ(5, kmer_struct.num_events());
 }
 
 

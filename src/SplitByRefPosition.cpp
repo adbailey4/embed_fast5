@@ -118,7 +118,7 @@ void split_signal_align_by_ref_position(
 
 // Getopt
 //
-#define SUBPROGRAM "split"
+#define SUBPROGRAM "split_by_position"
 #define SPLIT_BY_REF_VERSION "0.0.1"
 #define THIS_NAME "embed"
 #define PACKAGE_BUGREPORT2 "None"
@@ -127,7 +127,7 @@ static const char *SPLIT_BY_REF_VERSION_MESSAGE =
     SUBPROGRAM " Version " SPLIT_BY_REF_VERSION "\n";
 
 static const char *SPLIT_BY_REF_USAGE_MESSAGE =
-    "Usage: " THIS_NAME " " SUBPROGRAM " [OPTIONS] --alignment_files ALIGNMENT_FILES --output_dir OUTPUT_DIR\n"
+    "Usage: " THIS_NAME " " SUBPROGRAM " [OPTIONS] --alignment_files ALIGNMENT_FILES --output OUTPUT_PATH\n"
     "Filters alignment files into per reference position kmer tables.\n"
     "\n"
     "  -v, --verbose                        display verbose output\n"
@@ -154,7 +154,7 @@ static bool rna=false;
 static bool two_d=false;
 }
 
-static const char* shortopts = "a:t:o:r:l:d:vh";
+static const char* shortopts = "a:t:o:r:l:d:b:vh";
 
 enum { OPT_HELP = 1, OPT_VERSION };
 
@@ -165,8 +165,8 @@ static const struct option longopts[] = {
     { "reference",        required_argument, nullptr, 'r' },
     { "locks",            optional_argument, nullptr, 'l' },
     { "threads",          optional_argument, nullptr, 't' },
-    { "rna",              optional_argument, nullptr, 'b' },
-    { "two_d",            optional_argument, nullptr, 'd' },
+    { "rna",              no_argument,       nullptr, 'b' },
+    { "two_d",            no_argument,       nullptr, 'd' },
     { "help",             no_argument,       nullptr, OPT_HELP },
     { "version",          no_argument,       nullptr, OPT_VERSION },
     { nullptr, 0, nullptr, 0 }
@@ -201,7 +201,7 @@ void parse_split_by_ref_main_options(int argc, char** argv)
     }
   }
 
-  if (argc - optind > 0) {
+  if (argc - (optind+1) > 0) {
     std::cerr << SUBPROGRAM ": too many arguments\n";
     die = true;
   }

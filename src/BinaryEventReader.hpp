@@ -8,6 +8,7 @@
 
 // embed libs
 #include "BinaryEventWriter.hpp"
+#include <utility>
 
 using namespace std;
 using namespace embed_utils;
@@ -22,6 +23,15 @@ class BinaryEventReader {
 
   // Initialize the class with a file path
   BinaryEventReader(string file_path) {
+    this->initialize(file_path);
+  }
+  BinaryEventReader() {}
+  ~BinaryEventReader() {
+    this->close();
+  }
+
+  void initialize(const string& file_path){
+    this->initialized = true;
     this->sequence_file_path = file_path;
 
     // Open the input file.
@@ -41,23 +51,56 @@ class BinaryEventReader {
     // Read table of contents, needed for indexed reading
     this->read_indexes();
   }
-  ~BinaryEventReader() {
-    this->close();
-  }
 
   void close() {
     ::close(sequence_file_descriptor);
   }
 
-  void get_kmer(Kmer& kmer_struct, string kmer, string& contig_name, string strand, uint64_t position, string nanopore_strand="t"){
-    KmerIndex& ki = indexes[contig_name+strand+nanopore_strand].position_indexes[position].kmer_indexes[kmer];
+  void get_kmer(Kmer& kmer_struct, const string& kmer, const string& contig_name, const string& strand,
+      const uint64_t& position, const string nanopore_strand="t"){
+    KmerIndex& ki = this->get_kmer_index(contig_name, strand, nanopore_strand, position, kmer);
     kmer_struct.kmer = ki.name;
     off_t byte_index = ki.sequence_byte_index;
     uint64_t sequence_length = ki.sequence_length;
+    kmer_struct.events.reserve(sequence_length);
     pread_vector_from_binary(this->sequence_file_descriptor, kmer_struct.events, sequence_length, byte_index);
   }
 
+  void get_position(Position& position_struct, const string& contig_name, const string& strand,
+                const uint64_t& position, const string nanopore_strand="t"){
+    PositionIndex& ki = this->get_position_index(contig_name, strand, nanopore_strand, position);
+    vector<string> kmers= ki.get_kmers();
+    for (auto kmer: kmers){
+      Kmer k;
+      get_kmer(k, kmer, contig_name, strand, position, nanopore_strand);
+      position_struct.add_kmer(k);
+    }
+  }
+
+  ContigStrandIndex& get_contig_index(const string& contig, const string& strand, const string& nanopore_strand){
+    string contig_strand = contig+strand+nanopore_strand;
+    auto found = indexes.find(contig_strand);
+    if (found != indexes.end()) {
+      // Found it
+      return found->second;
+    } else {
+      throw runtime_error(contig_strand + " was not found in indexes");
+    }
+  }
+
+  PositionIndex& get_position_index(const string& contig, const string& strand, const string& nanopore_strand, const uint64_t& position){
+    return this->get_contig_index(contig, strand, nanopore_strand).get_position_index(position);
+  }
+
+  KmerIndex& get_kmer_index(const string& contig, const string& strand, const string& nanopore_strand, const uint64_t& position, const string& kmer){
+    return this->get_position_index(contig, strand, nanopore_strand, position).get_kmer_index(kmer);
+  }
+
+
+
+  /// Attributes ///
   unordered_map<string, ContigStrandIndex> indexes;
+  bool initialized = false;
 
  private:
 
@@ -74,13 +117,10 @@ class BinaryEventReader {
     while (byte_index > 0 and uint64_t(byte_index) < (this->file_length - 1*sizeof(uint64_t))){
       ContigStrandIndex index_element;
       this->read_contig_strand_index_entry(index_element, byte_index);
-      this->indexes.emplace(index_element.contig + index_element.strand + index_element.nanopore_strand, move(index_element));
-      // Update the mapping of read names to their places in the vector of indexes
-//    auto element = make_pair(index_element.name, this->indexes.size() - 1);
-//    auto success = this->index_map.insert(move(element)).second;
-//    if (not success){
-//      throw runtime_error("ERROR: possible duplicate read name (" + index_element.name + ") found in runnie file: " + this->sequence_file_path);
-//    }
+      auto ret = this->indexes.emplace(index_element.contig + index_element.strand + index_element.nanopore_strand, move(index_element));
+      throw_assert(ret.second,
+          "ERROR: possible duplicate read name (" + ret.first->first + ") found in events file: " +
+          this->sequence_file_path)
     }
   }
 
@@ -103,7 +143,11 @@ class BinaryEventReader {
     for (uint64_t i=0; i < index_element.num_kmers; i++){
       KmerIndex ki;
       this->read_kmer_index_entry(ki, byte_index);
-      index_element.kmer_indexes.emplace(ki.name, move(ki));
+      auto ret = index_element.kmer_indexes.emplace(ki.name, move(ki));
+      throw_assert(ret.second,
+                   "ERROR: possible duplicate kmer (" + ret.first->first + ") at position (" +
+                   to_string(index_element.position) + ") found in events file: " +
+                       this->sequence_file_path)
     }
   }
 
@@ -119,9 +163,13 @@ class BinaryEventReader {
     for (uint64_t i=0; i < index_element.num_written_positions; i++){
       PositionIndex pi;
       this->read_position_index_entry(pi, byte_index);
-      index_element.position_indexes.emplace(pi.position, move(pi));
+      auto ret = index_element.position_indexes.emplace(pi.position, move(pi));
+      throw_assert(ret.second,
+          "ERROR: possible duplicate position (" + to_string(ret.first->first) + ") found in events file: " +
+          this->sequence_file_path)
     }
   }
+
 };
 
 #endif //EMBED_FAST5_SRC_BINARYEVENTREADER_HPP_

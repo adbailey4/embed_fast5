@@ -271,7 +271,7 @@ set(SOURCE
         src/ConcurrentQueue.hpp
         src/BinaryIO.hpp
         src/BinaryEventWriter.cpp src/BinaryEventWriter.hpp
-        src/BinaryEventReader.cpp src/BinaryEventReader.hpp)
+        src/BinaryEventReader.cpp src/BinaryEventReader.hpp src/BaseKmer.hpp src/EventDataHandler.cpp src/EventDataHandler.hpp)
 ############################################################################################################
 # main
 add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE})

@@ -163,7 +163,9 @@ class BinaryEventWriter {
   BinaryEventWriter(path file_path) {
     this->sequence_file_path = file_path;
     // Ensure that the output directory exists
-    create_directories(this->sequence_file_path.parent_path());
+    if (this->sequence_file_path.has_parent_path()){
+      create_directories(this->sequence_file_path.parent_path());
+    }
     this->sequence_file = std::ofstream(this->sequence_file_path.c_str(), std::ofstream::binary);
     throw_assert(this->sequence_file.is_open(), "ERROR: could not open file " + file_path.string());
   }

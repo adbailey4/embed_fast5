@@ -31,7 +31,7 @@ namespace embed_utils{
   bool compare_files(const path &p1, const path &p2);
   bool copyDir(const path& source, const path& destination);
   std::vector<std::string> split_string(string& in, char delimiter);
-  float string_to_float(std::string& str_int);
+  float string_to_float(const string &str_int);
   string sort_string(string &str);
   vector<string> all_lexicographic_recur(string &characters, string &data, uint64_t last, uint64_t index);
   vector<string> all_string_permutations(string &characters, int &length);

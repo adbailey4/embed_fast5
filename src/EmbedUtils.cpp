@@ -51,10 +51,8 @@ int64_t string_to_int(std::string &str_int) {
   }
 }
 
-float string_to_float(std::string &str_int) {
-  std::string::size_type sz;     // alias of size_t
-  float number = std::stof(str_int, &sz);
-  return number;
+float string_to_float(const string &str_int) {
+  return std::stof(str_int);
 }
 
 bool are_characters_in_string(string &characters, string &my_string) {

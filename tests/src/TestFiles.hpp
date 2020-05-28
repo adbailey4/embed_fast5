@@ -5,9 +5,13 @@
 #ifndef EMBED_FAST5_TESTS_SRC_TESTFILES_HPP_
 #define EMBED_FAST5_TESTS_SRC_TESTFILES_HPP_
 
+// embed libs
+#include "EmbedUtils.hpp"
 // boost
 #include <boost/filesystem.hpp>
+
 using namespace boost::filesystem;
+using namespace embed_utils;
 
 // Keep track of a bunch of paths
 #define ORIGINAL_FAST51 "/tests/test_files/fast5s/DEAMERNANOPORE_20161117_FNFAB43577_MN16450_mux_scan_MA_821_R9_4_NA12878_11_17_16_95723_ch458_read26_strand.fast5"
@@ -40,9 +44,11 @@ using namespace boost::filesystem;
 #define PUC_REFERENCE1 "tests/test_files/pUC_reference/pUC19_SspI.fa"
 #define PUC_5MER_ALIGNMENTS1 "tests/test_files/pUC_5mer_tempFiles_alignment"
 #define PUC_6MER_ALIGNMENTS1 "tests/test_files/pUC_6mer_tempFiles_alignment"
+#define ECOLI_16S_REFERENCE1 "tests/test_files/rRNA_test_files/ec_16S.fa"
+#define TEST_RNA_EVENT_FILE1 "tests/test_files/test_binary_event/rna.event"
+#define TEST_DNA_EVENT_FILE1 "tests/test_files/test_binary_event/dna.event"
 
 namespace test_files {
-path HOME = "This is not a path";
 path ORIGINAL_FAST5 = ORIGINAL_FAST51;
 path EMPTY_FAST5 = EMPTY_FAST51;
 path SIGNAL_FAST5 = SIGNAL_FAST51;
@@ -73,6 +79,46 @@ path AMBIG_MOD_FILE = AMBIG_MOD_FILE1;
 path PUC_REFERENCE = PUC_REFERENCE1;
 path PUC_5MER_ALIGNMENTS = PUC_5MER_ALIGNMENTS1;
 path PUC_6MER_ALIGNMENTS = PUC_6MER_ALIGNMENTS1;
+path ECOLI_16S_REFERENCE = ECOLI_16S_REFERENCE1;
+path TEST_DNA_EVENT_FILE = TEST_DNA_EVENT_FILE1;
+path TEST_RNA_EVENT_FILE = TEST_RNA_EVENT_FILE1;
+
+void prepend_home(path home) {
+  throw_assert(exists(home), "Home directory does note exist, check path: "+home.string());
+  ORIGINAL_FAST5 = home / ORIGINAL_FAST5;
+  EMPTY_FAST5 = home / EMPTY_FAST5;
+  SIGNAL_FAST5 = home / SIGNAL_FAST5;
+  NO_EVENT = home / NO_EVENT;
+  NO_FAST5 = home / NO_FAST5;
+  READ_DB = home / READ_DB;
+  R94_FAST5 = home / R94_FAST5;
+  R94_FASTQ = home / R94_FASTQ;
+  R94_TEST_DIR = home / R94_TEST_DIR;
+  POSITIONS_FILE = home / POSITIONS_FILE;
+  ALIGNMENT_FILE = home / ALIGNMENT_FILE;
+  ALIGNMENT_DIR = home / ALIGNMENT_DIR;
+  CORRECT_OUTPUT = home / CORRECT_OUTPUT;
+  ASSIGNMENT_FILE = home / ASSIGNMENT_FILE;
+  ASSIGNMENT_DIR = home / ASSIGNMENT_DIR;
+  ALIGNMENT_FILE_MOD = home / ALIGNMENT_FILE_MOD;
+  TEST_FILES = home / TEST_FILES;
+  READ_DB_DIR = home / READ_DB_DIR;
+  TEST_POSITIONS_FILE = home / TEST_POSITIONS_FILE;
+  RRNA_SIGNAL_FILES = home / RRNA_SIGNAL_FILES;
+  RRNA_TEST_FILES = home / RRNA_TEST_FILES;
+  RRNA_TEST_VARIANTS = home / RRNA_TEST_VARIANTS;
+  DNA_TEST_VARIANTS = home / DNA_TEST_VARIANTS;
+  TOP_KMERS_ASSIGNMENT = home / TOP_KMERS_ASSIGNMENT;
+  TOP_KMERS_ALIGNMENT = home / TOP_KMERS_ALIGNMENT;
+  FILTERED_TOP_KMERS_ALIGNMENT = home / FILTERED_TOP_KMERS_ALIGNMENT;
+  AMBIG_MOD_FILE = home / AMBIG_MOD_FILE;
+  PUC_REFERENCE = home / PUC_REFERENCE;
+  PUC_5MER_ALIGNMENTS = home / PUC_5MER_ALIGNMENTS;
+  PUC_6MER_ALIGNMENTS = home / PUC_6MER_ALIGNMENTS;
+  ECOLI_16S_REFERENCE = home / ECOLI_16S_REFERENCE;
+  TEST_DNA_EVENT_FILE = home / TEST_DNA_EVENT_FILE;
+  TEST_RNA_EVENT_FILE = home / TEST_RNA_EVENT_FILE;
+}
 }
 
 #endif //EMBED_FAST5_TESTS_SRC_TESTFILES_HPP_

@@ -43,12 +43,14 @@ void per_position_worker(
     while (job_index < n_files and !globalExceptionPtr) {
       // Fetch add
       uint64_t thread_job_index = job_index.fetch_add(1);
-      path current_file = signalalign_output_files[thread_job_index];
-      AlignmentFile af(current_file.string(), rna);
-      ppk.process_alignment(af);
-      if (verbose) {
-        // Print status update to stdout
-        cerr << "\33[2K\rParsed: " << current_file << flush;
+      if (thread_job_index < n_files){
+        path current_file = signalalign_output_files[thread_job_index];
+        AlignmentFile af(current_file.string(), rna);
+        ppk.process_alignment(af);
+        if (verbose) {
+          // Print status update to stdout
+          cerr << "\33[2K\rParsed: " << current_file << flush;
+        }
       }
     }
   } catch(...){

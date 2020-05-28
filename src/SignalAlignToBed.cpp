@@ -46,16 +46,18 @@ void get_variants_worker(
     while (job_index < n_files and !globalExceptionPtr) {
       // Fetch add
       uint64_t thread_job_index = job_index.fetch_add(1);
-      path current_file = signalalign_output_files[thread_job_index];
-      AlignmentFile af(current_file.string(), rna);
-      vector<VariantCall> vc_calls = af.get_variant_calls(ambig_bases, &ambig_bases_map);
-      mv.load_variants(&vc_calls);
-      read_id_and_variants = make_tuple(af.read_id, vc_calls);
-      variant_queue.push(read_id_and_variants);
-      if (verbose) {
+      if (thread_job_index < n_files){
+        path current_file = signalalign_output_files[thread_job_index];
+        AlignmentFile af(current_file.string(), rna);
+        vector<VariantCall> vc_calls = af.get_variant_calls(ambig_bases, &ambig_bases_map);
+        mv.load_variants(&vc_calls);
+        read_id_and_variants = make_tuple(af.read_id, vc_calls);
+        variant_queue.push(read_id_and_variants);
+        if (verbose) {
 //      cout << current_file << "\n";
-        // Print status update to stdout
-        cerr << "\33[2K\rParsed: " << current_file << flush;
+          // Print status update to stdout
+          cerr << "\33[2K\rParsed: " << current_file << flush;
+        }
       }
     }
   } catch(...){

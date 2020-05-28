@@ -43,16 +43,17 @@ void bin_max_kmer_worker(vector<path>& signalalign_output_files, T2& max_kmers, 
     while (job_index < n_files and !globalExceptionPtr) {
       // Fetch add
       uint64_t thread_job_index = job_index.fetch_add(1);
-      path current_file = signalalign_output_files[thread_job_index];
-      if (verbose) {
+      if (thread_job_index < n_files) {
+        path current_file = signalalign_output_files[thread_job_index];
+        if (verbose) {
 //      cout << current_file << "\n";
-        // Print status update to stdout
-        cerr << "\33[2K\rParsed: " << current_file << flush;
-
-      }
-      T1 af(current_file.string());
-      for (auto &event: af.iterate()) {
-        max_kmers.add_to_heap(event);
+          // Print status update to stdout
+          cerr << "\33[2K\rParsed: " << current_file << flush;
+        }
+        T1 af(current_file.string());
+        for (auto &event: af.iterate()) {
+          max_kmers.add_to_heap(event);
+        }
       }
     }
   } catch(...){
@@ -85,7 +86,7 @@ void generate_master_kmer_table(vector<string> &sa_output_paths,
                                 bool write_full = false) {
 
 //  filter out empty files and check if there are any left
-  vector<path> all_tsvs = filter_emtpy_files(sa_output_paths, ".tsv");
+  vector<path> all_tsvs = filter_emtpy_files<string>(sa_output_paths, ".tsv");
   throw_assert(!all_tsvs.empty(), "There are no valid .tsv files")
   int64_t number_of_files = all_tsvs.size();
 //  get kmer length

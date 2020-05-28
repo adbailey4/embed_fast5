@@ -107,11 +107,7 @@ class MaxKmers{
   Initialize vector of heaps
   */
   void initialize_heap() {
-    for (int i=0; i < this->n_kmers; i++){
-      boost::heap::priority_queue<T> kmer_queue;
-//      kmer_queue.reserve(max_heap);
-      this->kmer_queues.push_back(kmer_queue);
-    }
+    kmer_queues.resize(n_kmers);
   }
 
   /**
@@ -194,21 +190,20 @@ class MaxKmers{
   void add_to_heap(T& kmer_struct){
     size_t index = this->get_kmer_index(kmer_struct.path_kmer);
     if (kmer_struct.posterior_probability >= min_prob){
-      this->locks[index].lock();
-      if (this->kmer_queues[index].empty()) {
+      std::unique_lock<std::mutex> lock(this->locks[index]);
+      boost::heap::priority_queue<T>& queue = this->kmer_queues[index];
+      if (queue.empty()) {
 //    add to queue if not at capacity
-        this->kmer_queues[index].push(kmer_struct);
+        queue.push(kmer_struct);
 //    if at capacity check to see if prob is greater than min
-      } else if (this->kmer_queues[index].top().posterior_probability < kmer_struct.posterior_probability ||
-      this->kmer_queues[index].size() < this->max_heap) {
-
-        this->kmer_queues[index].push(kmer_struct);
-
-        while (this->kmer_queues[index].size() > this->max_heap){
-          this->kmer_queues[index].pop();
+      } else if (queue.top().posterior_probability < kmer_struct.posterior_probability ||
+          queue.size() < this->max_heap) {
+        queue.push(kmer_struct);
+        while (queue.size() > this->max_heap){
+          queue.pop();
         }
       }
-      this->locks[index].unlock();
+      lock.unlock();
     }
   }
 };

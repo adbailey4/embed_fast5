@@ -25,6 +25,10 @@ TEST (FilterAlignmentTests, test_filter_alignment_files) {
   Redirect a(true, false);
   path input_dir = temp_directory_path() / "input" ;
   path output_dir = temp_directory_path() / "output" ;
+  if (exists(input_dir)){
+    remove(input_dir);
+  }
+
   copyDir(ALIGNMENT_DIR, input_dir);
   string empty;
   string in_dir(input_dir.string());

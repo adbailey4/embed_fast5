@@ -31,7 +31,6 @@ class EventDataHandler {
   string event_file;
   unordered_map<string, ContigStrand> data;
   bool two_d = false;
-  BinaryEventReader reader;
 
   //  initialize internal data structure
   void initialize_reference(ReferenceHandler &reference, const bool& internal_two_d=false) {
@@ -74,8 +73,8 @@ class EventDataHandler {
     bew.write_indexes();
   }
 
-  Kmer& get_kmer(const string& contig, const string& strand, const string& nanopore_strand,
-      const uint64_t& reference_index, const string& path_kmer){
+  Kmer& get_position_kmer(const string& contig, const string& strand, const string& nanopore_strand,
+                          const uint64_t& reference_index, const string& path_kmer){
     string contig_strand = contig+strand+nanopore_strand;
     auto found = data.find(contig_strand);
     if (found != data.end()) {
@@ -83,8 +82,8 @@ class EventDataHandler {
       return data[contig_strand].get_position(reference_index).get_kmer(path_kmer);
     } else {
       if (reader.initialized){
-        reader.get_kmer(data[contig_strand].get_position(reference_index).kmers[path_kmer],
-            path_kmer, contig, strand, reference_index, nanopore_strand);
+        reader.get_position_kmer(data[contig_strand].get_position(reference_index).kmers[path_kmer],
+                                 path_kmer, contig, strand, reference_index, nanopore_strand);
         return data[contig_strand].get_position(reference_index).get_kmer(path_kmer);
       }
       // Not there
@@ -108,6 +107,9 @@ class EventDataHandler {
       throw runtime_error(contig_strand + " was not found in data and there is no ");
     }
   }
+
+ private:
+  BinaryEventReader reader;
 
 
 };

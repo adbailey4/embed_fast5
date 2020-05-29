@@ -13,8 +13,8 @@
 using namespace std;
 using namespace embed_utils;
 using namespace boost::filesystem;
-
 using namespace std;
+
 
 class BinaryEventReader {
  public:
@@ -53,11 +53,13 @@ class BinaryEventReader {
   }
 
   void close() {
-    ::close(sequence_file_descriptor);
+    if (this->initialized){
+      ::close(sequence_file_descriptor);
+    }
   }
 
-  void get_kmer(Kmer& kmer_struct, const string& kmer, const string& contig_name, const string& strand,
-      const uint64_t& position, const string nanopore_strand="t"){
+  void get_position_kmer(Kmer& kmer_struct, const string& kmer, const string& contig_name, const string& strand,
+                         const uint64_t& position, const string nanopore_strand= "t"){
     KmerIndex& ki = this->get_kmer_index(contig_name, strand, nanopore_strand, position, kmer);
     kmer_struct.kmer = ki.name;
     off_t byte_index = ki.sequence_byte_index;
@@ -66,13 +68,22 @@ class BinaryEventReader {
     pread_vector_from_binary(this->sequence_file_descriptor, kmer_struct.events, sequence_length, byte_index);
   }
 
+  void get_position_kmer(Kmer& kmer_struct, KmerIndex& ki){
+    kmer_struct.kmer = ki.name;
+    off_t byte_index = ki.sequence_byte_index;
+    uint64_t sequence_length = ki.sequence_length;
+    kmer_struct.events.reserve(sequence_length);
+    pread_vector_from_binary(this->sequence_file_descriptor, kmer_struct.events, sequence_length, byte_index);
+  }
+
+
   void get_position(Position& position_struct, const string& contig_name, const string& strand,
                 const uint64_t& position, const string nanopore_strand="t"){
     PositionIndex& ki = this->get_position_index(contig_name, strand, nanopore_strand, position);
     vector<string> kmers= ki.get_kmers();
     for (auto kmer: kmers){
       Kmer k;
-      get_kmer(k, kmer, contig_name, strand, position, nanopore_strand);
+      get_position_kmer(k, kmer, contig_name, strand, position, nanopore_strand);
       position_struct.add_kmer(k);
     }
   }
@@ -96,10 +107,10 @@ class BinaryEventReader {
     return this->get_position_index(contig, strand, nanopore_strand, position).get_kmer_index(kmer);
   }
 
-
-
   /// Attributes ///
   unordered_map<string, ContigStrandIndex> indexes;
+  unordered_map<string, vector<KmerIndex*>> kmer_indexes;
+
   bool initialized = false;
 
  private:
@@ -143,6 +154,7 @@ class BinaryEventReader {
     for (uint64_t i=0; i < index_element.num_kmers; i++){
       KmerIndex ki;
       this->read_kmer_index_entry(ki, byte_index);
+      kmer_indexes[ki.name].push_back(&ki);
       auto ret = index_element.kmer_indexes.emplace(ki.name, move(ki));
       throw_assert(ret.second,
                    "ERROR: possible duplicate kmer (" + ret.first->first + ") at position (" +

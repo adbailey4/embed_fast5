@@ -17,82 +17,6 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-using namespace boost::filesystem;
-using namespace std;
-using namespace embed_utils;
-using namespace test_files;
-
-TEST (PerPositionKmersTests, test_Event) {
-  Redirect a(true, true);
-  Event e(1, 2);
-  EXPECT_EQ(1, e.descaled_event_mean);
-  EXPECT_EQ(2, e.posterior_probability);
-}
-
-TEST (PerPositionKmersTests, test_Kmer) {
-  Redirect a(true, true);
-  Event e(1, 2);
-  Event e2(1.1, 2.2);
-  Kmer k("ATGCC", 1);
-  k.add_event(e);
-  k.add_event(e2);
-  k.add_event(1.02, 2.1);
-  EXPECT_EQ("ATGCC", k.kmer);
-  EXPECT_FLOAT_EQ(2.2, k.events.front().posterior_probability);
-  EXPECT_EQ(1, k.num_events());
-  Kmer k2("ATGCC", 2);
-  k2.add_event(e);
-  k2.add_event(e2);
-  k2.add_event(1.02, 2.1);
-  EXPECT_EQ("ATGCC", k2.kmer);
-  EXPECT_FLOAT_EQ(2.2, k2.events.back().posterior_probability);
-  EXPECT_EQ(2, k2.num_events());
-}
-
-TEST (PerPositionKmersTests, test_Position) {
-  Redirect a(true, true);
-  string kmer = "ATGCC";
-  Event e(1, 2);
-  Event e2(1.1, 2.2);
-  Kmer k(kmer, 1);
-  k.add_event(e);
-  k.add_event(e2);
-  Position p(1);
-  p.add_kmer(k);
-  ASSERT_THROW({(p.add_kmer)(k);}, AssertionFailureException);
-  p.soft_add_kmer_event(kmer, e);
-  EXPECT_EQ(kmer, p.get_kmer(kmer).kmer);
-  EXPECT_EQ(1, p.position);
-  EXPECT_FLOAT_EQ(2.2, k.events.front().posterior_probability);
-}
-
-TEST (PerPositionKmersTests, test_ContigStrand) {
-  Redirect a(true, true);
-  string kmer = "ATGCC";
-  Event e(1, 2);
-  Event e2(1.1, 2.2);
-  Kmer k(kmer, 1);
-  k.add_event(e);
-  k.add_event(e2);
-  string contig = "asd";
-  string strand = "+";
-  uint64_t num_positions = 10;
-  ContigStrand cs(contig, strand, num_positions, "t");
-  EXPECT_EQ(num_positions, cs.positions.capacity());
-  EXPECT_EQ("asd", cs.get_contig());
-  EXPECT_EQ("+", cs.get_strand());
-  for (uint64_t i=0; i < num_positions; i++){
-    EXPECT_EQ(i, cs.positions[i].position);
-  }
-  uint64_t pos = 1;
-  cs.add_kmer(pos, k);
-  EXPECT_FLOAT_EQ(2.2, cs.positions[pos].kmers[kmer].events.front().posterior_probability);
-  EXPECT_FLOAT_EQ(2.2, cs.get_position(pos).kmers[kmer].events.front().posterior_probability);
-  float c = 2;
-  float b = 3.3;
-  cs.add_event(pos, kmer, c, b);
-  EXPECT_FLOAT_EQ(3.3, cs.get_position(pos).kmers[kmer].events.front().posterior_probability);
-}
 
 TEST (PerPositionKmersTests, test_initialization) {
   Redirect a(true, true);
@@ -118,52 +42,9 @@ TEST (PerPositionKmersTests, test_process_alignment) {
   string contig_strand = "pUC19+c";
   uint64_t position = 1770;
   string kmer = "ATTGA";
-  EXPECT_EQ(3, ppk.data.get_kmer("pUC19", "+", "c", position, kmer).num_events());
+  EXPECT_EQ(3, ppk.data.get_position_kmer("pUC19", "+", "c", position, kmer).num_events());
   position = 2681;
-  EXPECT_EQ(1, ppk.data.get_kmer("pUC19", "+", "c", position, kmer).num_events());
-}
-
-TEST (BinaryEventTests, test_read_and_write) {
-  Redirect a(true, true);
-  path tempdir = temp_directory_path();
-  path test_file = tempdir / "test.event";
-  if (exists(test_file)){
-    remove(test_file);
-  }
-//  create data structure
-  string kmer = "ATGCC";
-  string contig = "asd";
-  string strand = "+";
-  uint64_t num_positions = 10;
-  Kmer k(kmer, 2);
-  k.add_event(1, 1);
-  k.add_event(2, .5);
-  ContigStrand cs(contig, strand, num_positions, "t");
-  uint64_t pos = 1;
-  cs.add_kmer(pos, k);
-//  write data structure
-  BinaryEventWriter bew(test_file);
-  bew.write_contig_strand(cs);
-  bew.write_indexes();
-  bew.close();
-  string contig_strand = "asd+t";
-  BinaryEventReader ber(test_file.string());
-  EXPECT_EQ(1, ber.indexes.size());
-  EXPECT_EQ(3, ber.indexes[contig_strand].contig_string_length);
-  EXPECT_EQ(strand, ber.indexes[contig_strand].strand);
-  EXPECT_EQ("t", ber.indexes[contig_strand].nanopore_strand);
-  EXPECT_EQ(contig, ber.indexes[contig_strand].contig);
-  EXPECT_EQ(num_positions, ber.indexes[contig_strand].num_positions);
-  EXPECT_EQ(1, ber.indexes[contig_strand].num_written_positions);
-  EXPECT_EQ(1, ber.indexes[contig_strand].position_indexes.size());
-  EXPECT_EQ(1, ber.indexes[contig_strand].position_indexes[pos].kmer_indexes.size());
-  EXPECT_EQ(kmer, ber.indexes[contig_strand].position_indexes[pos].kmer_indexes[kmer].name);
-  EXPECT_EQ(5, ber.indexes[contig_strand].position_indexes[pos].kmer_indexes[kmer].name_length);
-
-  Kmer kmer_struct;
-  ber.get_kmer(kmer_struct, kmer, contig, strand, pos);
-  EXPECT_EQ(kmer, kmer_struct.kmer);
-  ASSERT_THAT(k.events, ElementsAreArray(kmer_struct.events));
+  EXPECT_EQ(1, ppk.data.get_position_kmer("pUC19", "+", "c", position, kmer).num_events());
 }
 
 TEST (PerPositionKmersTests, test_write_to_file) {
@@ -200,11 +81,11 @@ TEST (PerPositionKmersTests, test_write_to_file) {
   vector<string> kmers = ber.get_position_index("pUC19", "+", "c", position).get_kmers();
   ASSERT_THAT(kmers, ElementsAreArray(ber.indexes[contig_strand].position_indexes[position].get_kmers()));
   Kmer kmer_struct;
-  ber.get_kmer(kmer_struct, kmer, "pUC19", "+", position, "c");
+  ber.get_position_kmer(kmer_struct, kmer, "pUC19", "+", position, "c");
   EXPECT_EQ(kmer, kmer_struct.kmer);
   EXPECT_EQ(3, kmer_struct.num_events());
   position = 2681;
-  ber.get_kmer(kmer_struct, kmer, "pUC19", "+", position, "c");
+  ber.get_position_kmer(kmer_struct, kmer, "pUC19", "+", position, "c");
   EXPECT_EQ(1, kmer_struct.num_events());
 }
 
@@ -226,7 +107,7 @@ TEST (PerPositionKmersTests, test_split_signal_align_by_ref_position) {
   split_signal_align_by_ref_position(sa_input_dir, output_file_path, reference,
       num_locks, n_threads, verbose, rna, two_d);
 
-  BinaryEventReader ber(test_file.string());
+  BinaryEventReader ber(output_file_path);
 
   string contig_strand = "pUC19+c";
   uint64_t position = 1770;
@@ -245,12 +126,57 @@ TEST (PerPositionKmersTests, test_split_signal_align_by_ref_position) {
   vector<string> kmers = ber.get_position_index("pUC19", "+", "c", position).get_kmers();
   ASSERT_THAT(kmers, ElementsAreArray(ber.indexes[contig_strand].position_indexes[position].get_kmers()));
   Kmer kmer_struct;
-  ber.get_kmer(kmer_struct, kmer, "pUC19", "+", position, "c");
+  ber.get_position_kmer(kmer_struct, kmer, "pUC19", "+", position, "c");
   EXPECT_EQ(kmer, kmer_struct.kmer);
   EXPECT_EQ(22, kmer_struct.num_events());
   position = 2681;
-  ber.get_kmer(kmer_struct, kmer, "pUC19", "+", position, "c");
+  ber.get_position_kmer(kmer_struct, kmer, "pUC19", "+", position, "c");
   EXPECT_EQ(5, kmer_struct.num_events());
+}
+
+TEST (PerPositionKmersTests, test_rna_reads) {
+//  Redirect a(true, true);
+  path tempdir = temp_directory_path() / "temp";
+  path test_file = tempdir / "rna_test.event";
+  if (exists(test_file)){
+    remove(test_file);
+  }
+  string sa_input_dir = RRNA_SIGNAL_FILES.string();
+  string output_file_path = test_file.string();
+  string reference = ECOLI_16S_REFERENCE.string();
+
+  uint64_t num_locks = 1000;
+  uint64_t n_threads = 4;
+  bool verbose = false;
+  bool rna = true;
+  bool two_d = true;
+  split_signal_align_by_ref_position(sa_input_dir, output_file_path, reference,
+                                     num_locks, n_threads, verbose, rna, two_d);
+
+  BinaryEventReader ber(output_file_path);
+  string contig_strand = "ecoli_MRE600+t";
+  uint64_t position = 200;
+  string kmer = "AGGGG";
+  EXPECT_EQ(4, ber.indexes.size());
+  EXPECT_EQ(12, ber.indexes[contig_strand].contig_string_length);
+  EXPECT_EQ("+", ber.indexes[contig_strand].strand);
+  EXPECT_EQ("t", ber.indexes[contig_strand].nanopore_strand);
+  EXPECT_EQ("ecoli_MRE600", ber.indexes[contig_strand].contig);
+  EXPECT_EQ(1542, ber.indexes[contig_strand].num_positions);
+  EXPECT_EQ(1527, ber.indexes[contig_strand].num_written_positions);
+  EXPECT_EQ(1527, ber.indexes[contig_strand].position_indexes.size());
+  EXPECT_EQ(1, ber.indexes[contig_strand].position_indexes[position].kmer_indexes.size());
+  EXPECT_EQ(kmer, ber.indexes[contig_strand].position_indexes[position].kmer_indexes[kmer].name);
+  EXPECT_EQ(5, ber.indexes[contig_strand].position_indexes[position].kmer_indexes[kmer].name_length);
+  vector<string> kmers = ber.get_position_index("ecoli_MRE600", "+", "t", position).get_kmers();
+  ASSERT_THAT(kmers, ElementsAreArray(ber.indexes[contig_strand].position_indexes[position].get_kmers()));
+  Kmer kmer_struct;
+  ber.get_position_kmer(kmer_struct, kmer, "ecoli_MRE600", "+", position, "t");
+  EXPECT_EQ(kmer, kmer_struct.kmer);
+  EXPECT_EQ(16, kmer_struct.num_events());
+  position = 144;
+  ber.get_position_kmer(kmer_struct, kmer, "ecoli_MRE600", "+", position, "t");
+  EXPECT_EQ(9, kmer_struct.num_events());
 }
 
 

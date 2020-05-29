@@ -9,7 +9,7 @@
 #include <string>
 #include <sstream>
 
-#define __unused	__attribute__((unused))
+//#define __unused	__attribute__((unused))
 
 
 using namespace std;
@@ -22,7 +22,7 @@ struct eventkmer
   string strand;
   float posterior_probability;
   eventkmer(string kmer, float mean, string strand, float prob) :
-      path_kmer(move(kmer)), descaled_event_mean(mean), strand(move(strand)), posterior_probability(prob)
+      path_kmer(move(kmer)), descaled_event_mean(move(mean)), strand(move(strand)), posterior_probability(move(prob))
   {
   }
   ~eventkmer() = default;

@@ -75,6 +75,51 @@ struct Kmer {
   }
   Kmer() {}
   ~Kmer() = default;
+//  Kmer(const Kmer& mE)            = default;
+//  Kmer(Kmer&& mE)                 = default;
+  Kmer(const Kmer& other) :
+      kmer{other.kmer},
+      events{other.events},
+      max_events{other.max_events},
+      max_events_set{other.max_events_set},
+      num_ignored_kmers{other.num_ignored_kmers}        {
+//    cout << kmer + ": KMER COPY CONSTRUCTOR" << '\n';
+  }
+
+//  Kmer(Kmer&& mE) : a{move(mE.a)}, b{move(mE.b)} { }
+  Kmer& operator=(const Kmer& other) {
+    if(this != &other) {
+      kmer = other.kmer;
+      events = other.events;
+      max_events = other.max_events;
+      max_events_set = other.max_events_set;
+      num_ignored_kmers = other.num_ignored_kmers;
+//      cout << kmer + ": KMER COPY ASSIGNMENT" << '\n';
+    }
+    return *this;
+  }
+
+  Kmer(Kmer&& other) :
+      kmer{move(other.kmer)},
+      events{move(other.events)},
+      max_events{move(other.max_events)},
+      max_events_set{move(other.max_events_set)},
+      num_ignored_kmers{move(other.num_ignored_kmers)} {
+//    cout << kmer + ": KMER MOVE CONSTRUCTOR" << '\n';
+  }
+
+  Kmer& operator=(Kmer&& other) {
+    if(this != &other) {
+      kmer = move(other.kmer);
+      events = move(other.events);
+      max_events = move(other.max_events);
+      max_events_set = move(other.max_events_set);
+      num_ignored_kmers = move(other.num_ignored_kmers);
+//      cout << kmer + ": KMER MOVE ASSIGNMENT" << '\n';
+    }
+    return *this;
+  }
+
 
   /**
   Add an event to the priority queue
@@ -149,7 +194,10 @@ struct Position
   */
   void add_kmer(Kmer& kmer){
     throw_assert(kmers.find(kmer.kmer) == kmers.end(), "Kmer: " + kmer.kmer + " is already in Position.")
-    kmers.insert({kmer.kmer, move(kmer)});
+    string kmer_str(kmer.kmer);
+    kmers.emplace(kmer_str, move(kmer));
+//    string kmer_str(kmer.kmer);
+//    kmers.insert(std::make_pair<string, Kmer>(static_cast<basic_string<char> &&>(kmer.kmer), forward<Kmer>(kmer)));
     has_data = true;
   }
   /**
@@ -159,7 +207,7 @@ struct Position
   @param event: Event data structure
   */
   void soft_add_kmer_event(string kmer, Event& event){
-    soft_add_kmer_event(move(kmer), event.descaled_event_mean, event.posterior_probability);
+    soft_add_kmer_event(kmer, event.descaled_event_mean, event.posterior_probability);
   }
   /**
   Add event to kmer or create and add kmer data structure

@@ -117,17 +117,17 @@ TEST (EmbedUtilsTests, test_all_string_permutations){
   Redirect a(true, true);
   vector<string> correct_kmers = {"CC", "CS", "SC", "SS"};
   string cs = "CS";
-  int length = 2;
+  uint64_t length = 2;
   vector<string> kmers = all_string_permutations(cs, length);
 
-  for(int i=0; i < 4; ++i){
+  for(uint64_t i=0; i < 4; ++i){
     EXPECT_EQ(kmers[i], correct_kmers[i]);
   }
   string cc = "CC";
 
   kmers = all_string_permutations(cc, length);
   correct_kmers = {"CC"};
-  for(int i=0; i < 1; ++i){
+  for(uint64_t i=0; i < 1; ++i){
     EXPECT_EQ(kmers[i], correct_kmers[i]);
   }
 
@@ -241,6 +241,31 @@ TEST (EmbedUtilsTests, test_get_time) {
   EXPECT_EQ(0, get<2>(the_time2));
   EXPECT_EQ("hours: 0 minutes: 0", the_time.substr(0, 19));
 }
+
+TEST (EmbedUtilsTests, test_add_string_to_set) {
+  Redirect a(true, true);
+  set<char> b = {'A', 'G', 'T'};
+  set<char> c = add_string_to_set(b, "AGTF");
+  set<char> d = {'A', 'F', 'G', 'T'};
+
+  ASSERT_THAT(c, ElementsAreArray(d));
+}
+
+TEST (EmbedUtilsTests, test_char_set_to_string) {
+  Redirect a(true, true);
+  set<char> b = {'A', 'G', 'T'};
+  string c = char_set_to_string(b);
+  EXPECT_EQ("AGT", c);
+}
+
+TEST (EmbedUtilsTests, test_string_to_char_set) {
+  Redirect a(true, true);
+  set<char> b = {'A', 'G', 'T'};
+  set<char> c = string_to_char_set("AGT");
+  ASSERT_THAT(c, ElementsAreArray(b));
+}
+
+
 
 
 

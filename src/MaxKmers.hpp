@@ -56,7 +56,7 @@ class MaxKmers{
   @param kmer_length: length of the string
   @return vector of alphabetically ordered strings
   */
-  vector<string> create_kmers(string& alphabet1, int kmer_length1) {
+  vector<string> create_kmers(string& alphabet1, uint64_t kmer_length1) {
     return all_string_permutations(alphabet1, kmer_length1);
   }
 

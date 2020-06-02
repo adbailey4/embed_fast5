@@ -20,110 +20,49 @@ using namespace std;
 using namespace embed_utils;
 using namespace boost::filesystem;
 
-class KmerIndex {
- public:
-  /// Attributes ///
-  string name;
-  uint64_t name_length;
-  uint64_t sequence_byte_index;
-  uint64_t sequence_length;
-};
-
-class PositionIndex {
- public:
-  /// Attributes ///
-  uint64_t position;
-  unordered_map<string, KmerIndex> kmer_indexes;
-  uint64_t num_kmers;
-
-  KmerIndex& get_kmer_index(const string& kmer){
-    auto found = kmer_indexes.find(kmer);
-    if (found != kmer_indexes.end()) {
-      // Found it
-      return found->second;
-    } else {
-      throw runtime_error(kmer + " was not found in kmer index map");
-    }
-  }
-
-  vector<string> get_kmers(){
-    vector<string> v;
-    for (auto i : kmer_indexes) {
-      v.push_back(i.first);
-    }
-    return v;
-  }
-
-};
-
-class ContigStrandIndex {
- public:
-  /// Attributes ///
-  string contig;
-  uint64_t contig_string_length;
-  string strand;
-  string nanopore_strand;
-  uint64_t num_positions;
-  unordered_map<uint64_t, PositionIndex> position_indexes;
-  uint64_t num_written_positions;
-
-  PositionIndex& get_position_index(const uint64_t& position){
-    auto found = position_indexes.find(position);
-    if (found != position_indexes.end()) {
-      // Found it
-      return found->second;
-    } else {
-      throw runtime_error(to_string(position) + " was not found in position index map");
-    }
-  }
-  KmerIndex& get_kmer_index(const uint64_t& position, const string& kmer) {
-    return get_position_index(position).get_kmer_index(kmer);
-  }
-};
-
-
 //ostream& operator<<(ostream& s, KmerIndex& index);
 
 
 class BinaryEventWriter {
- public:
+ private:
   /// Attributes ///
   path sequence_file_path;
   std::ofstream sequence_file;
   // When writing the binary file, this vector is appended, so the position of each sequence is stored
   vector<ContigStrandIndex> contig_strand_indexes;
+  set<char> alphabet;
+  uint64_t kmer_len;
 
   PositionIndex write_position(Position& position){
     PositionIndex index;
     // Store the number of kmers
-    index.num_kmers = position.kmers.size();
+    index.num_kmers = position.num_kmers();
     // Store the name of this sequence
     index.position = position.position;
-
-    for (auto &kmer: position.kmers){
-      index.kmer_indexes.insert(std::make_pair(kmer.first, this->write_kmer(kmer.second)));
+    for (auto &kmer_ptr: position.get_kmer_pointers()){
+      index.kmer_indexes.insert(std::make_pair(kmer_ptr->kmer, this->write_kmer(kmer_ptr)));
     }
     return index;
   }
 
-  KmerIndex write_kmer(Kmer& kmer){
-    if (kmer.events.empty()){
-      throw runtime_error("ERROR: empty sequence provided to BinaryEventWriter: " + kmer.kmer);
+  shared_ptr<PosKmerIndex> write_kmer(shared_ptr<PosKmer> kmer){
+    if (kmer->events.empty()){
+      throw runtime_error("ERROR: empty sequence provided to BinaryEventWriter: " + kmer->kmer);
     }
-    KmerIndex index;
+    shared_ptr<PosKmerIndex> index = make_shared<PosKmerIndex>();
     // Add sequence start position to index
-    index.sequence_byte_index = this->sequence_file.tellp();
+    index->sequence_byte_index = this->sequence_file.tellp();
     // Store the length of this sequence
-    index.sequence_length = kmer.events.size();
+    index->sequence_length = kmer->events.size();
     // Store the name of this sequence
-    index.name = kmer.kmer;
-    write_vector_to_binary(this->sequence_file, kmer.events);
+    index->name = kmer->kmer;
+    write_vector_to_binary(this->sequence_file, kmer->events);
     // Append index object to vector
     return index;
   }
 
 
-  void write_kmer_index(KmerIndex& index){
+  void write_kmer_index(PosKmerIndex& index){
     // Where is the sequence
     write_value_to_binary(this->sequence_file, index.sequence_byte_index);
     // How long is the sequence
@@ -140,7 +79,7 @@ class BinaryEventWriter {
     // How many kmers
     write_value_to_binary(this->sequence_file, index.num_kmers);
     for (auto &kmer_index: index.kmer_indexes){
-      write_kmer_index(kmer_index.second);
+      write_kmer_index(*kmer_index.second);
     }
   }
 
@@ -160,7 +99,9 @@ class BinaryEventWriter {
 
  public:
   /// Methods ///
-  BinaryEventWriter(path file_path) {
+  BinaryEventWriter(path file_path, const set<char>& alphabet, const uint64_t& kmer_len) :
+      alphabet(move(alphabet)), kmer_len(move(kmer_len))
+  {
     this->sequence_file_path = file_path;
     // Ensure that the output directory exists
     if (this->sequence_file_path.has_parent_path()){
@@ -200,14 +141,18 @@ class BinaryEventWriter {
   void write_indexes(){
     // Store the current file byte index so the beginning of the INDEX table can be located later
     uint64_t indexes_start_position = this->sequence_file.tellp();
+    write_value_to_binary(this->sequence_file, kmer_len);
+    // How long is the name of the sequence
+    string alphabet_str = char_set_to_string(alphabet);
+    write_value_to_binary(this->sequence_file, alphabet_str.size());
+    // What is the name
+    write_string_to_binary(this->sequence_file, alphabet_str);
 
     // Iterate all the indexes, write them to the file
     for (auto& index: this->contig_strand_indexes){
       write_contig_strand_index(index);
     }
-    // Store the current file byte index so the beginning of the CHANNEL table can be located later
-//    uint64_t channel_metadata_start_position = this->sequence_file.tellp();
-    // Write the pointer to the beginning of the index table
+    // Write the pointer to the beginning of the indexes
     write_value_to_binary(this->sequence_file, indexes_start_position);
   }
 };

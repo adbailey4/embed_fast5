@@ -113,7 +113,7 @@ void write_tsv_file_worker(
       vc = get<1>(nvc);
       for (const auto& variant: vc){
         my_file << read_id << "," << variant.contig << "," << variant.reference_index << "," << variant.strand << "," << variant.bases;
-        for (auto prob: variant.normalized_probs){
+        for (auto &prob: variant.normalized_probs){
           my_file << "," << prob;
         }
         delta = max_n_variants - variant.normalized_probs.size();

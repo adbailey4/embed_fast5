@@ -58,33 +58,33 @@ class BinaryEventReader {
     }
   }
 
-  void get_position_kmer(Kmer& kmer_struct, const string& kmer, const string& contig_name, const string& strand,
+  shared_ptr<PosKmer> get_position_kmer(const string& kmer, const string& contig_name, const string& strand,
                          const uint64_t& position, const string nanopore_strand= "t"){
-    KmerIndex& ki = this->get_kmer_index(contig_name, strand, nanopore_strand, position, kmer);
-    kmer_struct.kmer = ki.name;
-    off_t byte_index = ki.sequence_byte_index;
-    uint64_t sequence_length = ki.sequence_length;
-    kmer_struct.events.reserve(sequence_length);
-    pread_vector_from_binary(this->sequence_file_descriptor, kmer_struct.events, sequence_length, byte_index);
+    shared_ptr<PosKmerIndex> ki = this->get_pos_kmer_index(contig_name, strand, nanopore_strand, position, kmer);
+    shared_ptr<PosKmer> kmer_struct = make_shared<PosKmer>();
+    get_position_kmer(kmer_struct, ki);
+    return kmer_struct;
   }
 
-  void get_position_kmer(Kmer& kmer_struct, KmerIndex& ki){
-    kmer_struct.kmer = ki.name;
-    off_t byte_index = ki.sequence_byte_index;
-    uint64_t sequence_length = ki.sequence_length;
-    kmer_struct.events.reserve(sequence_length);
-    pread_vector_from_binary(this->sequence_file_descriptor, kmer_struct.events, sequence_length, byte_index);
+  void get_position_kmer(shared_ptr<PosKmer> kmer_struct, shared_ptr<PosKmerIndex> ki){
+    kmer_struct->kmer = ki->name;
+    off_t byte_index = ki->sequence_byte_index;
+    uint64_t sequence_length = ki->sequence_length;
+    kmer_struct->events.reserve(sequence_length);
+    pread_vector_from_binary(this->sequence_file_descriptor, kmer_struct->events, sequence_length, byte_index);
   }
 
 
   void get_position(Position& position_struct, const string& contig_name, const string& strand,
                 const uint64_t& position, const string nanopore_strand="t"){
-    PositionIndex& ki = this->get_position_index(contig_name, strand, nanopore_strand, position);
-    vector<string> kmers= ki.get_kmers();
-    for (auto kmer: kmers){
-      Kmer k;
-      get_position_kmer(k, kmer, contig_name, strand, position, nanopore_strand);
-      position_struct.add_kmer(k);
+    PositionIndex& pi = this->get_position_index(contig_name, strand, nanopore_strand, position);
+    vector<string> kmers= pi.get_kmers();
+    for (auto &kmer: kmers){
+      if (!position_struct.has_kmer(kmer)){
+        shared_ptr<PosKmer> k = get_position_kmer(kmer, contig_name, strand, position, nanopore_strand);
+        position_struct.add_kmer(k);
+      }
+      position_struct.populated = true;
     }
   }
 
@@ -103,13 +103,43 @@ class BinaryEventReader {
     return this->get_contig_index(contig, strand, nanopore_strand).get_position_index(position);
   }
 
-  KmerIndex& get_kmer_index(const string& contig, const string& strand, const string& nanopore_strand, const uint64_t& position, const string& kmer){
+  shared_ptr<PosKmerIndex> get_pos_kmer_index(const string& contig, const string& strand, const string& nanopore_strand, const uint64_t& position, const string& kmer){
     return this->get_position_index(contig, strand, nanopore_strand, position).get_kmer_index(kmer);
   }
 
+  KmerIndex& get_kmer_index(const string& kmer){
+    return kmer_map.get_kmer_index(kmer);
+  }
+
+  void populate_kmer(Kmer& kmer){
+    KmerIndex& kmer_index = this->get_kmer_index(kmer.kmer);
+    uint64_t size = kmer_index.kmer_index_ptrs.size();
+    kmer.kmers.reserve(size);
+    kmer.positions.reserve(size);
+    kmer.contig_strands.reserve(size);
+    vector<shared_ptr<PosKmer>> kmer_struct(size);
+    for (uint64_t i = 0; i < size; ++i){
+      uint64_t& pos = kmer_index.positions[i];
+      string& contig_strand = kmer_index.contig_strands[i];
+      shared_ptr<PosKmerIndex> k_index_ptr = kmer_index.kmer_index_ptrs[i];
+      //      look for pos and contig strand
+      int64_t index = kmer.find_index(contig_strand, pos);
+      if (index == -1) {
+//      if both are not found then
+        kmer.kmers.emplace_back(make_shared<PosKmer>()) ;
+        get_position_kmer(kmer.kmers.back(), kmer_index.kmer_index_ptrs[i]);
+      }
+    }
+  }
+
+
   /// Attributes ///
   unordered_map<string, ContigStrandIndex> indexes;
-  unordered_map<string, vector<KmerIndex*>> kmer_indexes;
+  ByKmerIndex kmer_map;
+  uint64_t kmer_length;
+  uint64_t alphabet_length;
+  set<char> alphabet;
+  string alphabet_string;
 
   bool initialized = false;
 
@@ -125,6 +155,11 @@ class BinaryEventReader {
   /// Methods ///
   void read_indexes(){
     off_t byte_index = off_t(this->indexes_start_position);
+    pread_value_from_binary(this->sequence_file_descriptor, this->kmer_length, byte_index);
+    pread_value_from_binary(this->sequence_file_descriptor, this->alphabet_length, byte_index);
+    pread_string_from_binary(this->sequence_file_descriptor, this->alphabet_string, this->alphabet_length, byte_index);
+    this->alphabet = string_to_char_set(this->alphabet_string);
+//    read in all other indexes
     while (byte_index > 0 and uint64_t(byte_index) < (this->file_length - 1*sizeof(uint64_t))){
       ContigStrandIndex index_element;
       this->read_contig_strand_index_entry(index_element, byte_index);
@@ -140,22 +175,22 @@ class BinaryEventReader {
     pread_value_from_binary(this->sequence_file_descriptor, this->indexes_start_position, byte_index);
   }
   
-  void read_kmer_index_entry(KmerIndex& index_element, off_t& byte_index){
+  void read_kmer_index_entry(PosKmerIndex& index_element, off_t& byte_index){
     pread_value_from_binary(this->sequence_file_descriptor, index_element.sequence_byte_index, byte_index);
     pread_value_from_binary(this->sequence_file_descriptor, index_element.sequence_length, byte_index);
     pread_value_from_binary(this->sequence_file_descriptor, index_element.name_length, byte_index);
     pread_string_from_binary(this->sequence_file_descriptor, index_element.name, index_element.name_length, byte_index);
   }
 
-  void read_position_index_entry(PositionIndex& index_element, off_t& byte_index){
+  void read_position_index_entry(PositionIndex& index_element, off_t& byte_index, const string& contig_strand){
     pread_value_from_binary(this->sequence_file_descriptor, index_element.position, byte_index);
     pread_value_from_binary(this->sequence_file_descriptor, index_element.num_kmers, byte_index);
     index_element.kmer_indexes.reserve(index_element.num_kmers);
     for (uint64_t i=0; i < index_element.num_kmers; i++){
-      KmerIndex ki;
-      this->read_kmer_index_entry(ki, byte_index);
-      kmer_indexes[ki.name].push_back(&ki);
-      auto ret = index_element.kmer_indexes.emplace(ki.name, move(ki));
+      std::shared_ptr<PosKmerIndex> p = std::make_shared<PosKmerIndex>();
+      this->read_kmer_index_entry(*p, byte_index);
+      kmer_map.add_kmer_index_ptr(contig_strand, index_element.position, p);
+      auto ret = index_element.kmer_indexes.emplace(p->name, p);
       throw_assert(ret.second,
                    "ERROR: possible duplicate kmer (" + ret.first->first + ") at position (" +
                    to_string(index_element.position) + ") found in events file: " +
@@ -174,14 +209,14 @@ class BinaryEventReader {
     index_element.position_indexes.reserve(index_element.num_written_positions);
     for (uint64_t i=0; i < index_element.num_written_positions; i++){
       PositionIndex pi;
-      this->read_position_index_entry(pi, byte_index);
+      this->read_position_index_entry(pi, byte_index,
+          index_element.contig+index_element.strand+index_element.nanopore_strand);
       auto ret = index_element.position_indexes.emplace(pi.position, move(pi));
       throw_assert(ret.second,
           "ERROR: possible duplicate position (" + to_string(ret.first->first) + ") found in events file: " +
           this->sequence_file_path)
     }
   }
-
 };
 
 #endif //EMBED_FAST5_SRC_BINARYEVENTREADER_HPP_

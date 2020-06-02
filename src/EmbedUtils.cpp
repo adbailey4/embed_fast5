@@ -14,7 +14,6 @@
 #include <sys/stat.h>
 #include <iostream>
 #include <functional>
-#include <sstream>
 #include <cmath>
 #include <map>
 #include <chrono>
@@ -232,7 +231,7 @@ Creates an alphabetically sorted vector all string permutations of a set of char
 @param length: kmer length
 @return vector of strings
 */
-vector<string> all_string_permutations(string &characters, int &length) {
+vector<string> all_string_permutations(const string &characters, uint64_t &length) {
   assert(length >= 0);
   assert(characters.length() > 0);
   string data;
@@ -241,10 +240,10 @@ vector<string> all_string_permutations(string &characters, int &length) {
     data += " ";
   }
 
-  characters = remove_duplicate_characters(characters);
-  sort_string(characters);
+  string characters1 = remove_duplicate_characters(characters);
+  sort_string(characters1);
 
-  return all_lexicographic_recur(characters, data, length - 1, 0);
+  return all_lexicographic_recur(characters1, data, length - 1, 0);
 
 }
 /**
@@ -253,7 +252,7 @@ Remove duplicate characters. Returns new string
 @param input_string: input string to remove characters from
 @return new string.
 */
-string remove_duplicate_characters(string &input_string) {
+string remove_duplicate_characters(const string &input_string) {
 
   size_t character_map[128] = {0};
   string output_string;
@@ -465,5 +464,37 @@ uint64_t number_of_columns(const path &file_path, char sep){
   fclose(infile);
   return n_col;
 }
+
+set<char> add_string_to_set(const set<char>& a, const string& b)
+{
+  std::set<char> result = a;
+  result.insert(b.begin(), b.end());
+  return result;
+}
+
+string char_set_to_string(set<char> a){
+  string return_value;
+  for (auto &c: a){
+    return_value += c;
+  }
+  return return_value;
+}
+
+set<char> string_to_char_set(const string& a){
+  return add_string_to_set(std::set<char>{}, a);
+}
+
+uint64_t compute_string_hash(string const& s) {
+  const int p = 31;
+  const int m = 1e9 + 9;
+  uint64_t hash_value = 0;
+  uint64_t p_pow = 1;
+  for (char c : s) {
+    hash_value = (hash_value + (c - 'a' + 1) * p_pow) % m;
+    p_pow = (p_pow * p) % m;
+  }
+  return hash_value;
+}
+
 
 }

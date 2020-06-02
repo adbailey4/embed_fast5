@@ -14,3 +14,4 @@ src/embed/bindings*
 tests/bin
 tests/real_data_test1
 cpg_hdp_model
+notes.md

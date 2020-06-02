@@ -68,15 +68,15 @@ void per_position_worker(
  @param n_threads: number of threads to process
  @return tuple of uint64_t's [hours, minutes, seconds, microseconds]
 */
-void split_signal_align_by_ref_position(
-    string& sa_input_dir,
-    string& output_file_path,
-    string reference,
-    uint64_t num_locks,
-    uint64_t n_threads,
-    bool verbose,
-    bool rna,
-    bool two_d){
+void split_signal_align_by_ref_position(string &sa_input_dir,
+                                        string &output_file_path,
+                                        string reference,
+                                        uint64_t num_locks,
+                                        uint64_t n_threads,
+                                        bool verbose,
+                                        bool rna,
+                                        bool two_d,
+                                        set<char> alphabet) {
 //  check output file does not exist
   path input_dir(sa_input_dir);
   path output_file(output_file_path);
@@ -90,8 +90,8 @@ void split_signal_align_by_ref_position(
   uint64_t number_of_files = all_tsvs.size();
 //  initialize per-position dataset using info from reference
   ReferenceHandler rh(reference);
-  PerPositionKmers ppk(num_locks, rh, two_d);
-//  creat job index, threads and reset exception pointer
+  PerPositionKmers ppk(rh, alphabet, AlignmentFile(all_tsvs[0].string()).get_k(), num_locks, two_d);
+  //  creat job index, threads and reset exception pointer
   atomic<uint64_t> job_index(0);
   vector<thread> threads;
   globalExceptionPtr = nullptr;
@@ -140,6 +140,7 @@ static const char *SPLIT_BY_REF_USAGE_MESSAGE =
     "  -t, --threads=NUMBER                 number of threads\n"
     "  -l, --locks=NUMBER                   number of locks for multithreading\n"
     "  -r, --reference=PATH                 reference sequence (fa format)\n"
+    "  -c, --alphabet=PATH                  characters that make up alphabet\n"
     "  --rna                                boolean option if reads are rna\n"
     "  --two_d                              boolean option if reads are 2d\n"
     "\nReport bugs to " PACKAGE_BUGREPORT2 "\n\n";
@@ -154,9 +155,11 @@ static unsigned int threads = 1;
 static string reference;
 static bool rna=false;
 static bool two_d=false;
+static string alphabet;
+
 }
 
-static const char* shortopts = "a:t:o:r:l:d:b:vh";
+static const char* shortopts = "a:t:o:r:l:d:b:c:vh";
 
 enum { OPT_HELP = 1, OPT_VERSION };
 
@@ -165,6 +168,7 @@ static const struct option longopts[] = {
     { "alignment_files",  required_argument, nullptr, 'a' },
     { "output",           required_argument, nullptr, 'o' },
     { "reference",        required_argument, nullptr, 'r' },
+    { "alphabet",         required_argument, nullptr, 'c' },
     { "locks",            optional_argument, nullptr, 'l' },
     { "threads",          optional_argument, nullptr, 't' },
     { "rna",              no_argument,       nullptr, 'b' },
@@ -185,6 +189,7 @@ void parse_split_by_ref_main_options(int argc, char** argv)
       case 't': arg >> opt::threads; break;
       case 'l': arg >> opt::num_locks; break;
       case 'r': arg >> opt::reference; break;
+      case 'c': arg >> opt::alphabet; break;
       case 'b': opt::rna = true; break;
       case 'd': opt::two_d = true; break;
       case 'v': opt::verbose++; break;
@@ -216,6 +221,10 @@ void parse_split_by_ref_main_options(int argc, char** argv)
     std::cerr << SUBPROGRAM ": a --output file must be provided\n";
     die = true;
   }
+  if(opt::alphabet.empty()) {
+    std::cerr << SUBPROGRAM ": a --alphabet string must be provided\n";
+    die = true;
+  }
   if (die)
   {
     std::cout << "\n" << SPLIT_BY_REF_USAGE_MESSAGE;
@@ -227,15 +236,17 @@ void parse_split_by_ref_main_options(int argc, char** argv)
 int split_by_ref_main(int argc, char** argv)
 {
   parse_split_by_ref_main_options(argc, argv);
+  set<char> alphabet = string_to_char_set(opt::alphabet);
   auto bound_funct = bind(split_signal_align_by_ref_position,
-      opt::alignment_files,
-      opt::output,
-      opt::reference,
-      opt::num_locks,
-      opt::threads,
-      opt::verbose,
-      opt::rna,
-      opt::two_d);
+                          opt::alignment_files,
+                          opt::output,
+                          opt::reference,
+                          opt::num_locks,
+                          opt::threads,
+                          opt::verbose,
+                          opt::rna,
+                          opt::two_d,
+                          alphabet);
   string funct_time = get_time_string(bound_funct);
   cout << funct_time;
 

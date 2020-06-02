@@ -161,7 +161,7 @@ TEST (BinaryIOTests, test_read_write_queue_of_Events_to_binary) {
   }
 //  write
   std::ofstream file_handle = std::ofstream(test_file.string(), std::ofstream::binary);
-  Kmer write_me;
+  PosKmer write_me;
   write_me.add_event(1, 2);
   write_me.add_event(2, 3);
   write_vector_to_binary(file_handle, write_me.events);

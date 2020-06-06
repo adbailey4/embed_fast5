@@ -42,7 +42,7 @@ TEST (BinaryEventTests, test_read_and_write) {
   cs.add_kmer(pos, k);
 //  write data structure
   std::set<char> alphabet{'A', 'G', 'C', 'T'};
-  BinaryEventWriter bew(test_file, alphabet, 5);
+  BinaryEventWriter bew(test_file, alphabet, 5, false, true);
   bew.write_contig_strand(cs);
   bew.write_indexes();
   bew.close();
@@ -51,6 +51,8 @@ TEST (BinaryEventTests, test_read_and_write) {
   EXPECT_EQ("ACGT", ber.alphabet_string);
   ASSERT_THAT(alphabet, ElementsAreArray(ber.alphabet));
   EXPECT_EQ(5, ber.kmer_length);
+  EXPECT_EQ(false, ber.rna);
+  EXPECT_EQ(true, ber.two_d);
 
   EXPECT_EQ(1, ber.indexes.size());
   EXPECT_EQ(3, ber.indexes[contig_strand].contig_string_length);
@@ -92,7 +94,7 @@ TEST (BinaryEventTests, test_create_kmer_map) {
 
 //  write data structure
   std::set<char> alphabet{'A', 'G', 'C', 'T'};
-  BinaryEventWriter bew(test_file, alphabet, 5);
+  BinaryEventWriter bew(test_file, alphabet, 5, false, false);
   bew.write_contig_strand(cs);
   bew.write_indexes();
   bew.close();
@@ -101,7 +103,7 @@ TEST (BinaryEventTests, test_create_kmer_map) {
   EXPECT_EQ(2, ber.kmer_map.get_kmer_index(kmer).kmer_index_ptrs.size());
   Kmer kmer_struct("ATGCC");
   ber.populate_kmer(kmer_struct);
-  EXPECT_EQ(2, kmer_struct.kmers.size());
+  EXPECT_EQ(2, kmer_struct.pos_kmer_map.size());
 }
 
 

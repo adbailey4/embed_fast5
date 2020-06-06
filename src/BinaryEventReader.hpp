@@ -114,20 +114,19 @@ class BinaryEventReader {
   void populate_kmer(Kmer& kmer){
     KmerIndex& kmer_index = this->get_kmer_index(kmer.kmer);
     uint64_t size = kmer_index.kmer_index_ptrs.size();
-    kmer.kmers.reserve(size);
-    kmer.positions.reserve(size);
-    kmer.contig_strands.reserve(size);
-    vector<shared_ptr<PosKmer>> kmer_struct(size);
+    kmer.pos_kmer_map.reserve(size);
+//    kmer.positions.reserve(size);
+//    kmer.contig_strands.reserve(size);
+//    vector<shared_ptr<PosKmer>> kmer_struct(size);
     for (uint64_t i = 0; i < size; ++i){
       uint64_t& pos = kmer_index.positions[i];
       string& contig_strand = kmer_index.contig_strands[i];
-      shared_ptr<PosKmerIndex> k_index_ptr = kmer_index.kmer_index_ptrs[i];
       //      look for pos and contig strand
-      int64_t index = kmer.find_index(contig_strand, pos);
-      if (index == -1) {
+      if (!kmer.has_pos_kmer(contig_strand, pos)) {
 //      if both are not found then
-        kmer.kmers.emplace_back(make_shared<PosKmer>()) ;
-        get_position_kmer(kmer.kmers.back(), kmer_index.kmer_index_ptrs[i]);
+        shared_ptr<PosKmer> ptr = make_shared<PosKmer>();
+        get_position_kmer(ptr, kmer_index.kmer_index_ptrs[i]);
+        kmer.add_pos_kmer(contig_strand, pos, ptr);
       }
     }
   }
@@ -140,6 +139,8 @@ class BinaryEventReader {
   uint64_t alphabet_length;
   set<char> alphabet;
   string alphabet_string;
+  bool rna = false;
+  bool two_d = false;
 
   bool initialized = false;
 
@@ -158,6 +159,9 @@ class BinaryEventReader {
     pread_value_from_binary(this->sequence_file_descriptor, this->kmer_length, byte_index);
     pread_value_from_binary(this->sequence_file_descriptor, this->alphabet_length, byte_index);
     pread_string_from_binary(this->sequence_file_descriptor, this->alphabet_string, this->alphabet_length, byte_index);
+    pread_value_from_binary(this->sequence_file_descriptor, this->rna, byte_index);
+    pread_value_from_binary(this->sequence_file_descriptor, this->two_d, byte_index);
+
     this->alphabet = string_to_char_set(this->alphabet_string);
 //    read in all other indexes
     while (byte_index > 0 and uint64_t(byte_index) < (this->file_length - 1*sizeof(uint64_t))){

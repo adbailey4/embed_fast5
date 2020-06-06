@@ -47,6 +47,30 @@ TEST (BaseKmerTests, test_PosKmer) {
   EXPECT_EQ(2, k2.num_events());
 }
 
+TEST (BaseKmerTests, test_PosKmer_kde) {
+  Redirect a(true, true);
+  PosKmer k("ATGCC");
+  k.add_event(1, 1);
+  k.add_event(2, 0.5);
+  k.add_event(3, 1);
+  k.add_event(4, 0.5);
+  k.add_event(5, 1);
+  k.add_event(6, 0.5);
+  k.add_event(7, 1);
+  k.add_event(8, 0.5);
+  k.add_event(9, 1);
+  k.add_event(10, 1);
+  EXPECT_EQ(10, k.num_events());
+  ASSERT_THROW(k.get_hist(0,10,10), AssertionFailureException);
+  vector<uint64_t> hist{1,1,1,1,1,1,1,1,1,1};
+  ASSERT_THAT(hist, ElementsAreArray(k.get_hist(0,10.1,10)));
+  ASSERT_THAT(hist, ElementsAreArray(k.get_hist(0,10.1,10, 0.5)));
+  hist = {1,0,1,0,1,0,1,0,1,1};
+  ASSERT_THAT(hist, ElementsAreArray(k.get_hist(0,10.1,10, 0.51)));
+  hist = {0,1,1,1,1,1,1,1,1,1,1};
+  ASSERT_THAT(hist, ElementsAreArray(k.get_hist(0,11,11)));
+}
+
 TEST (BaseKmerTests, test_Position) {
   Redirect a(true, true);
   string kmer = "ATGCC";
@@ -61,9 +85,9 @@ TEST (BaseKmerTests, test_Position) {
   p.add_kmer(move(k));
   ASSERT_THROW({(p.add_kmer)(k2);}, AssertionFailureException);
   p.soft_add_kmer_event(kmer, e3);
-  EXPECT_EQ(kmer, p.get_kmer(kmer)->kmer);
+  EXPECT_EQ(kmer, p.get_pos_kmer(kmer)->kmer);
   EXPECT_EQ(1, p.position);
-  EXPECT_FLOAT_EQ(2.2, p.get_kmer(kmer)->events.front().posterior_probability);
+  EXPECT_FLOAT_EQ(2.2, p.get_pos_kmer(kmer)->events.front().posterior_probability);
 }
 
 TEST (BaseKmerTests, test_ContigStrand) {
@@ -86,12 +110,12 @@ TEST (BaseKmerTests, test_ContigStrand) {
   }
   uint64_t pos = 1;
   cs.add_kmer(pos, k);
-  EXPECT_FLOAT_EQ(2.2, cs.positions[pos].get_kmer(kmer)->events.front().posterior_probability);
-  EXPECT_FLOAT_EQ(2.2, cs.get_position(pos).get_kmer(kmer)->events.front().posterior_probability);
+  EXPECT_FLOAT_EQ(2.2, cs.positions[pos].get_pos_kmer(kmer)->events.front().posterior_probability);
+  EXPECT_FLOAT_EQ(2.2, cs.get_position(pos).get_pos_kmer(kmer)->events.front().posterior_probability);
   float c = 2;
   float b = 3.3;
   cs.add_event(pos, kmer, c, b);
-  EXPECT_FLOAT_EQ(3.3, cs.get_position(pos).get_kmer(kmer)->events.front().posterior_probability);
+  EXPECT_FLOAT_EQ(3.3, cs.get_position(pos).get_pos_kmer(kmer)->events.front().posterior_probability);
 }
 
 TEST (BaseKmerTests, test_Kmer) {
@@ -110,16 +134,51 @@ TEST (BaseKmerTests, test_Kmer) {
   string contig_strand = "asdf";
   uint64_t pos = 1;
   kmer.add_pos_kmer(contig_strand, pos, k);
-  EXPECT_EQ(contig_strand, kmer.contig_strands[0]);
-  EXPECT_EQ(pos, kmer.positions[0]);
-  EXPECT_EQ(k, kmer.kmers[0]);
-  EXPECT_EQ(0, kmer.find_index(contig_strand, pos));
-  EXPECT_EQ(-1, kmer.find_index(contig_strand, 2));
+  EXPECT_EQ(contig_strand, get<0>(kmer.contig_positions[0]));
+  EXPECT_EQ(pos, get<1>(kmer.contig_positions[0]));
+  EXPECT_EQ(k, kmer.get_pos_kmer(contig_strand, pos));
+  EXPECT_EQ(true, kmer.has_pos_kmer(contig_strand, pos));
+  EXPECT_EQ(false, kmer.has_pos_kmer(contig_strand, 2));
   kmer.soft_add_pos_kmer(contig_strand, pos, k);
-  EXPECT_EQ(1, kmer.contig_strands.size());
-  EXPECT_EQ(1, kmer.positions.size());
-  EXPECT_EQ(1, kmer.kmers.size());
+  EXPECT_EQ(1, kmer.contig_positions.size());
+  EXPECT_EQ(1, kmer.pos_kmer_map.size());
+}
 
+TEST (BaseKmerTests, test_ByKmer_kde) {
+  Redirect a(true, true);
+  shared_ptr<PosKmer> k = make_shared<PosKmer>("ATGCC");
+  k->add_event(1, 1);
+  k->add_event(2, 0.5);
+  k->add_event(3, 1);
+  k->add_event(4, 0.5);
+  k->add_event(5, 1);
+  k->add_event(6, 0.5);
+  k->add_event(7, 1);
+  k->add_event(8, 0.5);
+  k->add_event(9, 1);
+  k->add_event(10, 1);
+  shared_ptr<PosKmer> k2 = make_shared<PosKmer>("ATGCC");
+  k2->add_event(1, 1);
+  k2->add_event(2, 0.5);
+  k2->add_event(3, 1);
+  k2->add_event(4, 0.5);
+  k2->add_event(5, 1);
+  k2->add_event(6, 0.5);
+  k2->add_event(7, 1);
+  k2->add_event(8, 0.5);
+  k2->add_event(9, 1);
+  k2->add_event(10, 1);
+  Kmer kmer("ATGCC");
+  kmer.add_pos_kmer("asdf", 1, k);
+  kmer.add_pos_kmer("asdf", 2, k2);
+  ASSERT_THROW(kmer.get_hist(0,10,10), AssertionFailureException);
+  vector<uint64_t> hist{2,2,2,2,2,2,2,2,2,2};
+  ASSERT_THAT(hist, ElementsAreArray(kmer.get_hist(0,10.1,10)));
+  ASSERT_THAT(hist, ElementsAreArray(kmer.get_hist(0,10.1,10, 0.5)));
+  hist = {2,0,2,0,2,0,2,0,2,2};
+  ASSERT_THAT(hist, ElementsAreArray(kmer.get_hist(0,10.1,10, 0.51)));
+  hist = {0,2,2,2,2,2,2,2,2,2,2};
+  ASSERT_THAT(hist, ElementsAreArray(kmer.get_hist(0,11,11)));
 }
 
 TEST (BaseKmerTests, test_ByKmer) {
@@ -142,9 +201,9 @@ TEST (BaseKmerTests, test_ByKmer) {
   }
   ASSERT_THROW(by_kmer.get_kmer("AAFAA"), AssertionFailureException);
   by_kmer.add_kmer_ptr(contig_strand, pos, k);
-  EXPECT_EQ(1, by_kmer.get_kmer("ATGCC").kmers.size());
+  EXPECT_EQ(1, by_kmer.get_kmer("ATGCC").pos_kmer_map.size());
   by_kmer.add_kmer_ptr(contig_strand, pos, k);
-  EXPECT_EQ(1, by_kmer.get_kmer("ATGCC").kmers.size());
+  EXPECT_EQ(1, by_kmer.get_kmer("ATGCC").pos_kmer_map.size());
 }
 
 

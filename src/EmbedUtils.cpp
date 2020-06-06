@@ -465,14 +465,14 @@ uint64_t number_of_columns(const path &file_path, char sep){
   return n_col;
 }
 
-set<char> add_string_to_set(const set<char>& a, const string& b)
+std::set<char> add_string_to_set(const std::set<char>& a, const string& b)
 {
   std::set<char> result = a;
   result.insert(b.begin(), b.end());
   return result;
 }
 
-string char_set_to_string(set<char> a){
+string char_set_to_string(std::set<char> a){
   string return_value;
   for (auto &c: a){
     return_value += c;
@@ -480,7 +480,7 @@ string char_set_to_string(set<char> a){
   return return_value;
 }
 
-set<char> string_to_char_set(const string& a){
+std::set<char> string_to_char_set(const string& a){
   return add_string_to_set(std::set<char>{}, a);
 }
 

@@ -13,6 +13,7 @@
 #include "FilterAlignments.hpp"
 #include "SignalAlignToBed.hpp"
 #include "SplitByRefPosition.hpp"
+#include "PositionsKmerDistributions.hpp"
 #include "nanopolish_squiggle_read.h"
 #include "nanopolish_index.h"
 #include "nanopolish_extract.h"
@@ -35,6 +36,7 @@ static std::map< std::string, std::function<int(int, char**)> > programs = {
     {"filter_by_positions",      filter_alignments_main},
     {"top_kmers",                top_kmers_main},
     {"split_by_position",        split_by_ref_main},
+    {"kmer_distributions",       get_kmer_distributions_main},
     {"sa2bed",                   sa2bed_main}
 };
 

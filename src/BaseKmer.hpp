@@ -42,7 +42,6 @@ class KmerIndex {
 
 };
 
-
 class ByKmerIndex {
  public:
   /// Attributes ///
@@ -66,7 +65,6 @@ class ByKmerIndex {
   unordered_map<string, KmerIndex> kmer_index_map;
 
 };
-
 
 class PositionIndex {
  public:
@@ -205,7 +203,6 @@ struct PosKmer {
     return *this;
   }
 
-
   /**
   Add an event to the priority queue
 
@@ -254,58 +251,77 @@ struct PosKmer {
     return events.size();
   }
 
+  vector<uint64_t> get_hist(const float& min, const float& max, const uint64_t& steps, const float& threshold=0.0){
+    vector<uint64_t> counts(steps, 0);
+    get_hist(counts, min, max, steps, threshold);
+    return counts;
+  }
+
+  void get_hist(vector<uint64_t>& counts,
+                const float& min,
+                const float& max,
+                const uint64_t& steps,
+                const float& threshold=0.0){
+    throw_assert(counts.size() == steps,
+        "Must pass in correctly sized vector. counts size:"+
+        to_string(counts.size())+" n_steps:"+to_string(steps))
+    float gap_size = (max - min) / steps;
+    uint64_t hist_index;
+    for (auto &k: events){
+      throw_assert((k.descaled_event_mean >= min) && (k.descaled_event_mean < max),
+                   "Selected range for histogram is too small. min:" + to_string(min) +
+                       " max:" + to_string(max) + " event mean:" + to_string(k.descaled_event_mean))
+      if (k.posterior_probability >= threshold){
+        hist_index = floor((k.descaled_event_mean - min)/gap_size);
+        counts[hist_index] += 1;
+      }
+    }
+  }
+
 };
 
 struct Kmer {
  public:
   string kmer;
-  vector<shared_ptr<PosKmer>> kmers;
-//  unordered_map<uint64_t, shared_ptr<PosKmer>> kmers;
-  vector<uint64_t> positions;
-  vector<string> contig_strands;
+  unordered_map<string, shared_ptr<PosKmer>> pos_kmer_map;
+  vector<tuple<string, uint64_t>> contig_positions;
   Kmer(string kmer) :
     kmer(move(kmer)) {}
   ~Kmer() = default;
 
   void add_pos_kmer(const string& contig_strand, const uint64_t& position, shared_ptr<PosKmer> kmer_index_ptr){
-    contig_strands.push_back(contig_strand);
-    positions.push_back(position);
-    kmers.push_back(kmer_index_ptr);
+    throw_assert(!has_pos_kmer(contig_strand, position),
+        "Kmer data already has this contig position: " + contig_strand+to_string(position))
+    pos_kmer_map.emplace(contig_strand+to_string(position), kmer_index_ptr);
+    contig_positions.emplace_back(contig_strand, position);
+  }
+
+  bool has_pos_kmer(const string& contig_strand, const uint64_t& position){
+    return pos_kmer_map.find(contig_strand+to_string(position)) != pos_kmer_map.end();
   }
 
   void soft_add_pos_kmer(const string& contig_strand, const uint64_t& position, shared_ptr<PosKmer> kmer_index_ptr){
-    if (find_index(contig_strand, position) == -1){
+    if (!has_pos_kmer(contig_strand, position)){
       add_pos_kmer(contig_strand, position, kmer_index_ptr);
     }
   }
 
-  int64_t find_index(const string& contig_strand, const uint64_t& pos){
-    int64_t counter = 0;
-    for (auto &cs: contig_strands) {
-      if (cs != contig_strand) {
-        counter += 1;
-      } else {
-        break;
-      }
-    }
-    if (counter == contig_strands.size()){
-      return -1;
-    }
-    int64_t counter2 = 0;
-    for (auto &pos1: positions){
-      if (pos1 != pos){
-        counter2 += 1;
-      } else {
-        break;
-      }
-    }
-    if (counter == counter2){
-      return counter;
-    } else {
-      return -1;
-    }
-
+  shared_ptr<PosKmer> get_pos_kmer(const string& contig_strand, const uint64_t& position){
+    throw_assert(has_pos_kmer(contig_strand, position),
+                 "Kmer data does not have this contig position: " + contig_strand+to_string(position));
+    return pos_kmer_map.at(contig_strand+to_string(position));
   }
+
+  vector<uint64_t> get_hist(const float& min, const float& max, const uint64_t& steps, const float& threshold=0.0){
+    vector<uint64_t> counts(steps, 0);
+    for (auto &k: pos_kmer_map) {
+      k.second->get_hist(counts, min, max, steps, threshold);
+    }
+    return counts;
+  }
+
+
+
 };
 
 class ByKmer {
@@ -421,7 +437,7 @@ struct Position
   Return shared pointer to PosKmer pointer
   @param kmer: kmer string
   */
-  shared_ptr<PosKmer> get_kmer(const string& kmer){
+  shared_ptr<PosKmer> get_pos_kmer(const string& kmer){
     throw_assert(kmers.find(kmer) != kmers.end(), "Kmer: " + kmer + " is not in Position.")
     return kmers[kmer];
   }

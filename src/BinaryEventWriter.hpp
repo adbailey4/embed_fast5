@@ -32,6 +32,8 @@ class BinaryEventWriter {
   vector<ContigStrandIndex> contig_strand_indexes;
   set<char> alphabet;
   uint64_t kmer_len;
+  bool rna;
+  bool two_d;
 
   PositionIndex write_position(Position& position){
     PositionIndex index;
@@ -99,8 +101,13 @@ class BinaryEventWriter {
 
  public:
   /// Methods ///
-  BinaryEventWriter(path file_path, const set<char>& alphabet, const uint64_t& kmer_len) :
-      alphabet(move(alphabet)), kmer_len(move(kmer_len))
+  BinaryEventWriter(path file_path,
+                    const set<char> &alphabet,
+                    const uint64_t &kmer_len,
+                    bool rna,
+                    bool two_d) :
+      alphabet(move(alphabet)), kmer_len(move(kmer_len)), rna(move(rna)),
+      two_d(move(two_d))
   {
     this->sequence_file_path = file_path;
     // Ensure that the output directory exists
@@ -145,8 +152,9 @@ class BinaryEventWriter {
     // How long is the name of the sequence
     string alphabet_str = char_set_to_string(alphabet);
     write_value_to_binary(this->sequence_file, alphabet_str.size());
-    // What is the name
     write_string_to_binary(this->sequence_file, alphabet_str);
+    write_value_to_binary(this->sequence_file, rna);
+    write_value_to_binary(this->sequence_file, two_d);
 
     // Iterate all the indexes, write them to the file
     for (auto& index: this->contig_strand_indexes){

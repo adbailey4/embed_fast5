@@ -271,7 +271,7 @@ set(SOURCE
         src/ConcurrentQueue.hpp
         src/BinaryIO.hpp
         src/BinaryEventWriter.hpp
-        src/BinaryEventReader.hpp src/BaseKmer.hpp src/EventDataHandler.hpp)
+        src/BinaryEventReader.hpp src/BaseKmer.hpp src/EventDataHandler.hpp src/PositionsKmerDistributions.cpp src/PositionsKmerDistributions.hpp)
 ############################################################################################################
 # main
 add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE})

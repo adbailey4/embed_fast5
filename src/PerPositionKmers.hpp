@@ -37,7 +37,7 @@ class PerPositionKmers {
       alphabet(move(alphabet)), kmer_length(move(kmer_length)), num_locks(move(num_locks)), initialized_locks(true)
   {
     this->initialize_locks();
-    data.initialize(reference, this->alphabet, this->kmer_length, two_d);
+    data.initialize(reference, this->alphabet, this->kmer_length, two_d, false);
   }
 
   ~PerPositionKmers() = default;

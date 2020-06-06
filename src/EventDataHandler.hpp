@@ -13,13 +13,17 @@ using namespace std;
 
 class EventDataHandler {
  public:
-  EventDataHandler(ReferenceHandler &reference, set<char> alphabet, uint64_t kmer_length, bool two_d=false)
+  EventDataHandler(ReferenceHandler &reference,
+                   set<char> alphabet,
+                   uint64_t kmer_length,
+                   bool two_d = false,
+                   bool rna = false)
   {
-    this->initialize(reference, alphabet, kmer_length, two_d);
+    this->initialize(reference, alphabet, kmer_length, two_d, rna);
   }
-  EventDataHandler(ReferenceHandler &reference, const string &event_file, bool two_d=false)
+  EventDataHandler(ReferenceHandler &reference, const string &event_file)
   {
-    this->initialize(reference, event_file, two_d);
+    this->initialize(reference, event_file);
   }
 
   EventDataHandler() {}
@@ -33,18 +37,22 @@ class EventDataHandler {
     return kmer_length;
   }
 
-  void initialize(ReferenceHandler &reference1, set<char> alphabet1, uint64_t kmer_length1, bool two_d1=false){
+  void initialize(ReferenceHandler &reference1,
+                  set<char> alphabet1,
+                  uint64_t kmer_length1,
+                  bool two_d1 = false,
+                  bool rna1 = false) {
     alphabet = alphabet1;
     kmer_length = kmer_length1;
     two_d = two_d1;
+    rna = rna1;
     this->initialize_reference(reference1, two_d);
     this->initialize_by_kmer();
   }
 
-  void initialize(ReferenceHandler &reference1, const string &event_file1, bool two_d1=false){
-    two_d = two_d1;
-    this->initialize_reference(reference1, two_d);
+  void initialize(ReferenceHandler &reference1, const string &event_file1){
     this->initialize_reader(event_file1);
+    this->initialize_reference(reference1, two_d);
     this->initialize_by_kmer();
   }
 
@@ -76,6 +84,8 @@ class EventDataHandler {
     reader.initialize(event_file);
     alphabet = reader.alphabet;
     kmer_length = reader.kmer_length;
+    two_d = reader.two_d;
+    rna = reader.rna;
   }
 
   void initialize_by_kmer(){
@@ -87,13 +97,13 @@ class EventDataHandler {
     string contig_strand = contig+strand+nanopore_strand;
     Position& pos = data.at(contig_strand).get_position(reference_index);
     pos.soft_add_kmer_event(path_kmer, descaled_event_mean, posterior_probability);
-    by_kmer_data.add_kmer_ptr(contig_strand, reference_index, pos.get_kmer(path_kmer));
+    by_kmer_data.add_kmer_ptr(contig_strand, reference_index, pos.get_pos_kmer(path_kmer));
   }
 
   void write_to_file(path& output_file){
     throw_assert(kmer_length != -1, "Kmer length must be set in order to write to file");
     throw_assert(alphabet != set<char>{}, "Alphabet must be set in order to write to file")
-    BinaryEventWriter bew(output_file, alphabet, kmer_length);
+    BinaryEventWriter bew(output_file, alphabet, kmer_length, rna, two_d);
     for (auto &cs_pair: data){
       bew.write_contig_strand(cs_pair.second);
     }
@@ -105,9 +115,9 @@ class EventDataHandler {
     string contig_strand = contig+strand+nanopore_strand;
     throw_assert(data.find(contig_strand) != data.end(),
         "contig_strand: " + contig_strand + " is not in EventDataHandler.")
-    Position &pos = data[contig_strand].get_position(reference_index);
+    Position &pos = data.at(contig_strand).get_position(reference_index);
     if (pos.has_kmer(path_kmer)) {
-      return pos.get_kmer(path_kmer);
+      return pos.get_pos_kmer(path_kmer);
     }
     return get_position_kmer_from_reader(contig, strand, nanopore_strand, reference_index, path_kmer);
   }
@@ -115,7 +125,7 @@ class EventDataHandler {
   Kmer& get_kmer(const string& path_kmer){
     Kmer& kmer_data = by_kmer_data.get_kmer(path_kmer);
     uint64_t expected_n_kmers = reader.get_kmer_index(path_kmer).positions.size();
-    if (kmer_data.kmers.size() != expected_n_kmers) {
+    if (kmer_data.pos_kmer_map.size() != expected_n_kmers) {
       get_kmer_from_reader(kmer_data);
     }
     return kmer_data;
@@ -126,11 +136,11 @@ class EventDataHandler {
     string contig_strand = contig+strand+nanopore_strand;
     throw_assert(data.find(contig_strand) != data.end(),
                  "contig_strand: " + contig_strand + " is not in EventDataHandler.")
-    Position& pos = data[contig_strand].get_position(reference_index);
+    Position& pos = data.at(contig_strand).get_position(reference_index);
     if (reader.initialized & !pos.populated){
       reader.get_position(pos, contig, strand, reference_index, nanopore_strand);
       for (auto &k: pos.get_kmer_strings()){
-        by_kmer_data.get_kmer(k).soft_add_pos_kmer(contig_strand, reference_index, pos.get_kmer(k));
+        by_kmer_data.get_kmer(k).soft_add_pos_kmer(contig_strand, reference_index, pos.get_pos_kmer(k));
       }
     }
     return pos;
@@ -139,7 +149,7 @@ class EventDataHandler {
   ContigStrand& get_contig_strand(const string& contig, const string& strand, const string& nanopore_strand){
     string contig_strand = contig+strand+nanopore_strand;
     throw_assert(data.find(contig_strand) != data.end(),"contig_strand: " + contig_strand + " is not in EventDataHandler.")
-    ContigStrand& cs = data[contig_strand];
+    ContigStrand& cs = data.at(contig_strand);
     for (uint64_t i=0; i < cs.num_positions; ++i) {
       get_position(contig, strand, nanopore_strand, i);
     }
@@ -166,6 +176,7 @@ class EventDataHandler {
   set<char> alphabet = {};
   uint64_t kmer_length = -1;
   bool two_d = false;
+  bool rna;
   string event_file;
 
   unordered_map<string, ContigStrand> data;
@@ -177,8 +188,9 @@ class EventDataHandler {
                                                     const uint64_t& reference_index, const string& path_kmer){
     if (reader.initialized){
       shared_ptr<PosKmer> shared_ptr_pos_kmer = reader.get_position_kmer(path_kmer, contig, strand, reference_index, nanopore_strand);
-      data[contig+strand+nanopore_strand].get_position(reference_index).add_kmer(shared_ptr_pos_kmer);
-      by_kmer_data.add_kmer_ptr(contig+strand+nanopore_strand, reference_index, shared_ptr_pos_kmer);
+      string contig_strand = contig+strand+nanopore_strand;
+      data.at(contig_strand).get_position(reference_index).add_kmer(shared_ptr_pos_kmer);
+      by_kmer_data.add_kmer_ptr(contig_strand, reference_index, shared_ptr_pos_kmer);
       return shared_ptr_pos_kmer;
     }
     // Not there
@@ -189,14 +201,18 @@ class EventDataHandler {
   void get_kmer_from_reader(Kmer& kmer){
     if (reader.initialized){
       reader.populate_kmer(kmer);
-      for (uint64_t i = 0; i < kmer.kmers.size(); ++i){
-        Position& pos = data[kmer.contig_strands[i]].get_position(kmer.positions[i]);
-        if (!pos.has_kmer(kmer.kmers[i]->kmer) )
-          pos.add_kmer(kmer.kmers[i]);
+      string contig_strand;
+      uint64_t position;
+      for (auto &k: kmer.contig_positions){
+        contig_strand = get<0>(k);
+        position = get<1>(k);
+        Position& pos = data.at(contig_strand).get_position(position);
+        if (!pos.has_kmer(kmer.kmer))
+          pos.add_kmer(kmer.get_pos_kmer(contig_strand, position));
       }
+    } else {
+      throw runtime_error(kmer.kmer + " was not found in data and there is no reader initialized");
     }
-    // Not there
-    throw runtime_error(kmer.kmer + " was not found in data and there is no reader initialized");
   }
 };
 

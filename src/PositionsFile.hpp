@@ -35,12 +35,12 @@ using namespace boost::coroutines2;
 struct PositionLine
 {
   string contig;
-  uint64_t position{};
+  uint64_t position;
   string strand;
   string change_from;
   string change_to;
   PositionLine(string contig, uint64_t position, string strand, string change_from, string change_to) :
-      contig(std::move(contig)), position(position), strand(std::move(strand)),
+      contig(std::move(contig)), position(move(position)), strand(std::move(strand)),
       change_from(std::move(change_from)), change_to(std::move(change_to))
   {
   }

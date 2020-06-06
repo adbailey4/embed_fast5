@@ -45,9 +45,9 @@ namespace embed_utils{
   string get_time_string(std::function<void()> bound_function);
   int64_t lines_in_file(path &file_path);
   uint64_t number_of_columns(const path &file_path, char sep='\t');
-  set<char> add_string_to_set(const set<char>& a, const string& b);
-  string char_set_to_string(set<char> a);
-  set<char> string_to_char_set(const string& a);
+  std::set<char> add_string_to_set(const std::set<char>& a, const string& b);
+  string char_set_to_string(std::set<char> a);
+  std::set<char> string_to_char_set(const string& a);
   path make_dir(path &output_path);
   uint64_t compute_string_hash(string const& s);
   /**

@@ -84,6 +84,7 @@ void split_signal_align_by_ref_position(string &sa_input_dir,
 //  process all tsvs from directory
   vector<path> all_tsvs;
   string extension = ".tsv";
+  cout << "Reading in Files..\n";
   for (auto &i: list_files_in_dir(input_dir, extension)) {
     all_tsvs.push_back(i);
   }
@@ -95,6 +96,7 @@ void split_signal_align_by_ref_position(string &sa_input_dir,
   atomic<uint64_t> job_index(0);
   vector<thread> threads;
   globalExceptionPtr = nullptr;
+  cout << "\33[2K\rStarting threads..\n ";
   // Launch threads
   for (uint64_t i=0; i<n_threads; i++){
     threads.emplace_back(thread(per_position_worker,
@@ -115,6 +117,7 @@ void split_signal_align_by_ref_position(string &sa_input_dir,
   if (verbose){
     cerr << "\n" << flush;
   }
+  cout << "\33[2K\rWriting to file.. \n ";
   ppk.write_to_file(output_file);
 }
 

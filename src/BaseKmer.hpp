@@ -450,10 +450,10 @@ struct Position
     return kmers.find(kmer) != kmers.end();
   }
 
-  vector<string> get_kmer_strings(){
-    vector<string> v;
+  set<string> get_kmer_strings(){
+    set<string> v;
     for (auto i : kmers) {
-      v.push_back(i.first);
+      v.insert(i.first);
     }
     return v;
   }

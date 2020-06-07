@@ -247,7 +247,10 @@ set(TEST_CPP tests/src/allTests.cpp
         tests/src/VariantPathTests.hpp
         tests/src/MarginalizeVariantsTests.hpp
         tests/src/FilterAlignmentsTests.hpp
-        tests/src/PerPositionKmersTests.hpp tests/src/BaseKmerTests.hpp tests/src/BinaryEventTests.hpp)
+        tests/src/PerPositionKmersTests.hpp
+        tests/src/BaseKmerTests.hpp
+        tests/src/BinaryEventTests.hpp
+        tests/src/AmbigModelTests.hpp)
 
 set(MAIN_CPP src/main.cpp)
 set(SOURCE
@@ -271,7 +274,12 @@ set(SOURCE
         src/ConcurrentQueue.hpp
         src/BinaryIO.hpp
         src/BinaryEventWriter.hpp
-        src/BinaryEventReader.hpp src/BaseKmer.hpp src/EventDataHandler.hpp src/PositionsKmerDistributions.cpp src/PositionsKmerDistributions.hpp)
+        src/BinaryEventReader.hpp
+        src/BaseKmer.hpp
+        src/EventDataHandler.hpp
+        src/PositionsKmerDistributions.cpp
+        src/PositionsKmerDistributions.hpp
+        src/AmbigModel.hpp)
 ############################################################################################################
 # main
 add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE})

@@ -5,7 +5,7 @@
 // embed lib
 #include "PositionsKmerDistributions.hpp"
 #include "PerPositionKmers.hpp"
-#include "EmbedUtils.hpp"
+#include "AmbigModel.hpp"
 // boost lib
 #include <boost/filesystem.hpp>
 // std lib
@@ -41,6 +41,28 @@ void write_kmer_distribution_file(const vector<uint64_t>& data, const path& outp
   }
 }
 
+void write_plot_kmer_dist_file(const path& output_path, const float& min, const float& max,
+                               const uint64_t& steps, const float& threshold,
+                               const map<string, vector<uint64_t>>& data){
+  boost::filesystem::ofstream myfile(output_path);
+  if (myfile.is_open())
+  {
+    myfile << min << ',' << max << ',' << steps << ',' << threshold << ',' << data.size() <<'\n';
+    for (auto &my_pair: data){
+      throw_assert(my_pair.second.size() == steps,
+                   "Number of steps:" + to_string(steps) + " does not equal length of the data: " + to_string(steps))
+      myfile << my_pair.first << '\n';
+      for (uint64_t i=0; i < steps-1; ++i){
+        myfile << my_pair.second[i] << ',';
+      }
+      myfile << my_pair.second[steps-1] << '\n';
+    }
+    myfile.close();
+  } else{
+    cout << "Unable to open file: " << output_path.string() << "\n";
+  }
+}
+
 
 /**
  Get kmer positional distributions based on the positions file
@@ -59,7 +81,8 @@ void get_kmer_distributions_by_position(const string &positions_file_path,
                                         const string &output_dir,
                                         const string &reference,
                                         const string &event_file,
-                                        uint64_t n_threads,
+                                        const uint64_t& n_threads,
+                                        const string &ambig_model,
                                         const string &nanopore_strand,
                                         const float& min,
                                         const float& max,
@@ -76,6 +99,7 @@ void get_kmer_distributions_by_position(const string &positions_file_path,
   create_directory(kmer_output_dir);
 
 //  initialize per-position dataset using info from reference
+  AmbigModel am(ambig_model);
   ReferenceHandler rh(reference);
   PositionsFile pf(positions_file_path);
   EventDataHandler edh(rh, event_file);
@@ -97,20 +121,20 @@ void get_kmer_distributions_by_position(const string &positions_file_path,
                   "\n" + "strand:" + line.strand + "\n" + "position:" + to_string(line.position) + "\n" +
                   "change_from:" + line.change_from + "\n" + "ref base:" + ref_pos + "\n");
     for (uint64_t i=0; i < kmer_length; ++i){
+      map<string, vector<uint64_t>> data;
       Position& pos = edh.get_position(line.contig, line.strand, nanopore_strand, line.position-i);
-      for (auto &k: pos.get_kmer_strings()){
-        pos_file = pos_specific_dir / path(line.contig+"_"+line.strand+"_"+to_string(line.position-i)+"_"+ k +".csv");
+      set<string> kmers = pos.get_kmer_strings();
+      set<string> canonical_kmers = am.get_canonical_kmers(kmers);
+      kmers.insert(canonical_kmers.begin(), canonical_kmers.end());
+
+      for (auto &k: kmers){
         pos_hist = pos.get_pos_kmer(k)->get_hist(min, max, size, min_prob_threshold);
-        cout << "pos file: " << pos_file << '\n';
-        write_kmer_distribution_file(pos_hist, pos_file, min, max, size, min_prob_threshold);
-        kmer_file = kmer_output_dir / path(k + ".csv");
-        if (!exists(kmer_file)){
-          kmer_hist = edh.get_kmer(k).get_hist(min, max, size, min_prob_threshold);
-          write_kmer_distribution_file(kmer_hist, kmer_file, min, max, size, min_prob_threshold);
-        } else {
-          continue;
-        }
+        data[line.contig+"_"+line.strand+"_"+to_string(line.position-i)+"_"+ k] = pos_hist;
+        kmer_hist = edh.get_kmer(k).get_hist(min, max, size, min_prob_threshold);
+        data[k] = kmer_hist;
       }
+      pos_file = pos_specific_dir / path(line.contig+"_"+line.strand+"_"+to_string(line.position-i)+".csv");
+      write_plot_kmer_dist_file(pos_file, min, max, size, min_prob_threshold, data);
     }
   }
 }
@@ -128,7 +152,8 @@ static const char *GET_KMER_DISTRIBUTIONS_VERSION_MESSAGE =
 
 static const char *GET_KMER_DISTRIBUTIONS_USAGE_MESSAGE =
     "Usage: " THIS_NAME " " SUBPROGRAM " [OPTIONS] --positions_file POSITIONS_FILE "
-                                       "--output OUTPUT_DIR --event_file EVENT_FILE --reference REFERENCE\n"
+                                       "--output OUTPUT_DIR --event_file EVENT_FILE --reference REFERENCE "
+                                       "--ambig_model AMBIG_MODEL_PATH\n"
     "Output kernal density estimates for kmers covering positions from a positions file.\n"
     "\n"
     "  -v, --verbose                        display verbose output\n"
@@ -138,6 +163,8 @@ static const char *GET_KMER_DISTRIBUTIONS_USAGE_MESSAGE =
     "  -o, --output=PATH                    path to output directory\n"
     "  -e, --event_file=PATH                path to .event file generated from SplitByRefPosition\n"
     "  -r, --reference=PATH                 reference sequence (fa format)\n"
+    "  -a, --ambig_model=PATH               ambig_model path \n"
+
     "  -t, --threads=NUMBER                 number of threads\n"
     "\nReport bugs to " PACKAGE_BUGREPORT2 "\n\n";
 
@@ -146,12 +173,13 @@ namespace opt
 static unsigned int verbose;
 static std::string positions_file;
 static std::string output;
-static unsigned int threads = 1;
+static uint64_t threads = 1;
 static string reference;
 static string event_file;
+static string ambig_model;
 }
 
-static const char* shortopts = "p:t:o:r:e:vh";
+static const char* shortopts = "p:t:o:r:a:e:vh";
 
 enum { OPT_HELP = 1, OPT_VERSION };
 
@@ -160,6 +188,7 @@ static const struct option longopts[] = {
     { "positions_file",   required_argument, nullptr, 'p' },
     { "output",           required_argument, nullptr, 'o' },
     { "reference",        required_argument, nullptr, 'r' },
+    { "ambig_model",      required_argument, nullptr, 'a' },
     { "event_file",       required_argument, nullptr, 'e' },
     { "threads",          optional_argument, nullptr, 't' },
     { "help",             no_argument,       nullptr, OPT_HELP },
@@ -178,6 +207,7 @@ void parse_get_kmer_distributions_main_options(int argc, char** argv)
       case 't': arg >> opt::threads; break;
       case 'e': arg >> opt::event_file; break;
       case 'r': arg >> opt::reference; break;
+      case 'a': arg >> opt::ambig_model; break;
       case 'v': opt::verbose++; break;
       case OPT_HELP:
         std::cout << GET_KMER_DISTRIBUTIONS_USAGE_MESSAGE;
@@ -211,6 +241,10 @@ void parse_get_kmer_distributions_main_options(int argc, char** argv)
     std::cerr << SUBPROGRAM ": a --event_file file must be provided\n";
     die = true;
   }
+  if(opt::ambig_model.empty()) {
+    std::cerr << SUBPROGRAM ": a --ambig_model file must be provided\n";
+    die = true;
+  }
   if(opt::reference.empty()) {
     std::cerr << SUBPROGRAM ": a --reference string must be provided\n";
     die = true;
@@ -232,9 +266,10 @@ int get_kmer_distributions_main(int argc, char** argv)
                           opt::reference,
                           opt::event_file,
                           opt::threads,
+                          opt::ambig_model,
                           "t",
-                          0,
-                          200,
+                          0.0,
+                          200.0,
                           2000,
                           0.0);
   cout << get_time_string(bound_funct);

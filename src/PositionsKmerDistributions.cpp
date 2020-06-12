@@ -128,18 +128,14 @@ void get_kmer_distributions_by_position(const string &positions_file_path,
       kmers.insert(canonical_kmers.begin(), canonical_kmers.end());
 
       for (auto &k: kmers){
-        try {
+        if (pos.has_kmer(k)){
           pos_hist = pos.get_pos_kmer(k)->get_hist(min, max, size, min_prob_threshold);
           data[line.contig+"_"+line.strand+"_"+to_string(line.position-i)+"_"+ k] = pos_hist;
-        } catch (AssertionFailureException) {
-          continue;
-        };
-        try {
+        }
+        if (edh.has_kmer(k)) {
           kmer_hist = edh.get_kmer(k).get_hist(min, max, size, min_prob_threshold);
           data[k] = kmer_hist;
-        } catch (AssertionFailureException) {
-            continue;
-        };
+        }
       }
       pos_file = pos_specific_dir / path(line.contig+"_"+line.strand+"_"+to_string(line.position-i)+".csv");
       write_plot_kmer_dist_file(pos_file, min, max, size, min_prob_threshold, data);

@@ -131,6 +131,14 @@ class EventDataHandler {
     return kmer_data;
   }
 
+  bool has_kmer(const string& path_kmer){
+    if (by_kmer_data.has_kmer(path_kmer)){
+      return reader.has_kmer_index(path_kmer);
+    } else {
+      return false;
+    }
+  }
+
   Position& get_position(const string& contig, const string& strand, const string& nanopore_strand,
       const uint64_t& reference_index){
     string contig_strand = contig+strand+nanopore_strand;

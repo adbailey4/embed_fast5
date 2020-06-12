@@ -111,6 +111,10 @@ class BinaryEventReader {
     return kmer_map.get_kmer_index(kmer);
   }
 
+  bool has_kmer_index(const string& kmer){
+    return kmer_map.has_kmer_index(kmer);
+  }
+
   void populate_kmer(Kmer& kmer){
     KmerIndex& kmer_index = this->get_kmer_index(kmer.kmer);
     uint64_t size = kmer_index.kmer_index_ptrs.size();

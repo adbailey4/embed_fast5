@@ -61,6 +61,10 @@ class ByKmerIndex {
     }
   }
 
+  bool has_kmer_index(const string& kmer){
+    return kmer_index_map.find(kmer) != kmer_index_map.end();
+  }
+
  private:
   unordered_map<string, KmerIndex> kmer_index_map;
 

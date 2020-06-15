@@ -43,7 +43,7 @@ void write_kmer_distribution_file(const vector<uint64_t>& data, const path& outp
 
 void write_plot_kmer_dist_file(const path& output_path, const float& min, const float& max,
                                const uint64_t& steps, const float& threshold,
-                               const map<string, vector<uint64_t>>& data){
+                               const vector<pair<string, vector<uint64_t>>>& data){
   boost::filesystem::ofstream myfile(output_path);
   if (myfile.is_open())
   {
@@ -92,12 +92,7 @@ void get_kmer_distributions_by_position(const string &positions_file_path,
   path output_dir_path(output_dir);
   throw_assert(exists(output_dir_path), output_dir+" does not exist")
   path position_output_dir = output_dir_path / "positions";
-  path kmer_output_dir = output_dir_path / "kmers";
-//  throw_assert(!exists(position_output_dir), position_output_dir.string()+" does not exist")
-//  throw_assert(!exists(kmer_output_dir), kmer_output_dir.string()+" does not exist")
   create_directory(position_output_dir);
-  create_directory(kmer_output_dir);
-
 //  initialize per-position dataset using info from reference
   AmbigModel am(ambig_model);
   ReferenceHandler rh(reference);
@@ -121,7 +116,7 @@ void get_kmer_distributions_by_position(const string &positions_file_path,
                   "\n" + "strand:" + line.strand + "\n" + "position:" + to_string(line.position) + "\n" +
                   "change_from:" + line.change_from + "\n" + "ref base:" + ref_pos + "\n");
     for (uint64_t i=0; i < kmer_length; ++i){
-      map<string, vector<uint64_t>> data;
+      vector<pair<string, vector<uint64_t>>> data;
       Position& pos = edh.get_position(line.contig, line.strand, nanopore_strand, line.position-i);
       set<string> kmers = pos.get_kmer_strings();
       set<string> canonical_kmers = am.get_canonical_kmers(kmers);
@@ -130,11 +125,11 @@ void get_kmer_distributions_by_position(const string &positions_file_path,
       for (auto &k: kmers){
         if (pos.has_kmer(k)){
           pos_hist = pos.get_pos_kmer(k)->get_hist(min, max, size, min_prob_threshold);
-          data[line.contig+"_"+line.strand+"_"+to_string(line.position-i)+"_"+ k] = pos_hist;
+          data.push_back(make_pair(line.contig+"_"+line.strand+"_"+to_string(line.position-i)+"_"+k, pos_hist));
         }
         if (edh.has_kmer(k)) {
           kmer_hist = edh.get_kmer(k).get_hist(min, max, size, min_prob_threshold);
-          data[k] = kmer_hist;
+          data.push_back(make_pair(k, pos_hist));
         }
       }
       pos_file = pos_specific_dir / path(line.contig+"_"+line.strand+"_"+to_string(line.position-i)+".csv");

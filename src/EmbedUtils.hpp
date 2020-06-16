@@ -17,6 +17,7 @@
 #include <iostream>
 #include <set>
 #include <iomanip>
+#include <mutex>
 
 using namespace boost::filesystem;
 using namespace boost::coroutines2;
@@ -113,6 +114,7 @@ namespace embed_utils{
     std::streambuf * cerrold;
   };
 
+//  https://codereview.stackexchange.com/questions/186535/progress-bar-in-c
   class progress_bar {
     static const auto overhead = sizeof " [100%]";
 
@@ -120,6 +122,7 @@ namespace embed_utils{
     const std::size_t bar_width;
     std::string message;
     const std::string full_bar;
+    std::mutex _mutex;
 
    public:
     progress_bar(std::ostream &os, std::size_t line_width,
@@ -147,6 +150,7 @@ namespace embed_utils{
     }
 
     void write(double fraction) {
+      std::unique_lock<std::mutex> lock(_mutex);
       // clamp fraction to valid range [0,1]
       if (fraction < 0)
         fraction = 0;
@@ -159,6 +163,7 @@ namespace embed_utils{
       os << '\r' << message;
       os.write(full_bar.data() + offset, width);
       os << " [" << std::setw(3) << static_cast<int>(100 * fraction) << "%] " << std::flush;
+      _mutex.unlock();
     }
   };
 }

@@ -37,7 +37,8 @@ void per_position_worker(
     atomic<uint64_t>& job_index,
     uint64_t& n_files,
     bool& verbose,
-    bool& rna) {
+    bool& rna,
+    progress_bar& pb) {
   try {
     tuple<string, vector<VariantCall>> read_id_and_variants;
     while (job_index < n_files and !globalExceptionPtr) {
@@ -50,6 +51,9 @@ void per_position_worker(
         if (verbose) {
           // Print status update to stdout
           cerr << "\33[2K\rParsed: " << current_file << flush;
+        }
+        if (job_index % 10 == 0){
+          pb.write(job_index/n_files);
         }
       }
     }
@@ -101,6 +105,7 @@ void split_signal_align_by_ref_position(const vector<string> &sa_input_dir,
   globalExceptionPtr = nullptr;
   cout << "\33[2K\rStarting threads..\n ";
   // Launch threads
+  progress_bar progress{std::cout, 70u, "Working"};
   for (uint64_t i=0; i<n_threads; i++){
     threads.emplace_back(thread(per_position_worker,
                                 ref(all_tsvs),
@@ -108,7 +113,8 @@ void split_signal_align_by_ref_position(const vector<string> &sa_input_dir,
                                 ref(job_index),
                                 ref(number_of_files),
                                 ref(verbose),
-                                ref(rna)));
+                                ref(rna),
+                                ref(progress)));
   }
     // Wait for threads to finish
   for (auto& t: threads){

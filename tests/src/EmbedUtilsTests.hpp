@@ -265,6 +265,17 @@ TEST (EmbedUtilsTests, test_string_to_char_set) {
   ASSERT_THAT(c, ElementsAreArray(b));
 }
 
+TEST (EmbedUtilsTests, test_show_progress_bar) {
+  Redirect a(true, true);
+  progress_bar progress{std::cout, 70u, "Working"};
+  for (auto i = 0.0;  i <= 100;  i += 3.65) {
+    progress.write(i/100.0);
+    // simulate some work
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+
+}
+
 
 
 

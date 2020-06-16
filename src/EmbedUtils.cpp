@@ -10,7 +10,6 @@
 #include <boost/range/iterator_range.hpp>
 
 // Standard library.
-#include <string>
 #include <sys/stat.h>
 #include <iostream>
 #include <functional>

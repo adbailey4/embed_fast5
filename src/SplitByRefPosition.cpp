@@ -39,6 +39,7 @@ void per_position_worker(
     bool& verbose,
     bool& rna,
     progress_bar& pb) {
+  uint64_t step = floor(n_files / 100) + 1;
   try {
     tuple<string, vector<VariantCall>> read_id_and_variants;
     while (job_index < n_files and !globalExceptionPtr) {
@@ -52,7 +53,7 @@ void per_position_worker(
           // Print status update to stdout
           cerr << "\33[2K\rParsed: " << current_file << flush;
         }
-        if (job_index % 10 == 0){
+        if (job_index % step == 0){
           pb.write(job_index/n_files);
         }
       }

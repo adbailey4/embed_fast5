@@ -53,8 +53,8 @@ void per_position_worker(
           // Print status update to stdout
           cerr << "\33[2K\rParsed: " << current_file << flush;
         }
-        if (job_index % step == 0){
-          pb.write(job_index/n_files);
+        if (thread_job_index % step == 0){
+          pb.write(thread_job_index/n_files);
         }
       }
     }

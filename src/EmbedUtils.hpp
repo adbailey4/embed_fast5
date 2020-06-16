@@ -115,7 +115,7 @@ namespace embed_utils{
   };
 
 //  https://codereview.stackexchange.com/questions/186535/progress-bar-in-c
-  class progress_bar {
+  class ProgressBar {
     static const auto overhead = sizeof " [100%]";
 
     std::ostream &os;
@@ -125,8 +125,8 @@ namespace embed_utils{
     std::mutex _mutex;
 
    public:
-    progress_bar(std::ostream &os, std::size_t line_width,
-                 std::string message_, const char symbol = '.')
+    ProgressBar(std::ostream &os, std::size_t line_width,
+                std::string message_, const char symbol = '.')
         : os{os},
           bar_width{line_width - overhead},
           message{std::move(message_)},
@@ -141,10 +141,10 @@ namespace embed_utils{
     }
 
     // not copyable
-    progress_bar(const progress_bar &) = delete;
-    progress_bar &operator=(const progress_bar &) = delete;
+    ProgressBar(const ProgressBar &) = delete;
+    ProgressBar &operator=(const ProgressBar &) = delete;
 
-    ~progress_bar() {
+    ~ProgressBar() {
       write(1.0);
       os << '\n';
     }

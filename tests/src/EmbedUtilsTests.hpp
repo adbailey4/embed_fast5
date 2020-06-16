@@ -267,7 +267,7 @@ TEST (EmbedUtilsTests, test_string_to_char_set) {
 
 TEST (EmbedUtilsTests, test_show_progress_bar) {
   Redirect a(true, true);
-  progress_bar progress{std::cout, 70u, "Working"};
+  ProgressBar progress{std::cout, 70u, "Working"};
   for (auto i = 0.0;  i <= 100;  i += 3.65) {
     progress.write(i/100.0);
     // simulate some work

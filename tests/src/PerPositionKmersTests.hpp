@@ -32,7 +32,7 @@ TEST (PerPositionKmersTests, test_initialization) {
 }
 
 TEST (PerPositionKmersTests, test_process_alignment) {
-//  Redirect a(true, true);
+  Redirect a(true, true);
   uint64_t num_locks = 1000;
   ReferenceHandler reference(PUC_REFERENCE.string());
   PerPositionKmers ppk(reference, {'A', 'C', 'G', 'T'}, 5, num_locks, true);
@@ -85,13 +85,13 @@ TEST (PerPositionKmersTests, test_write_to_file) {
 }
 
 TEST (PerPositionKmersTests, test_split_signal_align_by_ref_position) {
-//  Redirect a(true, true);
+  Redirect a(true, true);
   path tempdir = temp_directory_path() / "temp";
   path test_file = tempdir / "test.event";
   if (exists(test_file)){
     remove(test_file);
   }
-  string sa_input_dir = PUC_5MER_ALIGNMENTS.string();
+  vector<string> sa_input_dir = {PUC_5MER_ALIGNMENTS.string()};
   string output_file_path = test_file.string();
   string reference = PUC_REFERENCE.string();
   uint64_t num_locks = 1000;
@@ -129,13 +129,13 @@ TEST (PerPositionKmersTests, test_split_signal_align_by_ref_position) {
 }
 
 TEST (PerPositionKmersTests, test_rna_reads) {
-//  Redirect a(true, true);
+  Redirect a(true, true);
   path tempdir = temp_directory_path() / "temp";
   path test_file = tempdir / "rna_test.event";
   if (exists(test_file)){
     remove(test_file);
   }
-  string sa_input_dir = RRNA_SIGNAL_FILES.string();
+  vector<string> sa_input_dir = {RRNA_SIGNAL_FILES.string()};
   string output_file_path = test_file.string();
   string reference = ECOLI_16S_REFERENCE.string();
 

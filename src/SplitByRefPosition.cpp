@@ -68,7 +68,7 @@ void per_position_worker(
  @param n_threads: number of threads to process
  @return tuple of uint64_t's [hours, minutes, seconds, microseconds]
 */
-void split_signal_align_by_ref_position(string &sa_input_dir,
+void split_signal_align_by_ref_position(const vector<string> &sa_input_dir,
                                         string &output_file_path,
                                         string reference,
                                         uint64_t num_locks,
@@ -77,16 +77,19 @@ void split_signal_align_by_ref_position(string &sa_input_dir,
                                         bool rna,
                                         bool two_d,
                                         set<char> alphabet) {
-//  check output file does not exist
-  path input_dir(sa_input_dir);
+  //  check output file does not exist
   path output_file(output_file_path);
   throw_assert(!exists(output_file), output_file_path+" already exists")
-//  process all tsvs from directory
+
+//  process all tsvs from directories
   vector<path> all_tsvs;
   string extension = ".tsv";
   cout << "Reading in Files..\n";
-  for (auto &i: list_files_in_dir(input_dir, extension)) {
-    all_tsvs.push_back(i);
+  for (auto &in_dir: sa_input_dir){
+    path input_dir(in_dir);
+    for (auto &i: list_files_in_dir(input_dir, extension)) {
+      all_tsvs.push_back(i);
+    }
   }
   uint64_t number_of_files = all_tsvs.size();
 //  initialize per-position dataset using info from reference
@@ -152,7 +155,7 @@ namespace opt
 {
 static unsigned int verbose;
 static uint64_t num_locks = 10000;
-static std::string alignment_files;
+vector<string> alignment_files;
 static std::string output;
 static unsigned int threads = 1;
 static string reference;
@@ -187,7 +190,7 @@ void parse_split_by_ref_main_options(int argc, char** argv)
   for (char c; (c = getopt_long(argc, argv, shortopts, longopts, nullptr)) != -1;) {
     std::istringstream arg(optarg != nullptr ? optarg : "");
     switch (c) {
-      case 'a': arg >> opt::alignment_files; break;
+      case 'a': opt::alignment_files.push_back(arg.str()); break;
       case 'o': arg >> opt::output; break;
       case 't': arg >> opt::threads; break;
       case 'l': arg >> opt::num_locks; break;

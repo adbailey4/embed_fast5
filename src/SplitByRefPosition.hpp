@@ -7,11 +7,12 @@
 
 #include <string>
 #include <set>
+#include <vector>
 
 using namespace std;
 
 int split_by_ref_main(int argc, char** argv);
-void split_signal_align_by_ref_position(string &sa_input_dir,
+void split_signal_align_by_ref_position(const std::vector<string> &sa_input_dir,
                                         string &output_file_path,
                                         string reference,
                                         uint64_t num_locks,

@@ -396,8 +396,8 @@ std::map<string, string> create_ambig_bases2(string config_file) {
 string get_time_string(std::function<void()> bound_function) {
   string output;
   tuple<uint64_t, uint64_t, uint64_t, uint64_t> data = get_time(std::move(bound_function));
-  output = "hours: " + to_string(get<0>(data)) + " minutes: " + to_string(get<1>(data)) + " seconds: "
-      + to_string(get<2>(data)) + "." + to_string(get<3>(data)) + "\n";
+  output = to_string(get<0>(data)) + " hours " + to_string(get<1>(data)) + " minutes " +
+      to_string(get<2>(data)) + "." + to_string(get<3>(data)) + " seconds\n";
   return output;
 }
 

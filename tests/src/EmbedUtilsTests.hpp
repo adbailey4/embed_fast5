@@ -239,7 +239,7 @@ TEST (EmbedUtilsTests, test_get_time) {
   EXPECT_EQ(0, get<0>(the_time2));
   EXPECT_EQ(0, get<1>(the_time2));
   EXPECT_EQ(0, get<2>(the_time2));
-  EXPECT_EQ("hours: 0 minutes: 0", the_time.substr(0, 19));
+  EXPECT_EQ("0 hours 0 minutes", the_time.substr(0, 17));
 }
 
 TEST (EmbedUtilsTests, test_add_string_to_set) {

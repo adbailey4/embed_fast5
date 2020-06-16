@@ -106,28 +106,29 @@ void split_signal_align_by_ref_position(const vector<string> &sa_input_dir,
   globalExceptionPtr = nullptr;
   cout << "\33[2K\rStarting threads..\n ";
   // Launch threads
-  ProgressBar progress{std::cout, 70u, "Working"};
-  for (uint64_t i=0; i<n_threads; i++){
-    threads.emplace_back(thread(per_position_worker,
-                                ref(all_tsvs),
-                                ref(ppk),
-                                ref(job_index),
-                                ref(number_of_files),
-                                ref(verbose),
-                                ref(rna),
-                                ref(progress)));
-  }
+  {
+    ProgressBar progress{std::cout, 70u, "Working"};
+    for (uint64_t i = 0; i < n_threads; i++) {
+      threads.emplace_back(thread(per_position_worker,
+                                  ref(all_tsvs),
+                                  ref(ppk),
+                                  ref(job_index),
+                                  ref(number_of_files),
+                                  ref(verbose),
+                                  ref(rna),
+                                  ref(progress)));
+    }
     // Wait for threads to finish
-  for (auto& t: threads){
-    t.join();
+    for (auto &t: threads) {
+      t.join();
+    }
+    if (globalExceptionPtr) {
+      std::rethrow_exception(globalExceptionPtr);
+    }
+    if (verbose) {
+      cerr << "\n" << flush;
+    }
   }
-  if (globalExceptionPtr){
-    std::rethrow_exception(globalExceptionPtr);
-  }
-  if (verbose){
-    cerr << "\n" << flush;
-  }
-  progress.~ProgressBar();
   cout << "\33[2K\rWriting to file.. \n ";
   ppk.write_to_file(output_file);
 }

@@ -7,6 +7,7 @@
 #include "ConcurrentQueueTests.hpp"
 #include "EmbedUtilsTests.hpp"
 #include "Fast5Tests.hpp"
+#include "AmbigModelTests.hpp"
 #include "FileTests.hpp"
 #include "FilterAlignmentsTests.hpp"
 #include "MarginalizeVariantsTests.hpp"
@@ -44,6 +45,7 @@ int main(int argc, char **argv) {
 //  ::testing::GTEST_FLAG(filter) = "TopKmersTests*";
 //  ::testing::GTEST_FLAG(filter) = "EmbedUtilsTests*";
 //  ::testing::GTEST_FLAG(filter) = "BinaryEventTests*";
+//  ::testing::GTEST_FLAG(filter) = "AmbigModelTests*";
 
   return RUN_ALL_TESTS();
 }

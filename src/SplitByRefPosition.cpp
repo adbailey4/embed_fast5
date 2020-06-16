@@ -38,7 +38,7 @@ void per_position_worker(
     uint64_t& n_files,
     bool& verbose,
     bool& rna,
-    progress_bar& pb) {
+    ProgressBar& pb) {
   uint64_t step = floor(n_files / 100) + 1;
   try {
     tuple<string, vector<VariantCall>> read_id_and_variants;
@@ -54,7 +54,7 @@ void per_position_worker(
           cerr << "\33[2K\rParsed: " << current_file << flush;
         }
         if (thread_job_index % step == 0){
-          pb.write(thread_job_index/n_files);
+          pb.write((double)thread_job_index / (double)n_files);
         }
       }
     }
@@ -106,7 +106,7 @@ void split_signal_align_by_ref_position(const vector<string> &sa_input_dir,
   globalExceptionPtr = nullptr;
   cout << "\33[2K\rStarting threads..\n ";
   // Launch threads
-  progress_bar progress{std::cout, 70u, "Working"};
+  ProgressBar progress{std::cout, 70u, "Working"};
   for (uint64_t i=0; i<n_threads; i++){
     threads.emplace_back(thread(per_position_worker,
                                 ref(all_tsvs),
@@ -127,6 +127,7 @@ void split_signal_align_by_ref_position(const vector<string> &sa_input_dir,
   if (verbose){
     cerr << "\n" << flush;
   }
+  progress.~ProgressBar();
   cout << "\33[2K\rWriting to file.. \n ";
   ppk.write_to_file(output_file);
 }

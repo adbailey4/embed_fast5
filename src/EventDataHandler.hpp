@@ -101,7 +101,7 @@ class EventDataHandler {
   }
 
   void write_to_file(path& output_file){
-    throw_assert(kmer_length != -1, "Kmer length must be set in order to write to file");
+    throw_assert(kmer_length != (uint64_t)-1, "Kmer length must be set in order to write to file");
     throw_assert(alphabet != set<char>{}, "Alphabet must be set in order to write to file")
     BinaryEventWriter bew(output_file, alphabet, kmer_length, rna, two_d);
     for (auto &cs_pair: data){

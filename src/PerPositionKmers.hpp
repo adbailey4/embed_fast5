@@ -34,7 +34,7 @@ class PerPositionKmers {
                    uint64_t kmer_length = 6,
                    uint64_t num_locks = 1000,
                    bool two_d = false) :
-      alphabet(move(alphabet)), kmer_length(move(kmer_length)), num_locks(move(num_locks)), initialized_locks(true)
+      num_locks(move(num_locks)), kmer_length(move(kmer_length)), alphabet(move(alphabet)), initialized_locks(true)
   {
     this->initialize_locks();
     data.initialize(reference, this->alphabet, this->kmer_length, two_d, false);

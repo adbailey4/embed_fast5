@@ -126,16 +126,16 @@ static bool event_greater_than(const Event& a, const Event& b) {
   return a.posterior_probability > b.posterior_probability;
 }
 
-/**
-Override < operator in order to make the priority queue a min heap
-@param a: first eventkmer
-@param b: second eventkmer
-
-@return a.posterior_probability > b.posterior_probability
-*/
-static bool operator==(const Event& a, const Event& b) {
-  return a.posterior_probability == b.posterior_probability and a.descaled_event_mean == b.descaled_event_mean;
-}
+///**
+//Override < operator in order to make the priority queue a min heap
+//@param a: first eventkmer
+//@param b: second eventkmer
+//
+//@return a.posterior_probability > b.posterior_probability
+//*/
+//static bool operator==(const Event& a, const Event& b) {
+//  return a.posterior_probability == b.posterior_probability and a.descaled_event_mean == b.descaled_event_mean;
+//}
 
 
 /**

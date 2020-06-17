@@ -173,6 +173,7 @@ static const char *GET_KMER_DISTRIBUTIONS_USAGE_MESSAGE =
     "  -e, --event_file=PATH                path to .event file generated from SplitByRefPosition\n"
     "  -r, --reference=PATH                 reference sequence (fa format)\n"
     "  -a, --ambig_model=PATH               ambig_model path \n"
+    "  -m, --min_prob=PROB                  Minimum probability threshold \n"
 
     "  -t, --threads=NUMBER                 number of threads\n"
     "\nReport bugs to " PACKAGE_BUGREPORT2 "\n\n";
@@ -186,9 +187,10 @@ static uint64_t threads = 1;
 static string reference;
 static string event_file;
 static string ambig_model;
+static float min_prob = 0.0;
 }
 
-static const char* shortopts = "p:t:o:r:a:e:vh";
+static const char* shortopts = "p:t:m:o:r:a:e:vh";
 
 enum { OPT_HELP = 1, OPT_VERSION };
 
@@ -200,6 +202,7 @@ static const struct option longopts[] = {
     { "ambig_model",      required_argument, nullptr, 'a' },
     { "event_file",       required_argument, nullptr, 'e' },
     { "threads",          optional_argument, nullptr, 't' },
+    { "min_prob",         optional_argument, nullptr, 'm' },
     { "help",             no_argument,       nullptr, OPT_HELP },
     { "version",          no_argument,       nullptr, OPT_VERSION },
     { nullptr, 0, nullptr, 0 }
@@ -217,6 +220,7 @@ void parse_get_kmer_distributions_main_options(int argc, char** argv)
       case 'e': arg >> opt::event_file; break;
       case 'r': arg >> opt::reference; break;
       case 'a': arg >> opt::ambig_model; break;
+      case 'm': arg >> opt::min_prob; break;
       case 'v': opt::verbose++; break;
       case OPT_HELP:
         std::cout << GET_KMER_DISTRIBUTIONS_USAGE_MESSAGE;
@@ -280,7 +284,7 @@ int get_kmer_distributions_main(int argc, char** argv)
                           0.0,
                           200.0,
                           2000,
-                          0.0);
+                          opt::min_prob);
   cout << get_time_string(bound_funct);
 
   return EXIT_SUCCESS;

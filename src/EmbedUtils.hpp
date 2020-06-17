@@ -18,10 +18,12 @@
 #include <set>
 #include <iomanip>
 #include <mutex>
+#include <chrono>
 
 using namespace boost::filesystem;
 using namespace boost::coroutines2;
 using namespace std;
+using namespace std::chrono;
 
 typedef coroutine<path> dir_coro;
 
@@ -123,6 +125,11 @@ namespace embed_utils{
     std::string message;
     const std::string full_bar;
     std::mutex _mutex;
+    high_resolution_clock::time_point prev_time;
+    duration<double, std::micro> total_time = std::chrono::milliseconds(1);
+    uint64_t count = 0;
+    double prev_fraction = 0;
+
 
    public:
     ProgressBar(std::ostream &os, std::size_t line_width,
@@ -138,6 +145,7 @@ namespace embed_utils{
         message += ' ';
       }
       write(0.0);
+      prev_time = high_resolution_clock::now();
     }
 
     // not copyable
@@ -162,8 +170,31 @@ namespace embed_utils{
 
       os << '\r' << message;
       os.write(full_bar.data() + offset, width);
-      os << " [" << std::setw(3) << static_cast<int>(100 * fraction) << "%] " << std::flush;
+      os << " [" << std::setw(3) << static_cast<int>(100 * fraction) << "%] " << "Est Time Remaining: " << get_time_string(fraction) << std::flush;
       _mutex.unlock();
+    }
+
+    string get_time_string(double fraction){
+      auto current_time = high_resolution_clock::now();
+      auto duration = duration_cast<microseconds>(current_time - prev_time);
+      double duration_percent_time = fraction - prev_fraction;
+      std::chrono::duration<double, std::micro> og_duration = (duration * pow(duration_percent_time, -1));
+      if (fraction > 0.01){
+        total_time = (og_duration + (count * total_time)) / (count + 1);
+        count += 1;
+      }
+      auto time_left = total_time * (1 - fraction);
+      prev_fraction = fraction;
+      prev_time = current_time;
+      uint64_t hours = floor(time_left.count() / 3600000000);
+      uint64_t minutes = floor((time_left.count() - (hours * 3600000000)) / 60000000);
+      uint64_t seconds = floor((time_left.count() - (hours * 3600000000) - (minutes * 60000000)) / 1000000);
+      string time_left_string = to_string(hours) + ":" + to_string(minutes) + ":" + to_string(seconds);
+      uint64_t hours2 = floor(total_time.count() / 3600000000);
+      uint64_t minutes2 = floor((total_time.count() - (hours2 * 3600000000)) / 60000000);
+      uint64_t seconds2 = floor((total_time.count() - (hours2 * 3600000000) - (minutes2 * 60000000)) / 1000000);
+      string total_time_string = to_string(hours2) + ":" + to_string(minutes2) + ":" + to_string(seconds2);
+      return "[ " + time_left_string + " / " + total_time_string +" ]";
     }
   };
 }

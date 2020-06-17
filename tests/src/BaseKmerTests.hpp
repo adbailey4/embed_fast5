@@ -131,7 +131,7 @@ TEST (BaseKmerTests, test_Kmer) {
   EXPECT_FLOAT_EQ(2.2, k->events.front().posterior_probability);
   EXPECT_EQ(1, k->num_events());
   Kmer kmer("ATGCC");
-  string contig_strand = "asdf";
+  string contig_strand = "asdf+t";
   uint64_t pos = 1;
   kmer.add_pos_kmer(contig_strand, pos, k);
   EXPECT_EQ(contig_strand, get<0>(kmer.contig_positions[0]));
@@ -142,6 +142,12 @@ TEST (BaseKmerTests, test_Kmer) {
   kmer.soft_add_pos_kmer(contig_strand, pos, k);
   EXPECT_EQ(1, kmer.contig_positions.size());
   EXPECT_EQ(1, kmer.pos_kmer_map.size());
+  ContigStrandPosition csp = kmer.split_pos_kmer_map_key("asdf+t1234");
+  EXPECT_EQ("asdf", csp.contig);
+  EXPECT_EQ("+", csp.strand);
+  EXPECT_EQ("t", csp.nanopore_strand);
+  EXPECT_EQ(1234, csp.position);
+
 }
 
 TEST (BaseKmerTests, test_ByKmer_kde) {

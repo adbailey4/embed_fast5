@@ -284,6 +284,13 @@ struct PosKmer {
 
 };
 
+struct ContigStrandPosition {
+  string contig;
+  string strand;
+  string nanopore_strand;
+  uint64_t position;
+};
+
 struct Kmer {
  public:
   string kmer;
@@ -324,7 +331,22 @@ struct Kmer {
     return counts;
   }
 
-
+  ContigStrandPosition split_pos_kmer_map_key(const string& key){
+    ContigStrandPosition csp;
+    uint64_t pos_index;
+    uint64_t string_length = key.length();
+    for (uint64_t x = string_length-1; x >=0; x--){
+      if (!std::isdigit(key[x])){
+        pos_index = x;
+        break;
+      }
+    }
+    csp.position = stoi(key.substr(pos_index+1));
+    csp.nanopore_strand = key.substr(pos_index, 1);
+    csp.strand = key.substr(pos_index-1, 1);
+    csp.contig = key.substr(0, pos_index-1);
+    return csp;
+  }
 
 };
 

@@ -106,9 +106,15 @@ void get_kmer_distributions_by_position(const string &positions_file_path,
   path pos_specific_dir;
   path pos_file;
   path kmer_file;
+//  string prev_contig = "";
+//  uint64_t prev_pos = -1;
+//  string prev_strand = "";
+
   for (auto &line: pf.iterate()){
     cout << line.contig << " " << line.position << '\n';
     ref_pos = rh.get_reference_sequence(line.contig, line.position, line.position+1);
+//    if ((prev_contig == line.contig) & (prev_strand == line.strand) & (line.position - prev_pos) >= kmer_length) {
+//    }
     pos_specific_dir = position_output_dir / path(line.contig+line.strand+to_string(line.position));
     create_directory(pos_specific_dir);
     throw_assert( ref_pos == line.change_from,
@@ -123,18 +129,22 @@ void get_kmer_distributions_by_position(const string &positions_file_path,
       kmers.insert(canonical_kmers.begin(), canonical_kmers.end());
 
       for (auto &k: kmers){
-        if (pos.has_kmer(k)){
-          pos_hist = pos.get_pos_kmer(k)->get_hist(min, max, size, min_prob_threshold);
-          data.push_back(make_pair(line.contig+"_"+line.strand+"_"+to_string(line.position-i)+"_"+k, pos_hist));
-        }
         if (edh.has_kmer(k)) {
-          kmer_hist = edh.get_kmer(k).get_hist(min, max, size, min_prob_threshold);
-          data.push_back(make_pair(k, pos_hist));
+          Kmer& kmer = edh.get_kmer(k);
+          kmer_hist = kmer.get_hist(min, max, size, min_prob_threshold);
+          data.push_back(make_pair(k, kmer_hist));
+          for (auto &pos_k: kmer.pos_kmer_map){
+            ContigStrandPosition csp = kmer.split_pos_kmer_map_key(pos_k.first);
+            data.push_back(make_pair(csp.contig+"_"+csp.strand+"_"+to_string(csp.position)+"_"+k, pos_k.second->get_hist(min, max, size, min_prob_threshold)));
+          }
         }
       }
       pos_file = pos_specific_dir / path(line.contig+"_"+line.strand+"_"+to_string(line.position-i)+".csv");
       write_plot_kmer_dist_file(pos_file, min, max, size, min_prob_threshold, data);
     }
+//    prev_contig = line.contig;
+//    prev_pos = line.position;
+//    prev_strand = line.strand;
   }
 }
 

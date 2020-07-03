@@ -48,6 +48,7 @@ PYBIND11_MODULE(bindings, module) {
  @param alphabet: alphabet used to generate kmers
  @param n_threads: set number of threads to use: default 2
  @param verbose: print out files as they are being processed
+ @param write_full: boolean option to write out full signalalign output or assignments file format
 
     )pbdoc",
     pybind11::arg("event_table_files"),
@@ -58,7 +59,7 @@ PYBIND11_MODULE(bindings, module) {
     pybind11::arg("min_prob") = 0.0,
     pybind11::arg("n_threads") = 2,
     pybind11::arg("verbose") = false,
-    pybind11::arg("write_full") = true);
+    pybind11::arg("full") = true);
 
 #ifdef VERSION_INFO
   m.attr("__version__") = VERSION_INFO;

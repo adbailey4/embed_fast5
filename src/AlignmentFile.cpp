@@ -196,6 +196,7 @@ vector<VariantCall> AlignmentFile::get_variant_calls(string &ambig_bases, std::m
   string possible_bases;
   VariantCall position_call;
   vector<VariantCall> final_output;
+  string s;
 
 //  loop through file
   try {
@@ -213,7 +214,7 @@ vector<VariantCall> AlignmentFile::get_variant_calls(string &ambig_bases, std::m
               position = event.reference_index + (this->k - path_kmer_pos - 1);
             }
           }
-          string s(1, c);
+          s = string(1, c);
           possible_bases = (*ambig_bases_map).at(s);
 //        positon_call = VariantCalls[position];
           it = variant_calls.find(position);
@@ -264,7 +265,7 @@ vector<VariantCall> AlignmentFile::get_variant_calls(string &ambig_bases, std::m
       final_output.push_back(element.second);
     }
   } catch (const std::out_of_range& oor) {
-    throw runtime_error("Programmer Error: ambig_bases not in ambig_bases_map.");
+    throw runtime_error("Programmer Error: ambig_bases not in ambig_bases_map. base: " + s);
   }
 
   return final_output;

@@ -48,7 +48,7 @@ PYBIND11_MODULE(bindings, module) {
  @param alphabet: alphabet used to generate kmers
  @param n_threads: set number of threads to use: default 2
  @param verbose: print out files as they are being processed
- @param write_full: boolean option to write out full signalalign output or assignments file format
+ @param full: boolean option to write out full signalalign output or assignments file format
 
     )pbdoc",
     pybind11::arg("event_table_files"),

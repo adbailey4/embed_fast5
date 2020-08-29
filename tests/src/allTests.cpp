@@ -31,12 +31,16 @@ using namespace test_files;
 int main(int argc, char **argv) {
   H5Eset_auto(0, nullptr, nullptr);
 //  deal with paths to test files
-  path home = argv[1];
-  cout << home << '\n';
-  prepend_home(home);
-//  google test stuff
   ::testing::InitGoogleMock(&argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
+  std::cout << argc - 1;
+  if (argc == 2){
+    path home = argv[1];
+    prepend_home(home);
+  } else{
+    throw_assert(argc == 2, "There is an incorrect number of arguments to tests")
+  }
+//  google test stuff
 //  specific tests to run
 //  ::testing::GTEST_FLAG(filter) = "EmbedUtilsTests*";
 

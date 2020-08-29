@@ -84,7 +84,7 @@ path TEST_DNA_EVENT_FILE = TEST_DNA_EVENT_FILE1;
 path TEST_RNA_EVENT_FILE = TEST_RNA_EVENT_FILE1;
 
 void prepend_home(path home) {
-  throw_assert(exists(home), "Home directory does note exist, check path: "+home.string());
+  throw_assert(exists(home), "Home directory does not exist, check path: " + home.string())
   ORIGINAL_FAST5 = home / ORIGINAL_FAST5;
   EMPTY_FAST5 = home / EMPTY_FAST5;
   SIGNAL_FAST5 = home / SIGNAL_FAST5;

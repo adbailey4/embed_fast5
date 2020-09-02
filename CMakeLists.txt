@@ -1,12 +1,15 @@
 ############################################################################################################
 cmake_minimum_required(VERSION 3.7)
-SET(CMAKE_CXX_FLAGS "-std=c++11")
 project(embed_fast5)
-#TODO dont just set these flags
-set(CMAKE_C_FLAGS_DEBUG  "-O0 -g -Wall --pedantic -fopenmp -funroll-loops -DDEBUG -gdwarf-3")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS -gdwarf-3")
-set(CMAKE_C_FLAGS  "-O0 -g -Wall --pedantic -fopenmp -funroll-loops -DDEBUG -gdwarf-3")
-set(CMAKE_CXX_FLAGS "-O0 -g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS -gdwarf-3")
+############################################################################################################
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+#message("CMAKE_MODULE_PATH Prefix: ${CMAKE_MODULE_PATH}")
+set(CMAKE_INSTALL_PREFIX .)
+message(STATUS "CMakeInstall Prefix: ${CMAKE_INSTALL_PREFIX}")
 
 ### Require out-of-source builds
 file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
@@ -14,33 +17,19 @@ if(EXISTS "${LOC_PATH}")
     message(FATAL_ERROR "You cannot build in a source directory (or any directory with a CMakeLists.txt file). Please make a build subdirectory. Feel free to remove CMakeCache.txt and CMakeFiles.")
 endif()
 
-set(MACOS OFF)
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(MACOS ON)
-endif()
-
-#SET(CMAKE_CXX_FLAGS)
-#set(CMAKE_VERBOSE_MAKEFILE ON)
-#SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-#SET(BUILD_SHARED_LIBS OFF)
-#SET(CMAKE_EXE_LINKER_FLAGS "-static")
-
-############################################################################################################
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-#message("CMAKE_MODULE_PATH Prefix: ${CMAKE_MODULE_PATH}")
-set(CMAKE_INSTALL_PREFIX .)
-message(STATUS "CMakeInstall Prefix: ${CMAKE_INSTALL_PREFIX}")
 ############################################################################################################
 # Find dependencies
 ############################################################################################################
 include(AddDependencies)
 include(AddGoogleTest)
 add_subdirectory(submodules/pybind11)
-add_subdirectory(submodules/nanopolish)
+find_package(nanopolish 0.11.1 COMPONENTS nanopolish_objlib nanopolish_static_lib nanopolishlib REQUIRED)
+if (NOT nanopolish_FOUND)
+    add_subdirectory(submodules/nanopolish)
+else()
+    message("nanopolish FOUND")
+endif()
+
 ############################################################################################################
 set(MAIN_CPP ${PROJECT_SOURCE_DIR}/src/main.cpp)
 set(SOURCE
@@ -94,7 +83,6 @@ endif()
 add_library(embed_objlib OBJECT ${SOURCE})
 # my includes
 target_link_libraries(embed_objlib PUBLIC
-        nanopolish_LIBRARY
         Boost::system
         Boost::date_time
         Boost::filesystem
@@ -102,16 +90,18 @@ target_link_libraries(embed_objlib PUBLIC
         Boost::iostreams
         Boost::coroutine)
 
-target_include_directories(embed_objlib PUBLIC
+if (nanopolish_FOUND)
+    target_link_libraries(embed_objlib PUBLIC nanopolish::nanopolish_static_lib)
+else()
+    target_link_libraries(embed_objlib PUBLIC nanopolishlib)
+endif()
+
+            target_include_directories(embed_objlib PUBLIC
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/fast5/include
         ${CMAKE_SOURCE_DIR}/fast5/include/fast5)
 # shared libraries need PIC
 set_property(TARGET embed_objlib PROPERTY POSITION_INDEPENDENT_CODE 1)
-
-# shared and static libraries built from the same object files
-#add_library(MyLib_shared SHARED $<TARGET_OBJECTS:objlib>)
-#add_library(MyLib_static STATIC $<TARGET_OBJECTS:objlib>)
 
 # Add the subdirectories we need.
 if(BUILD_STATIC_LIBRARY)

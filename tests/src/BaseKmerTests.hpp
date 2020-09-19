@@ -137,8 +137,8 @@ TEST (BaseKmerTests, test_Kmer) {
   EXPECT_EQ(contig_strand, get<0>(kmer.contig_positions[0]));
   EXPECT_EQ(pos, get<1>(kmer.contig_positions[0]));
   EXPECT_EQ(k, kmer.get_pos_kmer(contig_strand, pos));
-  EXPECT_EQ(true, kmer.has_pos_kmer(contig_strand, pos));
-  EXPECT_EQ(false, kmer.has_pos_kmer(contig_strand, 2));
+  EXPECT_TRUE(kmer.has_pos_kmer(contig_strand, pos));
+  EXPECT_FALSE(kmer.has_pos_kmer(contig_strand, 2));
   kmer.soft_add_pos_kmer(contig_strand, pos, k);
   EXPECT_EQ(1, kmer.contig_positions.size());
   EXPECT_EQ(1, kmer.pos_kmer_map.size());

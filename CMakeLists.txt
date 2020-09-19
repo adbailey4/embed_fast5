@@ -1,36 +1,32 @@
 ############################################################################################################
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.15)
 project(embed_fast5 VERSION 0.0.5)
 ############################################################################################################
+# visibility settings
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
+# set build shared libs option if not set
+set(BUILD_SHARED_LIBS  "ON" CACHE STRING "Default build shared library")
 
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-#message("CMAKE_MODULE_PATH Prefix: ${CMAKE_MODULE_PATH}")
-set(CMAKE_INSTALL_PREFIX .)
-message(STATUS "CMakeInstall Prefix: ${CMAKE_INSTALL_PREFIX}")
-
+if(NOT APPLE)
+    set(CMAKE_INSTALL_RPATH $ORIGIN)
+endif()
 ### Require out-of-source builds
 file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
 if(EXISTS "${LOC_PATH}")
     message(FATAL_ERROR "You cannot build in a source directory (or any directory with a CMakeLists.txt file). Please make a build subdirectory. Feel free to remove CMakeCache.txt and CMakeFiles.")
 endif()
 
+# add cmake dir
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+#message("CMAKE_MODULE_PATH Prefix: ${CMAKE_MODULE_PATH}")
+set(CMAKE_INSTALL_PREFIX .)
+message(STATUS "CMakeInstall Prefix: ${CMAKE_INSTALL_PREFIX}")
+
 ############################################################################################################
 # Find dependencies
 ############################################################################################################
-include(cmake/AddDependencies.cmake)
-############################################################################################################
-# Define builds
-############################################################################################################
-option(BUILD_STATIC_LIBRARY "Build the static library." ON)
-option(BUILD_DYNAMIC_LIBRARY "Build the dynamic library." ON)
-option(BUILD_STATIC_EXECUTABLE "Build the shared executable." ON)
-option(BUILD_DYNAMIC_EXECUTABLE "Build the dynamic executable." ON)
-
-# Write out what we will actually build.
-message(STATUS "BUILD_STATIC_LIBRARY is " ${BUILD_STATIC_LIBRARY})
-message(STATUS "BUILD_STATIC_EXECUTABLE is " ${BUILD_STATIC_EXECUTABLE})
-message(STATUS "BUILD_DYNAMIC_LIBRARY is " ${BUILD_DYNAMIC_LIBRARY})
-message(STATUS "BUILD_DYNAMIC_EXECUTABLE is " ${BUILD_DYNAMIC_EXECUTABLE})
+include(${PROJECT_SOURCE_DIR}/cmake/AddDependencies.cmake)
 
 ############################################################################################################
 # Create object library
@@ -63,7 +59,7 @@ add_library(embed_objlib OBJECT
         ${PROJECT_SOURCE_DIR}/src/PositionsKmerDistributions.hpp
         ${PROJECT_SOURCE_DIR}/src/AmbigModel.hpp)
 
-target_link_libraries(embed_objlib PUBLIC ${embed_LINK_LIBRARIES})
+target_link_libraries(embed_objlib PRIVATE ${nanopolish_LIB})
 target_include_directories(embed_objlib
         PUBLIC
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/embed>
@@ -74,18 +70,19 @@ target_include_directories(embed_objlib
 # shared libraries need PIC
 set_target_properties(embed_objlib PROPERTIES
         POSITION_INDEPENDENT_CODE 1)
+#C_VISIBILITY_PRESET hidden
+#VISIBILITY_INLINES_HIDDEN ON)
 
-target_compile_features(embed_objlib PRIVATE cxx_std_11)
+target_compile_features(embed_objlib PUBLIC cxx_std_11)
 target_compile_options(embed_objlib PRIVATE
-        -Wall
+#        -Wall
         #        -Werror
         #        -Wno-error=maybe-uninitialized
-        -Wconversion
-        -Wno-unused-result
-        -Wpedantic
+#        -Wconversion
+#        -Wno-unused-resultON
+#        -Wpedantic
         $<$<CONFIG:RELEASE>:-g0>
         $<$<CONFIG:RELEASE>:-O3>
-        $<$<CONFIG:DEBUG>:-ggdb3>
         $<$<CONFIG:DEBUG>:-O0>
         $<$<CONFIG:DEBUG>:-ggdb3>
         )
@@ -95,49 +92,33 @@ target_compile_definitions(embed_objlib PRIVATE
         )
 
 ############################################################################################################
-# Create Static library
+# Create library
 ############################################################################################################
-if(BUILD_STATIC_LIBRARY)
-    add_library(embedStaticLibrary STATIC $<TARGET_OBJECTS:embed_objlib>)
-    target_link_libraries(embedStaticLibrary embed_objlib)
-    set_target_properties(embedStaticLibrary PROPERTIES
-            OUTPUT_NAME "embedStaticLibrary"
-            PREFIX ""
-            DEFINE_SYMBOL ""
-            VERSION ${PROJECT_VERSION})
-endif(BUILD_STATIC_LIBRARY)
+add_library(embedlib $<TARGET_OBJECTS:embed_objlib>)
+target_link_libraries(embedlib PUBLIC
+        embed_objlib
+        ${embed_LINK_LIBRARIES}
+        ${nanopolish_LIB})
+set_target_properties(embedlib PROPERTIES
+        OUTPUT_NAME "embed"
+        PREFIX ""
+        DEFINE_SYMBOL ""
+        VERSION ${embed_fast5_VERSION}
+        SOVERSION ${embed_fast5_VERSION_MINOR})
+############################################################################################################
+# Create executable
+############################################################################################################
+add_executable(embed_main ${PROJECT_SOURCE_DIR}/src/main.cpp)
+if (NOT APPLE AND NOT BUILD_SHARED_LIBS)
+#    message(STATUS "not APPLE")
+    target_link_libraries(embed_main PUBLIC -static -static-libgcc -static-libstdc++)
+endif(NOT APPLE AND NOT BUILD_SHARED_LIBS)
+target_link_libraries(embed_main PUBLIC embedlib)
+target_include_directories(embed_main
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5)
 
-############################################################################################################
-# Create dynamic library
-############################################################################################################
-if(BUILD_DYNAMIC_LIBRARY)
-    add_library(embedDynamicLibrary SHARED $<TARGET_OBJECTS:embed_objlib>)
-    target_link_libraries(embedDynamicLibrary embed_objlib)
-    set_target_properties(embedDynamicLibrary PROPERTIES
-            OUTPUT_NAME "embedDynamicLibrary"
-            PREFIX ""
-            DEFINE_SYMBOL ""
-            VERSION ${PROJECT_VERSION})
-endif(BUILD_DYNAMIC_LIBRARY)
-
-############################################################################################################
-# Create static executable
-############################################################################################################
-if (BUILD_STATIC_EXECUTABLE)
-    add_executable(embed_main ${PROJECT_SOURCE_DIR}/src/main.cpp)
-    target_link_libraries(embed_main PUBLIC embedStaticLibrary)
-    target_include_directories(embed_main
-            PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5)
-endif(BUILD_STATIC_EXECUTABLE)
-############################################################################################################
-# Create dynamic executable
-############################################################################################################
-if (BUILD_DYNAMIC_EXECUTABLE)
-    add_executable(embed_main_dynamic ${PROJECT_SOURCE_DIR}/src/main.cpp)
-    target_link_libraries(embed_main_dynamic PUBLIC embedDynamicLibrary)
-endif(BUILD_DYNAMIC_EXECUTABLE)
 ############################################################################################################
 # Python bindings
 ############################################################################################################
@@ -145,11 +126,15 @@ add_subdirectory(src/embed)
 ############################################################################################################
 # Install
 ############################################################################################################
-install(TARGETS embedStaticLibrary embedDynamicLibrary embed_main embed_main_dynamic embed_objlib
+install(TARGETS embedlib embed_main embed_objlib
         EXPORT embedTargets
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                COMPONENT embed_RunTime
+                NAMELINK_COMPONENT embed_Development
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                COMPONENT embed_Development
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                COMPONENT embed_RunTime
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         )
 ############################################################################################################

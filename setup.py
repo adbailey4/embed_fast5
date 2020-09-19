@@ -68,8 +68,13 @@ class CMakeBuild(build_ext):
 
     def build_extension(self, ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        shared_opt = "ON"
+        if "BUILD_SHARED_LIBS" in os.environ:
+            shared_opt = os.environ["BUILD_SHARED_LIBS"]
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
-                      '-DPYTHON_EXECUTABLE=' + sys.executable]
+                      '-DPYTHON_EXECUTABLE=' + sys.executable,
+                      '-DBUILD_SHARED_LIBS={}'.format(shared_opt),
+                      '-DCMAKE_VERBOSE_MAKEFILE=ON']
 
         cfg = 'Debug' if self.debug else 'Release'
         build_args = ['--config', cfg]
@@ -81,7 +86,7 @@ class CMakeBuild(build_ext):
             build_args += ['--', '/m']
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
-            build_args += ['--', '-j8']
+            # build_args += ['--', '-j8']
 
         env = os.environ.copy()
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''),
@@ -91,7 +96,7 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
         # Copy *_test file to tests directory
-        embed_cpp_tests = os.path.join(self.build_temp, 'test_embed')
+        embed_cpp_tests = os.path.join(self.build_temp, "tests", 'test_embed')
         embed_main = os.path.join(self.build_temp, 'embed_main')
         copy_test_file(embed_cpp_tests)
         copy_test_file(embed_main)

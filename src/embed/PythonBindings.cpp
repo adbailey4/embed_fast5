@@ -62,7 +62,7 @@ PYBIND11_MODULE(bindings, module) {
     pybind11::arg("full") = true);
 
 #ifdef VERSION_INFO
-  m.attr("__version__") = VERSION_INFO;
+  module.attr("__version__") = VERSION_INFO;
 #else
   module.attr("__version__") = "dev";
 #endif

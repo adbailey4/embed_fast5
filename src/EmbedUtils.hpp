@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <mutex>
 #include <chrono>
+#include <map>
 
 using namespace boost::filesystem;
 using namespace boost::coroutines2;

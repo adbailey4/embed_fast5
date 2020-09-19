@@ -51,8 +51,8 @@ TEST (BinaryEventTests, test_read_and_write) {
   EXPECT_EQ("ACGT", ber.alphabet_string);
   ASSERT_THAT(alphabet, ElementsAreArray(ber.alphabet));
   EXPECT_EQ(5, ber.kmer_length);
-  EXPECT_EQ(false, ber.rna);
-  EXPECT_EQ(true, ber.two_d);
+  EXPECT_FALSE(ber.rna);
+  EXPECT_TRUE(ber.two_d);
 
   EXPECT_EQ(1, ber.indexes.size());
   EXPECT_EQ(3, ber.indexes[contig_strand].contig_string_length);

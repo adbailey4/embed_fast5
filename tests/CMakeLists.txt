@@ -21,11 +21,11 @@ set(TEST_CPP
         ${PROJECT_SOURCE_DIR}/tests/src/AmbigModelTests.hpp)
 
 add_executable(test_embed ${TEST_CPP})
-if(BUILD_DYNAMIC_LIBRARY)
-    target_link_libraries(test_embed PRIVATE embedDynamicLibrary)
-else()
-    target_link_libraries(test_embed PRIVATE embedStaticLibrary)
-endif()
+target_link_libraries(test_embed PUBLIC embedlib)
+if (NOT APPLE AND NOT BUILD_SHARED_LIBS)
+    #    message(STATUS "not APPLE")
+    target_link_libraries(test_embed PUBLIC -static -static-libgcc -static-libstdc++)
+endif(NOT APPLE AND NOT BUILD_SHARED_LIBS)
 
 ############################################################################################################
 # cpp tests

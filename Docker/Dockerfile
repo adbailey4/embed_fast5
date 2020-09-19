@@ -43,8 +43,8 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3.7 -m pip install setuptools cython virtualenv
 
 WORKDIR /root/
-#RUN git clone --recursive https://github.com/adbailey4/embed_fast5.git --branch filter_by_position
-COPY . /root/embed_fast5
+RUN git clone --recursive https://github.com/adbailey4/embed_fast5.git --branch docker
+#COPY . /root/embed_fast5
 WORKDIR /root/embed_fast5
 
 ENV VIRTUAL_ENV=/opt/venv

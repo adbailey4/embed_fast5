@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.15)
 project(embed_fast5 VERSION 0.0.5)
 ############################################################################################################
 # visibility settings
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
+#set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+#set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 # set build shared libs option if not set
 set(BUILD_SHARED_LIBS  "ON" CACHE STRING "Default build shared library")
 

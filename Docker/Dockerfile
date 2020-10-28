@@ -2,7 +2,6 @@ FROM ubuntu:18.04 AS build
 MAINTAINER Andrew Bailey, andbaile@ucsc.edu
 
 # apt-get installs
-# Maybe remove this line?
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y --no-install-recommends autoconf wget git curl build-essential libbz2-dev zlib1g-dev liblzma-dev libeigen3-dev libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libcurl4-openssl-dev ca-certificates libhdf5-dev python3.7-dev python3-pip python3.7-venv && \
@@ -43,8 +42,8 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3.7 -m pip install setuptools cython virtualenv
 
 WORKDIR /root/
-RUN git clone --recursive https://github.com/adbailey4/embed_fast5.git --branch docker
-#COPY . /root/embed_fast5
+#RUN git clone --recursive https://github.com/adbailey4/embed_fast5.git --branch docker
+COPY . /root/embed_fast5
 WORKDIR /root/embed_fast5
 
 ENV VIRTUAL_ENV=/opt/venv

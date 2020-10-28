@@ -43,7 +43,7 @@ endif()
 ############################################################################################################
 # Pybind LIBRARY
 ############################################################################################################
-find_package(PythonLibs REQUIRED)
+#find_package(Python3 COMPONENTS Interpreter Development)
 add_subdirectory(${PROJECT_SOURCE_DIR}/submodules/pybind11)
 ############################################################################################################
 set(embed_LINK_LIBRARIES

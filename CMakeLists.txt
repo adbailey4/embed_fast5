@@ -100,7 +100,7 @@ target_link_libraries(embedlib PUBLIC
         ${embed_LINK_LIBRARIES}
         ${nanopolish_LIB})
 set_target_properties(embedlib PROPERTIES
-        OUTPUT_NAME "embed"
+        OUTPUT_NAME "embedlib"
         PREFIX ""
         DEFINE_SYMBOL ""
         VERSION ${embed_fast5_VERSION}

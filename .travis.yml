@@ -23,7 +23,6 @@ before_install:
   liblzma-dev libeigen3-dev -y
 - sudo apt-get update
 # cmake
-- mkdir $HOME/bin
 - wget https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.sh --no-check-certificate && sh cmake-3.17.0-Linux-x86_64.sh --prefix=$HOME --skip-license
 - cmake --version
 # miniconda

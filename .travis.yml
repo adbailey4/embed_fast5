@@ -52,11 +52,6 @@ before_install:
 - ls
 - cd htslib-1.9 && ./configure --prefix /usr/local --enable-plugins CPPFLAGS="-fPIC"
   CFLAGS="-fPIC" && make && sudo make install
-- cd $HOME/build/adbailey4
-- wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.gz
-- tar -xzf hdf5-1.10.4.tar.gz || exit 255
-- cd hdf5-1.10.4 && ./configure --prefix /usr/local --enable-threadsafe --disable-hl
-  && make && sudo make install
 - cd $HOME/build/adbailey4/embed_fast5
 - pip install cython
 install:

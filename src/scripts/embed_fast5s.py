@@ -14,6 +14,7 @@ from embed.fast5 import *
 from py3helpers.utils import time_it
 
 
+# TODO update documentation and add option for adding fastq and/or event table
 def parse_args():
     parser = ArgumentParser(description=__doc__)
 

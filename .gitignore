@@ -13,3 +13,8 @@ tests/bin
 tests/real_data_test1
 cpg_hdp_model
 notes.md
+.gitignore
+Docker/run_docker.sh
+.eggs/
+test_event/
+tests/test_files/test_binary_event/

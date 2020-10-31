@@ -25,7 +25,7 @@ class MaxKmers{
   /**
   Initialize locks and heaps and other important data structures
   */
-  MaxKmers(size_t heap_size, string alphabet, int kmer_length, double min_prob= 0.0) :
+  MaxKmers(size_t heap_size, string alphabet, uint64_t kmer_length, double min_prob= 0.0) :
       alphabet(sort_string(alphabet)), alphabet_size(alphabet.length()),
       kmer_length(kmer_length), n_kmers(pow(this->alphabet_size, this->kmer_length)), max_heap(heap_size),
       min_prob(min_prob)
@@ -40,7 +40,7 @@ class MaxKmers{
 
   string alphabet;
   int alphabet_size;
-  int kmer_length;
+  uint64_t kmer_length;
   int n_kmers;
   size_t max_heap;
   double min_prob;
@@ -56,7 +56,7 @@ class MaxKmers{
   @param kmer_length: length of the string
   @return vector of alphabetically ordered strings
   */
-  vector<string> create_kmers(string& alphabet1, int kmer_length1) {
+  vector<string> create_kmers(string& alphabet1, uint64_t kmer_length1) {
     return all_string_permutations(alphabet1, kmer_length1);
   }
 
@@ -72,7 +72,7 @@ class MaxKmers{
     int64_t id = 0;
     int64_t step = 1;
     throw_assert(kmer.length() == this->kmer_length, "Kmer length is different than expected: " << kmer.length() << " != " << this->kmer_length)
-    int64_t index;
+    uint64_t index;
 
     for (int64_t i = this->kmer_length - 1; i >= 0; i--) {
       index = this->alphabet.find(kmer[i]);
@@ -107,10 +107,7 @@ class MaxKmers{
   Initialize vector of heaps
   */
   void initialize_heap() {
-    for (int i=0; i < this->n_kmers; i++){
-      boost::heap::priority_queue<T> kmer_queue;
-      this->kmer_queues.push_back(kmer_queue);
-    }
+    kmer_queues.resize(n_kmers);
   }
 
   /**
@@ -133,12 +130,12 @@ class MaxKmers{
    * Write all kmers in the kmer_queues to output path
    * @param output_path
    */
-  void write_to_file(boost::filesystem::path& output_path){
+  void write_to_file(boost::filesystem::path &output_path, bool write_full) {
     std::ofstream out_file;
     out_file.open(output_path.string());
     for (auto &pq: this->kmer_queues){
       for (auto &event: pq){
-        out_file << event.path_kmer << '\t' << event.strand << '\t' << event.descaled_event_mean << '\t' << event.posterior_probability << '\n';
+        out_file << event.format_line(write_full);
       }
     }
     out_file.close();
@@ -146,10 +143,11 @@ class MaxKmers{
 
   /**
    * Write all kmers in the kmer_queues to output path and write info about the kmers to log_path
-   * @param output_path
-   * @param log_path
+   * @param output_path: path to output file
+   * @param log_path: path to output log file
+   * @param write_full: boolean option to write full output
    */
-  void write_to_file(boost::filesystem::path& output_path, boost::filesystem::path& log_path){
+  void write_to_file(boost::filesystem::path &output_path, boost::filesystem::path &log_path, bool write_full) {
     std::ofstream out_file;
     out_file.open(output_path.string());
 
@@ -161,7 +159,7 @@ class MaxKmers{
     for (auto &pq: this->kmer_queues){
 // loop through all queues
       for (auto &event: pq){
-        out_file << event.path_kmer << '\t' << event.strand << '\t' << event.descaled_event_mean << '\t' << event.posterior_probability << '\n';
+        out_file << event.format_line(write_full);
 //      keep track of number of events
       }
       //    log info about queue
@@ -192,21 +190,20 @@ class MaxKmers{
   void add_to_heap(T& kmer_struct){
     size_t index = this->get_kmer_index(kmer_struct.path_kmer);
     if (kmer_struct.posterior_probability >= min_prob){
-      this->locks[index].lock();
-      if (this->kmer_queues[index].empty()) {
+      std::unique_lock<std::mutex> lock(this->locks[index]);
+      boost::heap::priority_queue<T>& queue = this->kmer_queues[index];
+      if (queue.empty()) {
 //    add to queue if not at capacity
-        this->kmer_queues[index].push(kmer_struct);
+        queue.push(kmer_struct);
 //    if at capacity check to see if prob is greater than min
-      } else if (this->kmer_queues[index].top().posterior_probability < kmer_struct.posterior_probability ||
-      this->kmer_queues[index].size() < this->max_heap) {
-
-        this->kmer_queues[index].push(kmer_struct);
-
-        while (this->kmer_queues[index].size() > this->max_heap){
-          this->kmer_queues[index].pop();
+      } else if (queue.top().posterior_probability < kmer_struct.posterior_probability ||
+          queue.size() < this->max_heap) {
+        queue.push(kmer_struct);
+        while (queue.size() > this->max_heap){
+          queue.pop();
         }
       }
-      this->locks[index].unlock();
+      lock.unlock();
     }
   }
 };

@@ -12,9 +12,12 @@
 #include "TopKmers.hpp"
 #include "FilterAlignments.hpp"
 #include "SignalAlignToBed.hpp"
+#include "SplitByRefPosition.hpp"
+#include "PositionsKmerDistributions.hpp"
 #include "nanopolish_squiggle_read.h"
 #include "nanopolish_index.h"
 #include "nanopolish_extract.h"
+#include "nanopolish_eventalign.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -24,15 +27,17 @@ using namespace boost::filesystem;
 int print_usage(int argc, char **argv);
 
 static std::map< std::string, std::function<int(int, char**)> > programs = {
-    {"help",        print_usage},
-    {"--help",      print_usage},
-    {"embed",       embed_fast5_main},
-    {"index",       index_main},
-    {"extract",     extract_main},
+    {"help",                     print_usage},
+    {"--help",                   print_usage},
+    {"embed",                    embed_fast5_main},
+    {"index",                    index_main},
+    {"extract",                  extract_main},
+    {"eventalign",               eventalign_main},
     {"filter_by_positions",      filter_alignments_main},
-    {"top_kmers",   top_kmers_main},
-    {"sa2bed",   sa2bed_main}
-
+    {"top_kmers",                top_kmers_main},
+    {"split_by_position",        split_by_ref_main},
+    {"kmer_distributions",       get_kmer_distributions_main},
+    {"sa2bed",                   sa2bed_main}
 };
 
 int print_usage(int, char **)

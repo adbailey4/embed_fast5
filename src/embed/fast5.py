@@ -608,7 +608,6 @@ class Fast5(h5py.File):
 
         return True
 
-    #todo change to look like get_analysis_latest
     def check_path(self, path, latest=False):
         """Check if path exists, if it does increment numbering
 

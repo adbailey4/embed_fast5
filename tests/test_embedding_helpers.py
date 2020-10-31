@@ -10,11 +10,10 @@
 # History: 04/23/2019 Created
 ########################################################################
 
-import unittest
-import tempfile
 import shutil
-import sys
-import os
+import tempfile
+import unittest
+
 from embed.embedding_helpers import *
 from embed.fast5 import Fast5
 from py3helpers.utils import list_dir, captured_output
@@ -31,8 +30,6 @@ class TestSplitMultiRead(unittest.TestCase):
         cls.fastq = os.path.join(cls.HOME, "tests/test_files/test_readdb/new_individual.fastq")
         cls.fast5 = os.path.join(cls.HOME,
                                  "tests/test_files/test_readdb/read_002f9702-c19e-48c2-8e72-9021adbd4a48.fast5")
-        cls.build_dir = os.path.join(cls.HOME,
-                                     "cmake-build-debug")
 
         cls.r94_fastq = os.path.join(cls.HOME, "tests/test_files/r94_tests/small_sample.fastq")
         cls.r94_dir = os.path.join(cls.HOME, "tests/test_files/r94_tests")
@@ -148,14 +145,16 @@ class TestSplitMultiRead(unittest.TestCase):
                 fh.close()
 
     def test_embed_fast5_script(self):
-        with captured_output() as (stdout, stderr):
+        with captured_output() as (_, _):
             with tempfile.TemporaryDirectory() as tempdir:
                 temp_r94_dir = os.path.join(tempdir, "r94_tests")
                 shutil.copytree(self.r94_dir, temp_r94_dir)
                 fast5_dir = os.path.join(temp_r94_dir, "fast5")
                 fastq = os.path.join(temp_r94_dir, "small_sample.fastq")
 
-                test_fast5_file = "DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_4_NA12878_11_17_16_88738_ch1_read1464_strand.fast5"
+                test_fast5_file = \
+                    "DEAMERNANOPORE_20161117_FNFAB43577_MN16450_sequencing_run_MA_821_R9_" \
+                    "4_NA12878_11_17_16_88738_ch1_read1464_strand.fast5"
                 fast5_file_path = os.path.join(fast5_dir, test_fast5_file)
 
                 fh = Fast5(fast5_file_path)
@@ -164,11 +163,10 @@ class TestSplitMultiRead(unittest.TestCase):
                 fh.close()
 
                 embed_command = "embed_fast5s.py --fast5_dir {} --fastq {} " \
-                                "--jobs {} --embed_build_dir {} --output_dir {}".format(fast5_dir,
-                                                                                        fastq,
-                                                                                        1,
-                                                                                        self.build_dir,
-                                                                                        tempdir)
+                                "--jobs {} --output_dir {}".format(fast5_dir,
+                                                                   fastq,
+                                                                   1,
+                                                                   tempdir)
                 command = embed_command.split()
                 proc = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 proc.communicate()

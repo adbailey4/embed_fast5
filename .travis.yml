@@ -1,11 +1,12 @@
 notifications:
   slack:
-    secure: awlEmWS3kyRMJyHzcyRu2UQnmU4qX23jxxHY1TjhtQe8JzrBSlClyL9FBRHAPb5ktkd+a6rEay6LHxGUQxBZyuRZL8nB5ShKPp847ZO436kQE1mpL7GRyPKz9L9YGyYUKDxgEQuBEHe+fDLwliaHru8mod0vvRabIqQ4VXEfIxxbqCRkQHeAGqU2lnjnVnvBd1dJr59UZ+s2ZpFCfOylvmYWSiOTmU4xNWk7s62DRYgU8t6/+pJr7ylJImGsy7T5fC0mm2Mt8hwCck7ZzNN8OYc92Gs2uual1Sr/KQAmyj6fTG29H7W/mgt18TVEi3j4UfwuNA7WcPM/yz6vI78tQl1mDOCpRHBQdaJ+Y30n+rUppT5zn5fDb9Y8YcqztAy/kB1YVdLnEDPDmzLX5t6GJMGpWhHbtx/Ta+ObqadsI+9oCTGVpwtzCGOJBOPWwESAmpAr0S0T26cdwK8CMxn6H2FJFD4lourYcCkF2hiWbMB5cCcqltSHLCb6W5JK7qh6dex1gw60ZzhmiC1opqzzkE30ds4XdZBw6zpqNW7fXAa7A7PyOvIzMphN9JRAKhLH655fBuqest4qESMN8L5XnaThuloowwcYP4R/cbW+M9p1AdxAq66qz/wsYZvrGRbPHikQQFn8epDpnIuQgLJnVVVcP9kvXcGOhVO0ycM4GSc=
+    secure: izQuWHVK+LWJKH9T8m/8iQHeONpwdW3qA1qFqImgYuCLKlpiS/69t9fuTPZ8E+YYGqRq6aZ/yr5wF/Cau3nx0fEGDiZJPcWk++pp6g9mpsua+8egKxsSV2RbGokCUHF7xs15/PCbh84QLXPJVyDSpisqtSF9HvxJ8FV+U8AIOAM3XYmRRaSPhe8e4HP6HCPTtJQdD8W8Cj3LEo+kugY4En0iY+zNFPoiYiJhADhJIfzymDUJbAuo4uWtc1GBn+UHVz26orzymDSDiGSAyVzQRgrbZznts516ZQ7to1uQ45qfqJEJhtkoL//FzEcCqd79juCkHAVQt9jvsq9LTaRDbGxyfLFaiBPaKDL9oErTlHbpyPMSOIpR8CPvo/E/bBUeZjsMHbE8tdz5WOpAiTE2VpziS66RDt6KHsPNWxxBrUsF8s92TV3FMI7FhiwzbIzGxaHr/APZmUJf6588SxGdLO7ek/yJL1IWoxh7TCjdfRZMzw9oWxykqvlUIBI3eHn6E0IAHH2q70Vuq8y4zJvrr3JpEYj+mWdoN19uNAjZqJr+xwwi0cO7MAhr+SnaxMP29wwuymCRyXBVuz/1EcKpHEh3w3rAnnVQ6xhvEjST7LmQ8pp9WjCrfglRGMQMQUnpGqxxxb9fRlfAz/GzgDAjlEhQWNX05vwO0f5PNcKuG4w=
   email: false
 language: generic
 matrix:
   include:
   - os: linux
+    dist: bionic
     compiler: gcc
     python: 3.6
     addons:
@@ -13,37 +14,37 @@ matrix:
         sources:
         - ubuntu-toolchain-r-test
         packages:
-        - cmake-data
         - gcc-6
         - g++-6
-        - cmake
     env:
     - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 before_install:
 - sudo apt-get update -qq
-- sudo apt-get install build-essential autotools-dev autoconf curl libbz2-dev zlib1g-dev
-  liblzma-dev libeigen3-dev -y
+- sudo apt-get install autoconf wget git curl build-essential libbz2-dev zlib1g-dev liblzma-dev libeigen3-dev libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libcurl4-openssl-dev ca-certificates libhdf5-dev -y
 - sudo apt-get update
-install:
+# cmake
+- wget https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.sh --no-check-certificate && sh cmake-3.17.0-Linux-x86_64.sh --prefix=$HOME --skip-license
+- cmake --version
+# miniconda
 - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
 - bash miniconda.sh -b -p $HOME/miniconda
 - export PATH="$HOME/miniconda/bin:$PATH"
 - conda config --set always_yes yes --set changeps1 no
 - pwd
 - python --version
-- cmake --version
 - gcc --version
 - g++ --version
 - cc --version
 - c++ --version
-- cd $HOME/build/adbailey4
-- wget -O boost_1_69_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download
+# install boost
+- cd $HOME/build/adbailey4/
+- wget -O boost_1_69_0.tar.gz https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.gz/download --no-check-certificate
 - tar -xzf boost_1_69_0.tar.gz >/dev/null
 - cd boost_1_69_0/
-- "./bootstrap.sh --show-libraries"
-- "./bootstrap.sh --with-libraries=system,date_time,filesystem,iostreams,coroutine,context
-  >/dev/null"
-- sudo ./b2 && sudo ./b2 install
+- ./bootstrap.sh --show-libraries
+- ./bootstrap.sh --with-libraries=system,date_time,filesystem,iostreams,coroutine,context,regex,thread,atomic >/dev/null
+- ./b2 cxxflags="-fPIC" cflags="-fPIC" link=static -a
+- sudo ./b2 install
 - export CFLAGS="$CFLAGS -fPIC"
 - export CXXFLAGS="$CXXFLAGS -fPIC"
 - cd $HOME/build/adbailey4/
@@ -52,13 +53,9 @@ install:
 - ls
 - cd htslib-1.9 && ./configure --prefix /usr/local --enable-plugins CPPFLAGS="-fPIC"
   CFLAGS="-fPIC" && make && sudo make install
-- cd $HOME/build/adbailey4
-- wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.4/src/hdf5-1.10.4.tar.gz
-- tar -xzf hdf5-1.10.4.tar.gz || exit 255
-- cd hdf5-1.10.4 && ./configure --prefix /usr/local --enable-threadsafe --disable-hl
-  && make && sudo make install
 - cd $HOME/build/adbailey4/embed_fast5
 - pip install cython
+install:
 - python setup.py install
 script:
 - python setup.py test

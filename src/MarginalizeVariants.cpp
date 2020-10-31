@@ -35,22 +35,15 @@ num_locks(num_locks), initialized_locks(true) {
 Initialize vector of locks
 */
 void MarginalizeVariants::initialize_locks() {
-  for (uint64_t i=0; i<this->num_locks; i++){
-    omp_lock_t new_lock;
-    omp_init_lock(&(new_lock));
-    locks.push_back(new_lock);
-  }
+  locks = std::vector<std::mutex>(this->num_locks);
 }
+
 /**
 Initialize vector of locks
 */
 void MarginalizeVariants::initialize_locks(uint64_t number_of_locks) {
   this->num_locks = number_of_locks;
-  for (uint64_t i=0; i<this->num_locks; i++){
-    omp_lock_t new_lock;
-    omp_init_lock(&(new_lock));
-    locks.push_back(new_lock);
-  }
+  locks = std::vector<std::mutex>(this->num_locks);
 }
 
 
@@ -60,39 +53,45 @@ void MarginalizeVariants::initialize_locks(uint64_t number_of_locks) {
  * @param vector_of_calls: vector of variant_calls
  */
 void MarginalizeVariants::load_variants(vector<VariantCall>* vector_of_calls){
+  for (auto& call: *vector_of_calls){
+    if (this->initialized_locks){
+      std::unique_lock<std::mutex> lk(this->locks[call.reference_index % this->num_locks]);
+//      omp_set_lock(&(this->locks[i.reference_index % this->num_locks]));
+      MarginalizeVariants::load_variant(call);
+      lk.unlock();
+//      omp_unset_lock(&(this->locks[i.reference_index % this->num_locks]));
+    } else {
+      MarginalizeVariants::load_variant(call);
+    }
+  }
+}
+
+void MarginalizeVariants::load_variant(VariantCall& call){
   bed_line bed_entry;
   int max_index;
-  for (auto& i: *vector_of_calls){
-    if (this->initialized_locks){
-      omp_set_lock(&(this->locks[i.reference_index % this->num_locks]));
-    }
-    if (i.strand == "+"){
-      bed_entry = this->per_genomic_position[i.contig].first[i.reference_index];
-    } else {
-      bed_entry = this->per_genomic_position[i.contig].second[i.reference_index];
-    }
+  if (call.strand == "+"){
+    bed_entry = this->per_genomic_position[call.contig].first[call.reference_index];
+  } else {
+    bed_entry = this->per_genomic_position[call.contig].second[call.reference_index];
+  }
 
-    if (bed_entry.start == -1) {
-      bed_entry.start = i.reference_index;
-      bed_entry.stop = i.reference_index + 1;
-      bed_entry.bases = i.bases;
-      size_t n_entries = i.normalized_probs.size();
-      bed_entry.hits.resize(i.normalized_probs.size());
-      for (size_t j = 0; j < n_entries; ++j) {
-        bed_entry.hits.push_back(0.0);
-      }
+  if (bed_entry.start == -1) {
+    bed_entry.start = call.reference_index;
+    bed_entry.stop = call.reference_index + 1;
+    bed_entry.bases = call.bases;
+    size_t n_entries = call.normalized_probs.size();
+    bed_entry.hits.resize(call.normalized_probs.size());
+    for (size_t j = 0; j < n_entries; ++j) {
+      bed_entry.hits.push_back(0.0);
     }
-    bed_entry.coverage += 1;
-    max_index = max_element(i.normalized_probs.begin(), i.normalized_probs.end()) - i.normalized_probs.begin();
-    bed_entry.hits[max_index] += 1;
-    if (i.strand == "+"){
-      this->per_genomic_position[i.contig].first[i.reference_index] = bed_entry;
-    } else {
-      this->per_genomic_position[i.contig].second[i.reference_index] = bed_entry;
-    }
-    if (this->initialized_locks){
-      omp_unset_lock(&(this->locks[i.reference_index % this->num_locks]));
-    }
+  }
+  bed_entry.coverage += 1;
+  max_index = max_element(call.normalized_probs.begin(), call.normalized_probs.end()) - call.normalized_probs.begin();
+  bed_entry.hits[max_index] += 1;
+  if (call.strand == "+"){
+    this->per_genomic_position[call.contig].first[call.reference_index] = bed_entry;
+  } else {
+    this->per_genomic_position[call.contig].second[call.reference_index] = bed_entry;
   }
 }
 

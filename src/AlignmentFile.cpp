@@ -196,20 +196,25 @@ vector<VariantCall> AlignmentFile::get_variant_calls(string &ambig_bases, std::m
   string possible_bases;
   VariantCall position_call;
   vector<VariantCall> final_output;
+  string s;
 
 //  loop through file
   try {
     for (auto &event: this->iterate()) {
       for (char &c : ambig_bases) {
-        location = event.reference_kmer.find(c);
-        if (location != std::string::npos) {
+        path_kmer_pos = event.aligned_kmer.find(c);
+        if (path_kmer_pos != std::string::npos) {
 //        get position of ambiguous base
           if (rna){
-            position = event.reference_index - location + (k-1);
-          } else{
-            position = event.reference_index + location;
+            position = event.reference_index - path_kmer_pos + (k-1);
+          } else {
+            if (this->strand == "+") {
+              position = event.reference_index + path_kmer_pos;
+            } else {
+              position = event.reference_index + (this->k - path_kmer_pos - 1);
+            }
           }
-          string s(1, c);
+          s = string(1, c);
           possible_bases = (*ambig_bases_map).at(s);
 //        positon_call = VariantCalls[position];
           it = variant_calls.find(position);
@@ -224,12 +229,6 @@ vector<VariantCall> AlignmentFile::get_variant_calls(string &ambig_bases, std::m
             }
           } else {
             position_call = variant_calls[position];
-          }
-//        get position of modified or unmodified base in the path kmer
-          if (this->strand == "+") {
-            path_kmer_pos = location;
-          } else {
-            path_kmer_pos = this->k - location - 1;
           }
 //        get corresponding index for base call
           index = possible_bases.find(event.path_kmer[path_kmer_pos]);
@@ -266,7 +265,7 @@ vector<VariantCall> AlignmentFile::get_variant_calls(string &ambig_bases, std::m
       final_output.push_back(element.second);
     }
   } catch (const std::out_of_range& oor) {
-    throw runtime_error("Programmer Error: ambig_bases not in ambig_bases_map.");
+    throw runtime_error("Programmer Error: ambig_bases not in ambig_bases_map. base: " + s);
   }
 
   return final_output;

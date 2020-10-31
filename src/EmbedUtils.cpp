@@ -10,11 +10,9 @@
 #include <boost/range/iterator_range.hpp>
 
 // Standard library.
-#include <string>
 #include <sys/stat.h>
 #include <iostream>
 #include <functional>
-#include <sstream>
 #include <cmath>
 #include <map>
 #include <chrono>
@@ -51,10 +49,8 @@ int64_t string_to_int(std::string &str_int) {
   }
 }
 
-float string_to_float(std::string &str_int) {
-  std::string::size_type sz;     // alias of size_t
-  float number = std::stof(str_int, &sz);
-  return number;
+float string_to_float(const string &str_int) {
+  return std::stof(str_int);
 }
 
 bool are_characters_in_string(string &characters, string &my_string) {
@@ -234,7 +230,7 @@ Creates an alphabetically sorted vector all string permutations of a set of char
 @param length: kmer length
 @return vector of strings
 */
-vector<string> all_string_permutations(string &characters, int &length) {
+vector<string> all_string_permutations(const string &characters, uint64_t &length) {
   assert(length >= 0);
   assert(characters.length() > 0);
   string data;
@@ -243,10 +239,10 @@ vector<string> all_string_permutations(string &characters, int &length) {
     data += " ";
   }
 
-  characters = remove_duplicate_characters(characters);
-  sort_string(characters);
+  string characters1 = remove_duplicate_characters(characters);
+  sort_string(characters1);
 
-  return all_lexicographic_recur(characters, data, length - 1, 0);
+  return all_lexicographic_recur(characters1, data, length - 1, 0);
 
 }
 /**
@@ -255,7 +251,7 @@ Remove duplicate characters. Returns new string
 @param input_string: input string to remove characters from
 @return new string.
 */
-string remove_duplicate_characters(string &input_string) {
+string remove_duplicate_characters(const string &input_string) {
 
   size_t character_map[128] = {0};
   string output_string;
@@ -364,6 +360,33 @@ std::map<string, string> create_ambig_bases() {
 
   return ambig_hash;
 }
+
+/**
+ Create a map of all ambiguous bases so that we can determine what each ambiguous character represents
+
+@return map from base to ambiguous bases.
+*/
+std::map<string, string> create_ambig_bases2(string config_file) {
+  std::map<string, string> ambig_hash;
+  if (!config_file.empty()){
+    char encoding[10];
+    char ambig_bases[10];
+    char line[100];
+    FILE *infile = fopen(config_file.c_str(), "r");
+    throw_assert(infile, "Couldn't open " + string(config_file) + " for reading\n")
+    int i = 0;
+    while(i < 300 && fgets(line, sizeof(line), infile) != nullptr){
+      sscanf(line, "%s\t%s", encoding, ambig_bases);
+      ambig_hash.insert(std::pair<string, string>(encoding, ambig_bases));
+      i++;
+    }
+  } else {
+    ambig_hash = create_ambig_bases();
+  }
+  return ambig_hash;
+}
+
+
 /**
   Time and execute a function which returns void.
 
@@ -373,8 +396,8 @@ std::map<string, string> create_ambig_bases() {
 string get_time_string(std::function<void()> bound_function) {
   string output;
   tuple<uint64_t, uint64_t, uint64_t, uint64_t> data = get_time(std::move(bound_function));
-  output = "hours: " + to_string(get<0>(data)) + " minutes: " + to_string(get<1>(data)) + " seconds: "
-      + to_string(get<2>(data)) + "." + to_string(get<3>(data)) + "\n";
+  output = to_string(get<0>(data)) + " hours " + to_string(get<1>(data)) + " minutes " +
+      to_string(get<2>(data)) + "." + to_string(get<3>(data)) + " seconds\n";
   return output;
 }
 
@@ -440,5 +463,37 @@ uint64_t number_of_columns(const path &file_path, char sep){
   fclose(infile);
   return n_col;
 }
+
+std::set<char> add_string_to_set(const std::set<char>& a, const string& b)
+{
+  std::set<char> result = a;
+  result.insert(b.begin(), b.end());
+  return result;
+}
+
+string char_set_to_string(std::set<char> a){
+  string return_value;
+  for (auto &c: a){
+    return_value += c;
+  }
+  return return_value;
+}
+
+std::set<char> string_to_char_set(const string& a){
+  return add_string_to_set(std::set<char>{}, a);
+}
+
+uint64_t compute_string_hash(string const& s) {
+  const int p = 31;
+  const int m = 1e9 + 9;
+  uint64_t hash_value = 0;
+  uint64_t p_pow = 1;
+  for (char c : s) {
+    hash_value = (hash_value + (c - 'a' + 1) * p_pow) % m;
+    p_pow = (p_pow * p) % m;
+  }
+  return hash_value;
+}
+
 
 }

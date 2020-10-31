@@ -71,7 +71,8 @@ class TestPythonWrappers(unittest.TestCase):
 
                 bindings.generate_master_kmer_table(
                     [os.path.join(self.alignment_dir, "7d31de25-8c15-46d8-a08c-3d5043258c89.sm.forward.tsv")],
-                    output_path, log_file_path, heap_size, "ATGCEF", min_prob=0.5, n_threads=n_threads)
+                    output_path, log_file_path, heap_size, "ATGCEF", min_prob=0.5, n_threads=n_threads,
+                    full=False)
                 self.assertEqual(7777, count_lines_in_file(log_file_path))
                 self.assertEqual(417, count_lines_in_file(output_path))
 

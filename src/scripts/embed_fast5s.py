@@ -30,9 +30,6 @@ def parse_args():
                         default=2, type=int, help="number of jobs to run in parallel")
     parser.add_argument('--debug', '-d', action='store_true', dest='debug', required=False,
                         help="Option to not multiprocess reads to check for errors")
-    parser.add_argument('--embed_build_dir', '-m', action='store',
-                        dest='embed_build_dir', required=True, type=str,
-                        help="Directory where the main_cpp executable is located")
     parser.add_argument('--output_dir', '-o', action='store',
                         dest='output_dir', required=True, type=str,
                         help="Output directory for edited fastq if it is in wrong format")

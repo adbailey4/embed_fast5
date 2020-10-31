@@ -35,11 +35,7 @@ void AssignmentFile::assignment_coroutine(event_kmer_coro::push_type& yield){
     string line;
     while(getline(in_file, line)) {
       vector<string> fields = split_string(line, '\t');
-      string kmer = fields[0];
-      string strand = fields[1];
-      float mean = string_to_float(fields[2]);
-      float prob = string_to_float(fields[3]);
-      yield(eventkmer(kmer, mean, strand, prob));
+      yield(eventkmer(fields[0], std::stof(fields[2]), fields[1], std::stof(fields[3])));
     }
   } else  {
     cout << "Error loading file: " << this->file_path << "\n";

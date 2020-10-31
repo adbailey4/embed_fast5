@@ -32,17 +32,20 @@ void generate_master_kmer_table_wrapper(vector<string> event_table_files,
                                         string &alphabet,
                                         double min_prob,
                                         uint64_t n_threads,
-                                        bool verbose) {
+                                        bool verbose,
+                                        bool write_full) {
   uint64_t n_col = number_of_columns(event_table_files[0]);
   throw_assert(n_col == 16 or n_col == 4,
                "Incorrect number of columns in tsv: " + event_table_files[0])
   if (n_col == 4) {
     generate_master_kmer_table<AssignmentFile, eventkmer>(event_table_files, output_file, log_file,
-        alphabet,heap_size,min_prob,n_threads,verbose);
+                                                          alphabet, heap_size, min_prob, n_threads,
+                                                          verbose, write_full);
 
   } else if (n_col == 16) {
     generate_master_kmer_table<AlignmentFile, FullSaEvent>(event_table_files, output_file, log_file,
-        alphabet, heap_size, min_prob, n_threads, verbose);
+                                                           alphabet, heap_size, min_prob, n_threads,
+                                                           verbose, write_full);
   }
 }
 
@@ -186,7 +189,7 @@ auto top_kmers_main(int argc, char** argv) -> int
                                      opt::alphabet,
                                      opt::min_prob,
                                      opt::threads,
-                                     opt::verbose);
+                                     opt::verbose, true);
 
   return EXIT_SUCCESS;
 }

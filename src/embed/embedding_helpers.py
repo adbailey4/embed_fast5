@@ -160,7 +160,6 @@ def embed_fastqs_wrapper(fast5_path, fastq_string):
     return True
 
 
-# TODO these have not been used
 def parse_seq_summary(seq_summary, directories):
     """Parse seq_summary file
 

@@ -1,0 +1,13 @@
+.eggs
+.gitignore
+.git
+.gitmodules
+.idea
+build
+cmake-build-debug
+dist
+test_event
+Dockerfile
+notes.md
+.dockerignore
+

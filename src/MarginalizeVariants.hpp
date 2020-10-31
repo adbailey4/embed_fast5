@@ -10,6 +10,8 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <mutex>
+#include <thread>
 #include <omp.h>
 
 
@@ -38,13 +40,14 @@ class MarginalizeVariants {
   explicit MarginalizeVariants(uint64_t num_locks);
   ~MarginalizeVariants();
   void load_variants(vector<VariantCall>* vector_of_calls);
+  void load_variant(VariantCall& call);
   void write_to_file(path& path_to_bed);
   void initialize_locks();
   void initialize_locks(uint64_t number_of_locks);
 //  per_genomic_position[contig][strand] = map of positions
   uint64_t num_locks{};
   bool initialized_locks{};
-  std::vector<omp_lock_t> locks;
+  std::vector<mutex> locks;
   map<std::string, pair<map<uint64_t, bed_line>, map<uint64_t, bed_line>>> per_genomic_position;
 };
 

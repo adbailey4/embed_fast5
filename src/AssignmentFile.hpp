@@ -7,6 +7,11 @@
 
 #include <boost/coroutine2/all.hpp>
 #include <string>
+#include <sstream>
+
+#ifndef __unused
+#define __unused	__attribute__((unused))
+#endif
 
 
 using namespace std;
@@ -19,11 +24,16 @@ struct eventkmer
   string strand;
   float posterior_probability;
   eventkmer(string kmer, float mean, string strand, float prob) :
-      path_kmer(move(kmer)), descaled_event_mean(mean), strand(move(strand)), posterior_probability(prob)
+      path_kmer(move(kmer)), descaled_event_mean(move(mean)), strand(move(strand)), posterior_probability(move(prob))
   {
   }
-  ~eventkmer()
-  = default;
+  ~eventkmer() = default;
+  string format_line(__unused bool trim=false) const{
+    ostringstream person_info;
+    person_info << path_kmer << '\t' << strand << '\t' << descaled_event_mean << '\t' << posterior_probability << '\n';
+    return person_info.str();
+  };
+
 };
 
 

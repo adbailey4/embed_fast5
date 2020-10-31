@@ -1,282 +1,220 @@
 ############################################################################################################
-cmake_minimum_required(VERSION 3.7)
-set(CMAKE_CXX_FLAGS "-O3 -g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
-set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_C_FLAGS_DEBUG  "-O0 -g -Wall --pedantic -fopenmp -funroll-loops -DDEBUG")
-project(embed_fast5)
+cmake_minimum_required(VERSION 3.15)
+project(embed_fast5 VERSION 0.0.5)
 ############################################################################################################
-set(CMAKE_VERBOSE_MAKEFILE OFF)
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-O3 -g -Wall -std=c++11 -fopenmp -fsigned-char -DBOOST_NO_CXX11_SCOPED_ENUMS")
-set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-3")
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -gdwarf-3")
-message("CMakeInstall Prefix: ${CMAKE_INSTALL_PREFIX}")
-############################################################################################################
-# GTEST INSTALL
-############################################################################################################
-if(APPLE)
-    set(CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS} -undefined dynamic_lookup")
-endif(APPLE)
-# Download and unpack googletest at configure time
-configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-        RESULT_VARIABLE result
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-if(result)
-    message(FATAL_ERROR "CMake step for googletest failed: ${result}")
+# visibility settings
+#set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+#set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
+# set build shared libs option if not set
+set(BUILD_SHARED_LIBS  "ON" CACHE STRING "Default build shared library")
+
+if(NOT APPLE)
+    set(CMAKE_INSTALL_RPATH $ORIGIN)
 endif()
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-        RESULT_VARIABLE result
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-if(result)
-    message(FATAL_ERROR "Build step for googletest failed: ${result}")
+### Require out-of-source builds
+file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
+if(EXISTS "${LOC_PATH}")
+    message(FATAL_ERROR "You cannot build in a source directory (or any directory with a CMakeLists.txt file). Please make a build subdirectory. Feel free to remove CMakeCache.txt and CMakeFiles.")
 endif()
-# Prevent overriding the parent project's compiler/linker
-# settings on Windows
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-# Add googletest directly to our build. This defines
-# the gtest and gtest_main targets.
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
-        ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
-        EXCLUDE_FROM_ALL)
-# The gtest/gtest_main targets carry header search path
-# dependencies automatically when using CMake 2.8.11 or
-# later. Otherwise we have to add them here ourselves.
-if (CMAKE_VERSION VERSION_LESS 2.8.11)
-    include_directories("${gtest_SOURCE_DIR}/include")
+
+# add cmake dir
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+#message("CMAKE_MODULE_PATH Prefix: ${CMAKE_MODULE_PATH}")
+set(CMAKE_INSTALL_PREFIX .)
+message(STATUS "CMakeInstall Prefix: ${CMAKE_INSTALL_PREFIX}")
+
+############################################################################################################
+# Find dependencies
+############################################################################################################
+include(${PROJECT_SOURCE_DIR}/cmake/AddDependencies.cmake)
+
+############################################################################################################
+# Create object library
+############################################################################################################
+add_library(embed_objlib OBJECT
+        ${PROJECT_SOURCE_DIR}/src/EmbedFast5.cpp ${PROJECT_SOURCE_DIR}/src/EmbedFast5.hpp
+        ${PROJECT_SOURCE_DIR}/src/TopKmers.cpp ${PROJECT_SOURCE_DIR}/src/TopKmers.hpp
+        ${PROJECT_SOURCE_DIR}/src/EmbedUtils.cpp ${PROJECT_SOURCE_DIR}/src/EmbedUtils.hpp
+        ${PROJECT_SOURCE_DIR}/src/SignalAlignToBed.cpp ${PROJECT_SOURCE_DIR}/src/SignalAlignToBed.hpp
+        ${PROJECT_SOURCE_DIR}/src/PositionsFile.cpp ${PROJECT_SOURCE_DIR}/src/PositionsFile.hpp
+        ${PROJECT_SOURCE_DIR}/src/AlignmentFile.cpp ${PROJECT_SOURCE_DIR}/src/AlignmentFile.hpp
+        ${PROJECT_SOURCE_DIR}/src/FilterAlignments.cpp ${PROJECT_SOURCE_DIR}/src/FilterAlignments.hpp
+        ${PROJECT_SOURCE_DIR}/src/AssignmentFile.cpp ${PROJECT_SOURCE_DIR}/src/AssignmentFile.hpp
+        ${PROJECT_SOURCE_DIR}/src/MaxKmers.cpp ${PROJECT_SOURCE_DIR}/src/MaxKmers.hpp
+        ${PROJECT_SOURCE_DIR}/src/MarginalizeVariants.cpp ${PROJECT_SOURCE_DIR}/src/MarginalizeVariants.hpp
+        ${PROJECT_SOURCE_DIR}/src/VariantCall.cpp ${PROJECT_SOURCE_DIR}/src/VariantCall.hpp
+        ${PROJECT_SOURCE_DIR}/src/SplitByRefPosition.cpp ${PROJECT_SOURCE_DIR}/src/SplitByRefPosition.hpp
+        ${PROJECT_SOURCE_DIR}/src/ReferenceHandler.cpp ${PROJECT_SOURCE_DIR}/src/ReferenceHandler.hpp
+        ${PROJECT_SOURCE_DIR}/src/FolderHandler.cpp ${PROJECT_SOURCE_DIR}/src/FolderHandler.hpp
+        ${PROJECT_SOURCE_DIR}/src/VariantPath.cpp ${PROJECT_SOURCE_DIR}/src/VariantPath.hpp
+        ${PROJECT_SOURCE_DIR}/src/LoadVariantPaths.cpp ${PROJECT_SOURCE_DIR}/src/LoadVariantPaths.hpp
+        ${PROJECT_SOURCE_DIR}/src/PerPositionKmers.hpp
+        ${PROJECT_SOURCE_DIR}/src/ConcurrentQueue.hpp
+        ${PROJECT_SOURCE_DIR}/src/BinaryIO.hpp
+        ${PROJECT_SOURCE_DIR}/src/BinaryEventWriter.hpp
+        ${PROJECT_SOURCE_DIR}/src/BinaryEventReader.hpp
+        ${PROJECT_SOURCE_DIR}/src/BaseKmer.hpp
+        ${PROJECT_SOURCE_DIR}/src/EventDataHandler.hpp
+        ${PROJECT_SOURCE_DIR}/src/PositionsKmerDistributions.cpp
+        ${PROJECT_SOURCE_DIR}/src/PositionsKmerDistributions.hpp
+        ${PROJECT_SOURCE_DIR}/src/AmbigModel.hpp)
+
+target_link_libraries(embed_objlib PRIVATE ${nanopolish_LIB})
+target_include_directories(embed_objlib
+        PUBLIC
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/embed>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/fast5/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5>
+        )
+# shared libraries need PIC
+set_target_properties(embed_objlib PROPERTIES
+        POSITION_INDEPENDENT_CODE 1)
+#C_VISIBILITY_PRESET hidden
+#VISIBILITY_INLINES_HIDDEN ON)
+
+target_compile_features(embed_objlib PUBLIC cxx_std_11)
+target_compile_options(embed_objlib PRIVATE
+#        -Wall
+        #        -Werror
+        #        -Wno-error=maybe-uninitialized
+#        -Wconversion
+#        -Wno-unused-resultON
+#        -Wpedantic
+        $<$<CONFIG:RELEASE>:-g0>
+        $<$<CONFIG:RELEASE>:-O3>
+        $<$<CONFIG:DEBUG>:-O0>
+        $<$<CONFIG:DEBUG>:-ggdb3>
+        )
+target_compile_definitions(embed_objlib PRIVATE
+        $<$<CONFIG:RELEASE>:NDEBUG>
+        $<$<CONFIG:RELEASE>:BOOST_DISABLE_ASSERTS>
+        )
+
+############################################################################################################
+# Create library
+############################################################################################################
+add_library(embedlib $<TARGET_OBJECTS:embed_objlib>)
+target_link_libraries(embedlib PUBLIC
+        embed_objlib
+        ${embed_LINK_LIBRARIES}
+        ${nanopolish_LIB})
+set_target_properties(embedlib PROPERTIES
+        OUTPUT_NAME "embedlib"
+        PREFIX ""
+        DEFINE_SYMBOL ""
+        VERSION ${embed_fast5_VERSION}
+        SOVERSION ${embed_fast5_VERSION_MINOR})
+############################################################################################################
+# Create executable
+############################################################################################################
+add_executable(embed_main ${PROJECT_SOURCE_DIR}/src/main.cpp)
+if (NOT APPLE AND NOT BUILD_SHARED_LIBS)
+#    message(STATUS "not APPLE")
+    target_link_libraries(embed_main PUBLIC -static -static-libgcc -static-libstdc++)
+endif(NOT APPLE AND NOT BUILD_SHARED_LIBS)
+target_link_libraries(embed_main PUBLIC embedlib)
+target_include_directories(embed_main
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5)
+
+############################################################################################################
+# Python bindings
+############################################################################################################
+add_subdirectory(src/embed)
+############################################################################################################
+# Install
+############################################################################################################
+install(TARGETS embedlib embed_main embed_objlib
+        EXPORT embedTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                COMPONENT embed_RunTime
+                NAMELINK_COMPONENT embed_Development
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                COMPONENT embed_Development
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                COMPONENT embed_RunTime
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        )
+############################################################################################################
+install(FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/AmbigModel.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/AlignmentFile.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/AmbigModel.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/AssignmentFile.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/BaseKmer.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/BinaryEventReader.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/BinaryEventWriter.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/BinaryIO.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ConcurrentQueue.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/EmbedFast5.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/EmbedUtils.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/EventDataHandler.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/FilterAlignments.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/FolderHandler.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/LoadVariantPaths.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/MarginalizeVariants.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/MaxKmers.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/PerPositionKmers.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/PositionsFile.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/PositionsKmerDistributions.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ReferenceHandler.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/SignalAlignToBed.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/SplitByRefPosition.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/TopKmers.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/VariantCall.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/VariantPath.hpp
+        DESTINATION
+        ${CMAKE_INSTALL_INCLUDEDIR}/embed
+        )
+############################################################################################################
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+        cmake/embedConfigVersion.cmake
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY AnyNewerVersion
+)
+
+install(EXPORT embedTargets
+        FILE embedTargets.cmake
+        NAMESPACE embed::
+        DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}/cmake/embed
+        )
+
+configure_file(cmake/embedConfig.cmake
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake/embedConfig.cmake"
+        COPYONLY
+        )
+
+install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake/embedConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake/embedConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/embed
+        )
+############################################################################################################
+# export to package registry
+############################################################################################################
+set(CMAKE_EXPORT_PACKAGE_REGISTRY ON)
+export(PACKAGE embed)
+
+############################################################################################################
+# uninstall
+############################################################################################################
+if(NOT TARGET uninstall)
+    configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in
+            ${CMAKE_CURRENT_BINARY_DIR}/cmake/cmake_uninstall.cmake
+            IMMEDIATE @ONLY)
+    add_custom_target(uninstall
+            COMMAND ${CMAKE_COMMAND} -P
+            ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 endif()
-message(gtest_SOURCE_DIR: ${gtest_SOURCE_DIR})
-############################################################################################################
-# BOOST LIBRARY
-############################################################################################################
-#set(Boost_USE_STATIC_LIBS        ON)
-set(Boost_USE_MULTITHREADED      ON)
-#set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost 1.69.0 COMPONENTS system date_time filesystem context iostreams coroutine REQUIRED)
-message(Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS})
-message(Boost_LIBRARIES: ${Boost_LIBRARIES})
-include_directories(${Boost_INCLUDE_DIRS})
-############################################################################################################
-# ZLIB LIBRARY
-############################################################################################################
-find_package(ZLIB)
-if (ZLIB_FOUND)
-    include_directories(${ZLIB_INCLUDE_DIRS})
-endif()
-message(Zlib: ${ZLIB_LIBRARIES})
-############################################################################################################
-# DL LIBRARY
-############################################################################################################
-find_library(LIBDL_LIBRARY NAMES dl)
-message(LibDL: ${LIBDL_LIBRARY})
-############################################################################################################
-# M LIBRARY
-############################################################################################################
-find_library(LIBM_LIBRARY NAMES m)
-message(LibM: ${LIBM_LIBRARY})
-############################################################################################################
-# pthread LIBRARY
-############################################################################################################
-find_library(LIBPTHREAD_LIBRARY NAMES pthread)
-message(LibPthread: ${LIBPTHREAD_LIBRARY})
-############################################################################################################
-# BZ2 LIBRARY
-############################################################################################################
-find_library(LIBBZ2_LIBRARY NAMES bz2)
-message(LibBZ2: ${LIBBZ2_LIBRARY})
-############################################################################################################
-# CURL LIBRARY
-############################################################################################################
-find_library(LIBCURL_LIBRARY NAMES curl)
-message(LibCURL: ${LIBCURL_LIBRARY})
-############################################################################################################
-# LZMA LIBRARY
-############################################################################################################
-find_library(LIBLZMA_LIBRARY NAMES lzma)
-message(LibLZMA: ${LIBLZMA_LIBRARY})
-############################################################################################################
-# HDF LIBRARY
-############################################################################################################
-find_library(HDF5_LIBRARIES libhdf5.a
-        HINTS ${NANOPOLISH_HOME}/lib
-        ${CMAKE_INSTALL_PREFIX}/lib
-        /usr/lib
-        ${LIBDIR})
-
-find_path(HDF5_INCLUDE_DIRS hdf5.h
-        HINTS ${HDF5_LIBRARIES}
-        "${NANOPOLISH_HOME}/include"
-        ${CMAKE_INSTALL_PREFIX}/include
-        ${INCLUDEDIR}
-        /usr/include)
-message(HDF5_INCLUDE_DIRS: "${HDF5_INCLUDE_DIRS}")
-message(HDF5_LIBRARIES: "${HDF5_LIBRARIES}")
-include_directories(${HDF5_INCLUDE_DIRS})
-############################################################################################################
-# EIGEN LIBRARY
-############################################################################################################
-find_path(EIGEN3_INCLUDE_DIR Eigen HINTS
-        ${CMAKE_INSTALL_PREFIX}/include
-        ${NANOPOLISH_HOME}
-        ${INCLUDEDIR}
-        PATH_SUFFIXES eigen3 eigen)
-
-include_directories(${EIGEN3_INCLUDE_DIR})
-message(EIGEN3_INCLUDE_DIR: "${EIGEN3_INCLUDE_DIR}")
-############################################################################################################
-# HTSLIB LIBRARY
-############################################################################################################
-find_library(HTSLIB_LIBRARY NAMES libhts.a
-        HINTS "${NANOPOLISH_HOME}/htslib"
-        ${CMAKE_INSTALL_PREFIX}/lib
-        /usr/lib
-        ${LIBDIR})
-
-find_path(HTSLIB_INCLUDE_DIR htslib/hts.h
-        HINTS ${HTSLIB_LIBRARY}
-        ${CMAKE_INSTALL_PREFIX}/include
-        "${NANOPOLISH_HOME}/htslib"
-        /usr/include
-        ${INCLUDEDIR})
-
-message(HTSLIB_LIBRARIES: "${HTSLIB_LIBRARY}")
-message(HTSLIB_INCLUDE_DIRS: "${HTSLIB_INCLUDE_DIR}")
-include_directories(${HTSLIB_INCLUDE_DIRS})
-############################################################################################################
-## OPENSSL_LIB LIBRARY
-#############################################################################################################
-#find_library(OPENSSL_LIB libcrypto.a
-#        HINTS "${NANOPOLISH_HOME}/lib"
-#        ${CMAKE_INSTALL_PREFIX}/lib
-#        /usr/local/opt/openssl/lib
-#        /usr/lib
-#        ${LIBDIR})
-#message(OPENSSL_LIB: ${OPENSSL_LIB})
-#############################################################################################################
-### Curl LIBRARY
-##############################################################################################################
-#
-#find_library(LIBCURL_LIBRARY NAMES curl)
-#message(LIBCURL_LIB: ${LIBCURL_LIBRARY})
 
 ############################################################################################################
-# NANOPOLISH LIBRARY
-############################################################################################################
-set(NANOPOLISH_HOME ${CMAKE_SOURCE_DIR}/submodules/nanopolish)
-# nanopolish includes
-include_directories(${NANOPOLISH_HOME}/src)
-include_directories(${NANOPOLISH_HOME}/src/alignment)
-include_directories(${NANOPOLISH_HOME}/src/common)
-include_directories(${NANOPOLISH_HOME}/src/hmm)
-include_directories(${NANOPOLISH_HOME}/src/main)
-include_directories(${NANOPOLISH_HOME}/src/pore_model)
-include_directories(${NANOPOLISH_HOME}/src/test)
-include_directories(${NANOPOLISH_HOME}/src/thirdparty)
-include_directories(${NANOPOLISH_HOME}/src/thirdparty/scrappie)
-
-set(nanopolish_source
-        ${NANOPOLISH_HOME}/src/nanopolish_call_variants.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_call_methylation.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_extract.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_getmodel.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_haplotype.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_index.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_methyltrain.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_phase_reads.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_raw_loader.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_read_db.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_variant_db.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_train_poremodel_from_basecalls.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_squiggle_read.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_scorereads.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_polya_estimator.cpp
-        ${NANOPOLISH_HOME}/src/nanopolish_vcf2fasta.cpp
-        ${NANOPOLISH_HOME}/src/hmm/nanopolish_duration_model.cpp
-        ${NANOPOLISH_HOME}/src/hmm/nanopolish_profile_hmm.cpp
-        ${NANOPOLISH_HOME}/src/hmm/nanopolish_profile_hmm_r7.cpp
-        ${NANOPOLISH_HOME}/src/hmm/nanopolish_profile_hmm_r9.cpp
-        ${NANOPOLISH_HOME}/src/hmm/nanopolish_transition_parameters.cpp
-        ${NANOPOLISH_HOME}/src/common/fs_support.cpp
-        ${NANOPOLISH_HOME}/src/common/logsum.cpp
-        ${NANOPOLISH_HOME}/src/common/nanopolish_alphabet.cpp
-        ${NANOPOLISH_HOME}/src/common/nanopolish_bam_processor.cpp
-        ${NANOPOLISH_HOME}/src/common/nanopolish_bam_utils.cpp
-        ${NANOPOLISH_HOME}/src/common/nanopolish_common.cpp
-        ${NANOPOLISH_HOME}/src/common/nanopolish_fast5_io.cpp
-        ${NANOPOLISH_HOME}/src/common/nanopolish_iupac.cpp
-        ${NANOPOLISH_HOME}/src/common/nanopolish_klcs.cpp
-        ${NANOPOLISH_HOME}/src/common/nanopolish_variant.cpp
-        ${NANOPOLISH_HOME}/src/alignment/nanopolish_alignment_db.cpp
-        ${NANOPOLISH_HOME}/src/alignment/nanopolish_anchor.cpp
-        ${NANOPOLISH_HOME}/src/alignment/nanopolish_eventalign.cpp
-        ${NANOPOLISH_HOME}/src/pore_model/nanopolish_poremodel.cpp
-        ${NANOPOLISH_HOME}/src/pore_model/nanopolish_pore_model_set.cpp
-        ${NANOPOLISH_HOME}/src/pore_model/nanopolish_model_names.cpp
-        ${NANOPOLISH_HOME}/src/training_core.cpp
-        ${NANOPOLISH_HOME}/src/thirdparty/scrappie/scrappie_common.c
-        ${NANOPOLISH_HOME}/src/thirdparty/scrappie/event_detection.c
-        ${NANOPOLISH_HOME}/src/thirdparty/stdaln.c)
-
-set(NANOPOLISH ${NANOPOLISH_HOME}/src/main/nanopolish.cpp)
-set(NP_LIBRARY ${HDF5_LIBRARIES} ${HTSLIB_LIBRARY} ${LIBCURL_LIBRARY} ${ZLIB_LIBRARIES} ${LIBLZMA_LIBRARY} ${LIBBZ2_LIBRARY} ${ZLIB_LIBRARIES} ${LIBM_LIBRARY} ${LIBDL_LIBRARY} ${LIBPTHREAD_LIBRARY})
-# nanopolish main
-#add_executable(nanopolish ${NANOPOLISH} ${nanopolish_source})
-#target_link_libraries(nanopolish ${NP_LIBRARY})
-############################################################################################################
-# my library
-set(EMBED_LIBRARY ${Boost_LIBRARIES} ${NP_LIBRARY})
-# my includes
-include_directories(${CMAKE_SOURCE_DIR}/src)
-include_directories(${CMAKE_SOURCE_DIR}/fast5/include)
-include_directories(${CMAKE_SOURCE_DIR}/fast5/include/fast5)
-# my sources
-set(TEST_CPP tests/allTests.cpp)
-set(MAIN_CPP src/main.cpp)
-set(SOURCE
-        src/EmbedFast5.cpp src/EmbedFast5.hpp
-        src/TopKmers.cpp src/TopKmers.hpp
-        src/EmbedUtils.cpp src/EmbedUtils.hpp
-        src/SignalAlignToBed.cpp src/SignalAlignToBed.hpp
-        src/PositionsFile.cpp src/PositionsFile.hpp
-        src/AlignmentFile.cpp src/AlignmentFile.hpp
-        src/FilterAlignments.cpp src/FilterAlignments.hpp
-        src/AssignmentFile.cpp src/AssignmentFile.hpp
-        src/MaxKmers.cpp src/MaxKmers.hpp
-        src/MarginalizeVariants.cpp src/MarginalizeVariants.hpp
-        src/VariantCall.cpp src/VariantCall.hpp
-        src/FullSaEvent.cpp src/FullSaEvent.hpp
-        src/SplitByRefPosition.cpp src/SplitByRefPosition.hpp
-        src/PerPositonKmers.cpp src/PerPositonKmers.hpp
-        src/ReferenceHandler.cpp src/ReferenceHandler.hpp
-        src/FolderHandler.cpp src/FolderHandler.hpp
-        src/VariantPath.cpp src/VariantPath.hpp
-        src/LoadVariantPaths.cpp src/LoadVariantPaths.hpp)
-############################################################################################################
-# main
-add_executable(embed_main ${MAIN_CPP} ${nanopolish_source} ${SOURCE})
-target_link_libraries(embed_main ${EMBED_LIBRARY})
-# pybind
-add_subdirectory(submodules/pybind11)
-pybind11_add_module(bindings src/embed/PythonBindings.cpp ${nanopolish_source} ${SOURCE})
-target_link_libraries(bindings PRIVATE ${EMBED_LIBRARY} ${HDF5_LIBRARIES})
-
-############################################################################################################
-
 # testing
-add_executable(test_embed ${TEST_CPP} ${SOURCE} ${nanopolish_source})
-target_link_libraries(test_embed ${HDF5_LIBRARIES} gtest_main gmock_main ${EMBED_LIBRARY})
+############################################################################################################
 enable_testing()
-# cpp tests
-add_test(cpp_tests test_embed ${CMAKE_SOURCE_DIR})
-# python tests
-message(PYTHON_EXECUTABLE: "${PYTHON_EXECUTABLE}")
-add_test(NAME test_split_multi_read COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test_split_multi_read.py
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-add_test(NAME test_embedding_helpers COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test_embedding_helpers.py
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_subdirectory(tests)
 
-# make check command for testing
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)

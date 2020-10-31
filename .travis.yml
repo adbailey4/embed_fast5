@@ -19,8 +19,7 @@ matrix:
     - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 before_install:
 - sudo apt-get update -qq
-- sudo apt-get install build-essential autotools-dev autoconf curl libbz2-dev zlib1g-dev
-  liblzma-dev libeigen3-dev -y
+- sudo apt-get install autoconf wget git curl build-essential libbz2-dev zlib1g-dev liblzma-dev libeigen3-dev libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libcurl4-openssl-dev ca-certificates libhdf5-dev -y
 - sudo apt-get update
 # cmake
 - wget https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.sh --no-check-certificate && sh cmake-3.17.0-Linux-x86_64.sh --prefix=$HOME --skip-license

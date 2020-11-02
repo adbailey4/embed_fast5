@@ -4,7 +4,7 @@ services:
 env:
   global:
     - REGISTRY_USER=travisbot
-    secure: GXeg6z5eepBQoPYhav6zybXK6i8Ptn19tTKElBirvShW6i9hzhTUJ8H0nmXBziCHnGyGSQCVBUkL3CK7mlrkbBu2qCj+Fe6rXxnqjhrEtfK0SMntXXiV9EcvGiyf8Q/+YG/i0WN5BE8IYkJ+SuHtW0G7PFyg69XEbvleCJaQthK7aj0YvtCeooBozIhVTCIdUJZxWhVIUJNpfWy2BdYmWksqUrmef8NwnJhPNDeQWOqajK15anB2nuytscN54GQFlOAkXfaIvBbSr5+7oStwFJ6Kpcspc6ZlrDZZpp/kM3Q7rRmsff3992NFKtyzOWPQqGghnFqI/R9R2xVdOtFkmLtfdHKQBIISrvE+cDiDbs2VKfsUX5RXflPQoVKu2Wv4Ne97ErK6KiP8w2woiXbFNBHiFocMlE2Vz7NxVvIT6rqutEaj+SFrv0O1QbeLBLd1G7oZQVrwooEJlQtfPwpw/cWO/4rZfQprhSmjTb2+c5EYcr48es2gGl/TEjz8urIGVh/81DL6QxJVK2ypwh04oPCtMFiLQvsDbKQFwm0ZYDGn2AcMvJCJtRHlD1KnW63zUULb+yfJTqx25hSQ6NxM6LP8MrzbTBjJUzJd1Z/xfVi+XWxiYNQNQmDc7CZjVsSSRgo3vzCbbpcVji9gNssfwKphbcRaOT9cMCCGGC9iLfA=
+    - secure: GXeg6z5eepBQoPYhav6zybXK6i8Ptn19tTKElBirvShW6i9hzhTUJ8H0nmXBziCHnGyGSQCVBUkL3CK7mlrkbBu2qCj+Fe6rXxnqjhrEtfK0SMntXXiV9EcvGiyf8Q/+YG/i0WN5BE8IYkJ+SuHtW0G7PFyg69XEbvleCJaQthK7aj0YvtCeooBozIhVTCIdUJZxWhVIUJNpfWy2BdYmWksqUrmef8NwnJhPNDeQWOqajK15anB2nuytscN54GQFlOAkXfaIvBbSr5+7oStwFJ6Kpcspc6ZlrDZZpp/kM3Q7rRmsff3992NFKtyzOWPQqGghnFqI/R9R2xVdOtFkmLtfdHKQBIISrvE+cDiDbs2VKfsUX5RXflPQoVKu2Wv4Ne97ErK6KiP8w2woiXbFNBHiFocMlE2Vz7NxVvIT6rqutEaj+SFrv0O1QbeLBLd1G7oZQVrwooEJlQtfPwpw/cWO/4rZfQprhSmjTb2+c5EYcr48es2gGl/TEjz8urIGVh/81DL6QxJVK2ypwh04oPCtMFiLQvsDbKQFwm0ZYDGn2AcMvJCJtRHlD1KnW63zUULb+yfJTqx25hSQ6NxM6LP8MrzbTBjJUzJd1Z/xfVi+XWxiYNQNQmDc7CZjVsSSRgo3vzCbbpcVji9gNssfwKphbcRaOT9cMCCGGC9iLfA=
     - BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
 
 notifications:
@@ -21,10 +21,10 @@ jobs:
 
 before_install:
 #  docker
-- curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-- sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-- sudo apt-get update
-- sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - sudo apt-get update
+  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
 
 before_script:
   - docker pull ucscbailey/embed || true

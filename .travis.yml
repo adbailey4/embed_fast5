@@ -17,8 +17,6 @@ jobs:
   include:
     - os: linux
       dist: bionic
-    - os: linux
-      dist: xenial
 
 
 before_install:
@@ -29,6 +27,7 @@ before_install:
   - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
 
 before_script:
+  - docker --version
   - docker pull ucscbailey/embed || true
 script:
   - cp Docker/Dockerfile .

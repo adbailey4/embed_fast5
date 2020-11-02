@@ -35,10 +35,10 @@ script:
   - docker run ucscbailey/embed
 
 before_deploy:
-  - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
+  - echo "$REGISTRY_PASS" | docker login --username $REGISTRY_USER --password-stdin
 deploy:
   provider: script
-  script: docker push ucscbailey/embed
+  script: docker push ucscbailey/embed:$BRANCH
   on:
     branch: travis_docker_integration
 

@@ -28,12 +28,13 @@ before_install:
 
 before_script:
   - docker --version
+  - docker version -f '{{.Server.Experimental}}'
   - docker pull ucscbailey/embed || true
 script:
   - cp Docker/Dockerfile .
-  - docker build --progress=plain --pull --cache-from ucscbailey/embed --tag ucscbailey/embed .
-  - docker run ucscbailey/embed
-
+  - DOCKER_BUILDKIT=1 docker build --progress=plain --pull --cache-from ucscbailey/embed:$BRANCH --tag ucscbailey/embed:$BRANCH .
+  - docker run ucscbailey/embed:$BRANCH
+  - rm Dockerfile
 before_deploy:
   - echo "$REGISTRY_PASS" | docker login --username $REGISTRY_USER --password-stdin
 deploy:

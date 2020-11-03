@@ -28,11 +28,11 @@ before_install:
   - echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
   - sudo service docker restart
   - 'if [ "${BRANCH}" = "travis_docker_integration" ]; then
-      echo "$BRANCH"
-      export BRANCH="latest"
-      echo "$BRANCH"
+      echo "$BRANCH";
+      export BRANCH="latest";
+      echo "$BRANCH";
     else
-      echo "Strings are not equal."
+      echo "Strings are not equal.";
     fi'
 
 before_script:

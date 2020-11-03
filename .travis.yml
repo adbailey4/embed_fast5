@@ -27,13 +27,13 @@ before_install:
   - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
   - echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
   - sudo service docker restart
-  - 'if [ "${BRANCH}" = "travis_docker_integration" ]; then
-      echo "$BRANCH";
+  - 'if [ "${BRANCH}" = "master" ]; then
       export BRANCH="latest";
-      echo "$BRANCH";
     else
       echo "Strings are not equal.";
     fi'
+  - echo BRANCH "$BRANCH"
+
 
 before_script:
   - docker --version

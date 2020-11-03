@@ -18,3 +18,4 @@ Docker/run_docker.sh
 .eggs/
 test_event/
 tests/test_files/test_binary_event/
+cmake-build*

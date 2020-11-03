@@ -112,6 +112,12 @@ class PostInstallCommand(install):
         target = os.path.join(self.install_scripts, "embed_main")
         if os.path.isfile(target):
             os.remove(target)
+        self.copy_file(source, target)
+
+        source = os.path.join(os.path.dirname(os.path.abspath(__file__)), build_temp, "tests/test_embed")
+        target = os.path.join(self.install_scripts, "test_embed")
+        if os.path.isfile(target):
+            os.remove(target)
 
         self.copy_file(source, target)
 

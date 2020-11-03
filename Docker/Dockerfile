@@ -52,10 +52,10 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # build static so we need to tranfser less shared dependencies
 ENV BUILD_SHARED_LIBS="OFF"
 
-RUN python3.7 -m pip -q install -v .
 #RUN python3.7 -m pip install -v . 2>&1 | grep -Ev '__text|__const_coal|note: change section name|__DATA|__datacoal_nt|.~~~~~~~.' > output2.txt
-RUN pip install pytest
-RUN /root/embed_fast5/tests/bin/test_embed /root/embed_fast5
+RUN python3.7 -m pip -q install pytest wheel
+RUN python3.7 -m pip install .
+
 RUN pytest tests/
 
 FROM ubuntu:18.04 as runtime

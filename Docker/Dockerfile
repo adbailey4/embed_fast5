@@ -55,8 +55,7 @@ ENV BUILD_SHARED_LIBS="OFF"
 #RUN python3.7 -m pip install -v . 2>&1 | grep -Ev '__text|__const_coal|note: change section name|__DATA|__datacoal_nt|.~~~~~~~.' > output2.txt
 RUN python3.7 -m pip -q install pytest wheel
 RUN python3.7 -m pip install .
-
-RUN pytest tests/
+RUN pytest
 
 FROM ubuntu:18.04 as runtime
 RUN apt-get -qq update && \

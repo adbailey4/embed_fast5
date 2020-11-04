@@ -6,6 +6,7 @@ env:
     - REGISTRY_USER=travisbot
     - secure: GXeg6z5eepBQoPYhav6zybXK6i8Ptn19tTKElBirvShW6i9hzhTUJ8H0nmXBziCHnGyGSQCVBUkL3CK7mlrkbBu2qCj+Fe6rXxnqjhrEtfK0SMntXXiV9EcvGiyf8Q/+YG/i0WN5BE8IYkJ+SuHtW0G7PFyg69XEbvleCJaQthK7aj0YvtCeooBozIhVTCIdUJZxWhVIUJNpfWy2BdYmWksqUrmef8NwnJhPNDeQWOqajK15anB2nuytscN54GQFlOAkXfaIvBbSr5+7oStwFJ6Kpcspc6ZlrDZZpp/kM3Q7rRmsff3992NFKtyzOWPQqGghnFqI/R9R2xVdOtFkmLtfdHKQBIISrvE+cDiDbs2VKfsUX5RXflPQoVKu2Wv4Ne97ErK6KiP8w2woiXbFNBHiFocMlE2Vz7NxVvIT6rqutEaj+SFrv0O1QbeLBLd1G7oZQVrwooEJlQtfPwpw/cWO/4rZfQprhSmjTb2+c5EYcr48es2gGl/TEjz8urIGVh/81DL6QxJVK2ypwh04oPCtMFiLQvsDbKQFwm0ZYDGn2AcMvJCJtRHlD1KnW63zUULb+yfJTqx25hSQ6NxM6LP8MrzbTBjJUzJd1Z/xfVi+XWxiYNQNQmDc7CZjVsSSRgo3vzCbbpcVji9gNssfwKphbcRaOT9cMCCGGC9iLfA=
     - BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
+    - REPO=ucscbailey/embed
 
 notifications:
   slack:
@@ -38,18 +39,18 @@ before_install:
 before_script:
   - docker --version
   - docker version -f '{{.Server.Experimental}}'
-  - docker pull ucscbailey/embed || true
+  - docker pull $REPO || true
 script:
   - cp Docker/Dockerfile .
   - export DOCKER_BUILDKIT=1
-  - docker build --progress=plain --pull --cache-from ucscbailey/embed:$BRANCH --tag ucscbailey/embed:$BRANCH .
-  - docker run ucscbailey/embed:$BRANCH
+  - docker build --progress=plain --pull --cache-from $REPO:$BRANCH --tag $REPO:$BRANCH .
+  - docker run $REPO:$BRANCH
   - rm Dockerfile
 before_deploy:
   - echo "$REGISTRY_PASS" | docker login --username $REGISTRY_USER --password-stdin
 deploy:
   provider: script
-  script: docker push ucscbailey/embed:$BRANCH
+  script: docker push $REPO:$BRANCH
   on:
-    branch: travis_docker_integration
+    all_branches: true
 

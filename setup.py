@@ -50,6 +50,25 @@ def copy_test_file(src_file):
     copymode(src_file, dest_file)
 
 
+def copy_test_file2(src_file, dest_dir):
+    """
+    Copy ``src_file`` to `dest_dir` directory, ensuring parent directory
+    exists. Messages like `creating directory /path/to/package` and
+    `copying directory /src/path/to/package -> path/to/package` are
+    displayed on standard output. Adapted from scikit-build.
+    """
+    # Create directory if needed
+    if dest_dir != "" and not os.path.exists(dest_dir):
+        print("creating directory {}".format(dest_dir))
+        os.makedirs(dest_dir)
+
+    # Copy file
+    dest_file = os.path.join(dest_dir, os.path.basename(src_file))
+    print("copying {} -> {}".format(src_file, dest_file))
+    copyfile(src_file, dest_file)
+    copymode(src_file, dest_file)
+
+
 class CMakeBuild(build_ext):
     def run(self):
         try:
@@ -68,7 +87,7 @@ class CMakeBuild(build_ext):
 
     def build_extension(self, ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        shared_opt = "ON"
+        shared_opt = "OFF"
         if "BUILD_SHARED_LIBS" in os.environ:
             shared_opt = os.environ["BUILD_SHARED_LIBS"]
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
@@ -95,6 +114,7 @@ class CMakeBuild(build_ext):
             os.makedirs(self.build_temp)
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
+        # subprocess.check_call(['cmake', '--install', '.'], cwd=self.build_temp)
         # Copy *_test file to tests directory
         embed_cpp_tests = os.path.join(self.build_temp, "tests", 'test_embed')
         embed_main = os.path.join(self.build_temp, 'embed_main')

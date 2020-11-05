@@ -1,3 +1,4 @@
+# syntax = docker/dockerfile:1.0-experimental
 FROM ubuntu:18.04 AS build
 MAINTAINER Andrew Bailey, andbaile@ucsc.edu
 
@@ -41,21 +42,24 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3.7 get-pip.py && \
     python3.7 -m pip -q install setuptools cython virtualenv
 
-WORKDIR /root/
-#RUN git clone --recursive https://github.com/adbailey4/embed_fast5.git --branch docker
-COPY . /root/embed_fast5
-WORKDIR /root/embed_fast5
 
 ENV VIRTUAL_ENV=/opt/venv
 RUN python3.7 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # build static so we need to tranfser less shared dependencies
-ENV BUILD_SHARED_LIBS="OFF"
+RUN python3.7 -m pip -q install wheel
 
-#RUN python3.7 -m pip install -v . 2>&1 | grep -Ev '__text|__const_coal|note: change section name|__DATA|__datacoal_nt|.~~~~~~~.' > output2.txt
-RUN python3.7 -m pip -q install pytest wheel
-RUN python3.7 -m pip install .
-RUN pytest
+ENV BUILD_SHARED_LIBS="OFF"
+COPY . /root/embed_fast5
+RUN cd /root/embed_fast5 && \
+    python3.7 -m pip install . && \
+    mkdir /opt/embed_fast5 && \
+    cp /root/embed_fast5/Docker/run_wrapper.sh /opt/embed_fast5/
+
+#RUN --mount=type=bind,source=.,target=/root/embed_fast5,rw cd /root/embed_fast5 && \
+#    python3.7 -m pip install . && \
+#    mkdir /opt/embed_fast5 && \
+#    cp /root/embed_fast5/Docker/run_wrapper.sh /opt/embed_fast5/
 
 FROM ubuntu:18.04 as runtime
 RUN apt-get -qq update && \
@@ -64,8 +68,7 @@ RUN apt-get -qq update && \
     apt-get -qq purge
 WORKDIR /home/
 
-COPY --from=build /root/embed_fast5/tests /root/embed_fast5/tests
-COPY --from=build /root/embed_fast5/Docker/run_wrapper.sh /opt/embed_fast5/
+COPY --from=build /opt/embed_fast5 /opt/embed_fast5/
 COPY --from=build /opt/venv /opt/venv
 
 ENV VIRTUAL_ENV=/opt/venv
@@ -75,3 +78,13 @@ RUN mkdir /data
 WORKDIR /data
 
 ENTRYPOINT ["sh", "/opt/embed_fast5/run_wrapper.sh"]
+
+FROM runtime as test
+RUN apt-get -qq install -y --no-install-recommends python3-distutils
+RUN python3.7 -m pip install pytest
+#RUN --mount=type=bind,source=.,target=/root/embed_fast5,rw cd /root/embed_fast5 && \
+#    pytest
+COPY . /root/embed_fast5
+RUN cd /root/embed_fast5 && \
+    pytest
+WORKDIR /data

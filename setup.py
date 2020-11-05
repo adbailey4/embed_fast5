@@ -50,6 +50,25 @@ def copy_test_file(src_file):
     copymode(src_file, dest_file)
 
 
+def copy_test_file2(src_file, dest_dir):
+    """
+    Copy ``src_file`` to `dest_dir` directory, ensuring parent directory
+    exists. Messages like `creating directory /path/to/package` and
+    `copying directory /src/path/to/package -> path/to/package` are
+    displayed on standard output. Adapted from scikit-build.
+    """
+    # Create directory if needed
+    if dest_dir != "" and not os.path.exists(dest_dir):
+        print("creating directory {}".format(dest_dir))
+        os.makedirs(dest_dir)
+
+    # Copy file
+    dest_file = os.path.join(dest_dir, os.path.basename(src_file))
+    print("copying {} -> {}".format(src_file, dest_file))
+    copyfile(src_file, dest_file)
+    copymode(src_file, dest_file)
+
+
 class CMakeBuild(build_ext):
     def run(self):
         try:
@@ -68,7 +87,7 @@ class CMakeBuild(build_ext):
 
     def build_extension(self, ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        shared_opt = "ON"
+        shared_opt = "OFF"
         if "BUILD_SHARED_LIBS" in os.environ:
             shared_opt = os.environ["BUILD_SHARED_LIBS"]
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
@@ -95,6 +114,7 @@ class CMakeBuild(build_ext):
             os.makedirs(self.build_temp)
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
+        # subprocess.check_call(['cmake', '--install', '.'], cwd=self.build_temp)
         # Copy *_test file to tests directory
         embed_cpp_tests = os.path.join(self.build_temp, "tests", 'test_embed')
         embed_main = os.path.join(self.build_temp, 'embed_main')
@@ -105,6 +125,7 @@ class CMakeBuild(build_ext):
 
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
+
     def run(self):
         install.run(self)
         build_temp = self.build_lib.replace("lib", "temp")
@@ -112,8 +133,23 @@ class PostInstallCommand(install):
         target = os.path.join(self.install_scripts, "embed_main")
         if os.path.isfile(target):
             os.remove(target)
+        self.copy_file(source, target)
+
+        source = os.path.join(os.path.dirname(os.path.abspath(__file__)), build_temp, "tests/test_embed")
+        target = os.path.join(self.install_scripts, "test_embed")
+        if os.path.isfile(target):
+            os.remove(target)
 
         self.copy_file(source, target)
+
+
+def get_version():
+    try:
+        content = open("CMakeLists.txt", "r").read()
+        version = re.search(r'project\(embed_fast5 VERSION (.*)\)', content).group(1)
+        return version.strip()
+    except RuntimeError:
+        return None
 
 
 def main():
@@ -121,7 +157,7 @@ def main():
     start = timer()
     setup(
         name="embed",
-        version='0.0.5',
+        version=get_version(),
         description='Embed fast5 with event table from nanopolish model',
         url="https://github.com/adbailey4/embed_fast5",
         author='Andrew Bailey',
@@ -133,7 +169,6 @@ def main():
         scripts=["src/scripts/split_multi_fast5.py", "src/scripts/embed_fast5s.py"],
         author_email='andbaile@ucsc.com',
         install_requires=['py3helpers[seq_tools]>=0.4.0',
-                          'pandas>=0.24.2',
                           'h5py>=2.9.0'],
         zip_safe=False,
         test_suite='tests'

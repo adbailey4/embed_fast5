@@ -22,10 +22,7 @@ class CppTests(unittest.TestCase):
 
     def test_cpp(self):
         print("\n\nTesting C++ code...")
-        test_path = os.path.join(self.HOME, 'tests/bin', 'test_embed')
-        print()
-        subprocess.check_call([test_path, self.HOME])
-        print()
+        subprocess.check_call(["test_embed", self.HOME])
         self.assertTrue(True)
 
 

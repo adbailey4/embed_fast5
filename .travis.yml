@@ -43,7 +43,7 @@ before_script:
 script:
   - cp Docker/Dockerfile .
   - export DOCKER_BUILDKIT=1
-  - docker build --pull --cache-from $REPO:$BRANCH --tag $REPO:$BRANCH .
+  - docker build -q --cache-from $REPO:$BRANCH --tag $REPO:$BRANCH .
   - docker run $REPO:$BRANCH
   - rm Dockerfile
 before_deploy:

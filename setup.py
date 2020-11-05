@@ -125,6 +125,7 @@ class CMakeBuild(build_ext):
 
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
+
     def run(self):
         install.run(self)
         build_temp = self.build_lib.replace("lib", "temp")
@@ -142,12 +143,21 @@ class PostInstallCommand(install):
         self.copy_file(source, target)
 
 
+def get_version():
+    try:
+        content = open("CMakeLists.txt", "r").read()
+        version = re.search(r'project\(embed_fast5 VERSION (.*)\)', content).group(1)
+        return version.strip()
+    except RuntimeError:
+        return None
+
+
 def main():
     """Main docstring"""
     start = timer()
     setup(
         name="embed",
-        version='0.0.5',
+        version=get_version(),
         description='Embed fast5 with event table from nanopolish model',
         url="https://github.com/adbailey4/embed_fast5",
         author='Andrew Bailey',

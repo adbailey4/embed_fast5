@@ -121,30 +121,34 @@ void get_kmer_distributions_by_position(const string &positions_file_path,
                   "Reference position does not match positions file. Check both.\ncontig:" + line.contig +
                   "\n" + "strand:" + line.strand + "\n" + "position:" + to_string(line.position) + "\n" +
                   "change_from:" + line.change_from + "\n" + "ref base:" + ref_pos + "\n");
-    for (uint64_t i=0; i < kmer_length; ++i){
-      vector<pair<string, vector<uint64_t>>> data;
-      Position& pos = edh.get_position(line.contig, line.strand, nanopore_strand, line.position-i);
-      set<string> kmers = pos.get_kmer_strings();
-      set<string> canonical_kmers = am.get_canonical_kmers(kmers);
-      kmers.insert(canonical_kmers.begin(), canonical_kmers.end());
+    try{
+      for (uint64_t i=0; i < kmer_length; ++i){
+        vector<pair<string, vector<uint64_t>>> data;
+        Position& pos = edh.get_position(line.contig, line.strand, nanopore_strand, line.position-i);
+        set<string> kmers = pos.get_kmer_strings();
+        set<string> canonical_kmers = am.get_canonical_kmers(kmers);
+        kmers.insert(canonical_kmers.begin(), canonical_kmers.end());
 
-      for (auto &k: kmers){
-        if (edh.has_kmer(k)) {
-          Kmer& kmer = edh.get_kmer(k);
-          kmer_hist = kmer.get_hist(min, max, size, min_prob_threshold);
-          data.push_back(make_pair(k, kmer_hist));
-          for (auto &pos_k: kmer.pos_kmer_map){
-            ContigStrandPosition csp = kmer.split_pos_kmer_map_key(pos_k.first);
-            data.push_back(make_pair(csp.contig+"_"+csp.strand+"_"+to_string(csp.position)+"_"+k, pos_k.second->get_hist(min, max, size, min_prob_threshold)));
+        for (auto &k: kmers){
+          if (edh.has_kmer(k)) {
+            Kmer& kmer = edh.get_kmer(k);
+            kmer_hist = kmer.get_hist(min, max, size, min_prob_threshold);
+            data.push_back(make_pair(k, kmer_hist));
+            for (auto &pos_k: kmer.pos_kmer_map){
+              ContigStrandPosition csp = kmer.split_pos_kmer_map_key(pos_k.first);
+              data.push_back(make_pair(csp.contig+"_"+csp.strand+"_"+to_string(csp.position)+"_"+k, pos_k.second->get_hist(min, max, size, min_prob_threshold)));
+            }
           }
         }
+        pos_file = pos_specific_dir / path(line.contig+"_"+line.strand+"_"+to_string(line.position-i)+".csv");
+        write_plot_kmer_dist_file(pos_file, min, max, size, min_prob_threshold, data);
       }
-      pos_file = pos_specific_dir / path(line.contig+"_"+line.strand+"_"+to_string(line.position-i)+".csv");
-      write_plot_kmer_dist_file(pos_file, min, max, size, min_prob_threshold, data);
-    }
 //    prev_contig = line.contig;
 //    prev_pos = line.position;
 //    prev_strand = line.strand;
+    } catch(std::runtime_error& e){
+      cout << e.what() << "\n";
+    }
   }
 }
 

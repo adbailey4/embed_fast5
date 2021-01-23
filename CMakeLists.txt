@@ -20,7 +20,7 @@ endif()
 # add cmake dir
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 #message("CMAKE_MODULE_PATH Prefix: ${CMAKE_MODULE_PATH}")
-set(CMAKE_INSTALL_PREFIX .)
+#set(CMAKE_INSTALL_PREFIX .)
 message(STATUS "CMakeInstall Prefix: ${CMAKE_INSTALL_PREFIX}")
 
 ############################################################################################################
@@ -168,6 +168,29 @@ install(FILES
         DESTINATION
         ${CMAKE_INSTALL_INCLUDEDIR}/embed
         )
+
+install(FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5.hpp
+        DESTINATION
+        ${CMAKE_INSTALL_INCLUDEDIR}
+        )
+install(FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5/Bit_Packer.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5/cwmap.fast5_ed_len_1.inl
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5/cwmap.fast5_ed_skip_1.inl
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5/cwmap.fast5_ev_move_1.inl
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5/cwmap.fast5_ev_rel_skip_1.inl
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5/cwmap.fast5_fq_bp_1.inl
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5/cwmap.fast5_fq_qv_1.inl
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5/cwmap.fast5_rw_1.inl
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5/fast5_version.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5/hdf5_tools.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5/Huffman_Packer.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/fast5/include/fast5/logger.hpp
+        DESTINATION
+        ${CMAKE_INSTALL_INCLUDEDIR}/fast5/
+        )
+
 ############################################################################################################
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(

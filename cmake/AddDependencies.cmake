@@ -32,7 +32,7 @@ find_package(Boost 1.65.1 COMPONENTS system date_time filesystem context iostrea
 ############################################################################################################
 # NANOPOLISH LIBRARY
 ############################################################################################################
-#find_package(nanopolish 0.11.1 COMPONENTS nanopolish_objlib nanopolish_static_lib nanopolishlib)
+find_package(nanopolish 0.11.1 COMPONENTS nanopolish_objlib nanopolish_static_lib nanopolishlib)
 if (NOT nanopolish_FOUND)
     message(STATUS "adding nanopolish subdirectory:")
     add_subdirectory(${PROJECT_SOURCE_DIR}/submodules/nanopolish)

@@ -3,6 +3,7 @@ message(CHECK_START "Finding Embed Dependencies")
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 ############################################################################################################
 get_filename_component(embed_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+# TODO CONF_INCLUDE_DIRS is not working
 set(embed_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
 message("${embed_INCLUDE_DIRS}")
 include(CMakeFindDependencyMacro)

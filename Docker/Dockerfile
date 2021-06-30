@@ -6,6 +6,7 @@ ENV VIRTUAL_ENV=/opt/venv
 RUN python3.7 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # build static so we need to tranfser less shared dependencies
+RUN python3.7 -m pip install --upgrade pip
 RUN python3.7 -m pip -q install wheel
 
 ENV BUILD_SHARED_LIBS="OFF"

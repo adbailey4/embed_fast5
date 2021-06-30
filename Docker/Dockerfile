@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.0-experimental
-FROM baileybase/embed_dependencies:v0.0.1 AS build
+FROM baileybase/embed_dependencies:v0.0.2 AS build
 MAINTAINER Andrew Bailey, andbaile@ucsc.edu
 
 ENV VIRTUAL_ENV=/opt/venv

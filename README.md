@@ -9,8 +9,9 @@ Embed fast5 signal files with a correctly formatted kmer to event alignment give
 * Eigen (`sudo apt-get install libeigen3-dev`)
 * HTSLIB >= 1.9
 * cmake >= 3.15
+
 ### Install instructions  
-* `git clone https://github.com/adbailey4/embed_fast5.git` 
+* `git clone --recursive https://github.com/adbailey4/embed_fast5.git` 
 * `cd embed_fast5`
 * `pip install -e .`
 * `pytest`

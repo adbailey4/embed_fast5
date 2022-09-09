@@ -168,7 +168,7 @@ def main():
         cmdclass=dict(build_ext=CMakeBuild, install=PostInstallCommand),
         scripts=["src/scripts/split_multi_fast5.py", "src/scripts/embed_fast5s.py"],
         author_email='andbaile@ucsc.com',
-        install_requires=['py3helpers[seq_tools]>=0.4.0',
+        install_requires=['py3helpers>=1.0.0',
                           'h5py>=2.9.0'],
         zip_safe=False,
         test_suite='tests'
